@@ -11,9 +11,9 @@ class FamilyModel {
 
   factory FamilyModel.fromJson(Map<String, dynamic> json) {
     return FamilyModel(
-      id: json['id'] as int,
-      name: json['name'] as String,
-      inviteCode: json['invite_code'] as String,
+      id: int.tryParse(json['id'].toString()) ?? 0,
+      name: (json['name'] as String?) ?? 'Keluarga',
+      inviteCode: (json['invite_code'] as String?) ?? '',
     );
   }
 

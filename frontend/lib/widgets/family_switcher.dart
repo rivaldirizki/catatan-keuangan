@@ -94,12 +94,12 @@ class FamilySwitcher extends StatelessWidget {
           GestureDetector(
             onTap: () {
               HapticFeedback.lightImpact();
-              if (!hasFamily) {
-                _showFamilySetupSheet(context);
-              } else if (!isFamily) {
+              if (!isFamily) {
                 finance.toggleFamilyView(true);
-              } else {
+              } else if (hasFamily) {
                 _showFamilyDetailsSheet(context);
+              } else {
+                _showFamilySetupSheet(context);
               }
             },
             child: AnimatedContainer(

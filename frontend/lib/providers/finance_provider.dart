@@ -5,6 +5,7 @@ import '../models/wallet_model.dart';
 import '../models/transaction_model.dart';
 import '../models/saving_model.dart';
 import '../models/debt_model.dart';
+import '../models/family_model.dart';
 
 class FinanceProvider extends ChangeNotifier {
   final ApiClient apiClient;
@@ -18,6 +19,7 @@ class FinanceProvider extends ChangeNotifier {
   List<SavingModel> _savings = [];
   List<DebtModel> _debts = [];
   List<Map<String, dynamic>> _familyMembers = [];
+  FamilyModel? _currentFamily;
 
   int _totalBalance = 0;
   int _totalIncome = 0;
@@ -35,6 +37,7 @@ class FinanceProvider extends ChangeNotifier {
   List<SavingModel> get savings => _savings;
   List<DebtModel> get debts => _debts;
   List<Map<String, dynamic>> get familyMembers => _familyMembers;
+  FamilyModel? get currentFamily => _currentFamily;
 
   int get totalBalance => _totalBalance;
   int get totalIncome => _totalIncome;
@@ -88,16 +91,29 @@ class FinanceProvider extends ChangeNotifier {
         _debts = debtsData.map((d) => DebtModel.fromJson(d as Map<String, dynamic>)).toList();
       }
 
-      // 6. Family members if family view
+      // 6. Family members and family info if family view
       if (_isFamilyView) {
         try {
           final famData = await apiClient.get(ApiConstants.familyCurrent);
-          if (famData is Map<String, dynamic> && famData['members'] is List) {
-            _familyMembers = (famData['members'] as List).cast<Map<String, dynamic>>();
+          if (famData is Map<String, dynamic>) {
+            if (famData['family'] != null && famData['family'] is Map<String, dynamic>) {
+              _currentFamily = FamilyModel.fromJson(famData['family'] as Map<String, dynamic>);
+            } else {
+              _currentFamily = null;
+            }
+            if (famData['members'] is List) {
+              _familyMembers = (famData['members'] as List).cast<Map<String, dynamic>>();
+            } else {
+              _familyMembers = [];
+            }
           }
-        } catch (_) {}
+        } catch (_) {
+          _currentFamily = null;
+          _familyMembers = [];
+        }
       } else {
         _familyMembers = [];
+        _currentFamily = null;
       }
 
       _isLoading = false;

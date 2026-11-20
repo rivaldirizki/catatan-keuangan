@@ -41,14 +41,20 @@ export const SavingService = {
   },
 
   async getGoals(userId, familyId = null, familyView = false) {
-    let rows = await db.query('SELECT * FROM savings');
-    if (familyView && familyId) {
-      rows = rows.filter(r => (r.family_id === familyId && r.scope === 'family') || r.user_id === userId);
-    } else {
-      rows = rows.filter(r => r.user_id === userId);
-    }
+    let sql = 'SELECT * FROM savings WHERE ';
+    const params = [];
 
-    return rows.map(goal => {
+    if (familyView && familyId) {
+      sql += '((family_id = ? AND scope = "family") OR user_id = ?)';
+      params.push(familyId, userId);
+    } else {
+      sql += 'user_id = ?';
+      params.push(userId);
+    }
+    sql += ' ORDER BY id DESC';
+
+    const rows = await db.query(sql, params);
+    return (rows || []).map(goal => {
       const target = Number(goal.target_amount);
       const current = Number(goal.current_amount);
       const progress = target > 0 ? Math.min(100, Math.round((current / target) * 100)) : 0;
@@ -76,16 +82,13 @@ export const SavingService = {
     if (!goal) throw new Error('Savings goal not found');
 
     return await db.transaction(async (trx) => {
-      // 1. Decrement wallet balance
       const newWalletBal = Number(wallet.balance) - numAmount;
       await trx.query('UPDATE wallets SET balance = ? WHERE id = ?', [newWalletBal, walletId]);
 
-      // 2. Increment saving current_amount
       const newSavingAmount = Number(goal.current_amount) + numAmount;
       const newStatus = newSavingAmount >= Number(goal.target_amount) ? 'completed' : 'active';
       await trx.query('UPDATE savings SET current_amount = ?, status = ? WHERE id = ?', [newSavingAmount, newStatus, savingId]);
 
-      // 3. Log transaction as saving_deposit
       await trx.query(
         'INSERT INTO transactions (user_id, family_id, wallet_id, category_id, type, amount, transaction_date, notes, destination_wallet_id, destination_saving_id, debt_id, scope) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [userId, goal.family_id, walletId, null, 'saving_deposit', numAmount, date, notes || `Setor tabungan: ${goal.goal_name}`, null, savingId, null, goal.scope]
@@ -117,15 +120,12 @@ export const SavingService = {
     if (!wallet) throw new Error('Wallet not found');
 
     return await db.transaction(async (trx) => {
-      // 1. Decrement saving amount
       const newSavingAmount = Number(goal.current_amount) - numAmount;
       await trx.query('UPDATE savings SET current_amount = ?, status = "active" WHERE id = ?', [newSavingAmount, savingId]);
 
-      // 2. Increment wallet balance
       const newWalletBal = Number(wallet.balance) + numAmount;
       await trx.query('UPDATE wallets SET balance = ? WHERE id = ?', [newWalletBal, walletId]);
 
-      // 3. Log transaction as saving_withdrawal
       await trx.query(
         'INSERT INTO transactions (user_id, family_id, wallet_id, category_id, type, amount, transaction_date, notes, destination_wallet_id, destination_saving_id, debt_id, scope) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [userId, goal.family_id, walletId, null, 'saving_withdrawal', numAmount, date, notes || `Tarik tabungan: ${goal.goal_name}`, null, savingId, null, goal.scope]

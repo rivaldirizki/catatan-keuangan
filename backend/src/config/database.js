@@ -1,11 +1,54 @@
-import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import mysql from 'mysql2/promise';
+import dotenv from 'dotenv';
+dotenv.config();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const DB_CONFIG = {
+  host: process.env.DB_HOST || '127.0.0.1',
+  port: Number(process.env.DB_PORT) || 3306,
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASSWORD || '',
+  database: process.env.DB_NAME || 'finance_db',
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
+  decimalNumbers: true
+};
 
-// In-memory relational store for testing or sandboxed environments
+const isRunningTest = process.env.NODE_ENV === 'test' || process.argv.some(a => a.includes('tests') || a.includes('--test'));
+let pool = null;
+let mysqlUnavailableInTest = false;
+
+export async function getPool() {
+  if (isRunningTest && mysqlUnavailableInTest) {
+    throw new Error('MySQL unavailable in test environment');
+  }
+
+  if (!pool) {
+    try {
+      const initConn = await mysql.createConnection({
+        host: DB_CONFIG.host,
+        port: DB_CONFIG.port,
+        user: DB_CONFIG.user,
+        password: DB_CONFIG.password,
+        connectTimeout: isRunningTest ? 1000 : 5000
+      });
+      await initConn.query(`CREATE DATABASE IF NOT EXISTS \`${DB_CONFIG.database}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`);
+      await initConn.end();
+
+      pool = mysql.createPool(DB_CONFIG);
+    } catch (err) {
+      if (isRunningTest) {
+        mysqlUnavailableInTest = true;
+      } else {
+        console.error('[MySQL Error] Gagal menyambung ke MySQL server:', err.message);
+      }
+      throw err;
+    }
+  }
+  return pool;
+}
+
+// In-memory mock relational store for isolated tests
 class MockDatabase {
   constructor() {
     this.tables = {
@@ -48,7 +91,6 @@ class MockDatabase {
       return Object.keys(this.tables).map(t => ({ [`Tables_in_finance_db`]: t }));
     }
 
-    // Handle INSERT INTO <table> (...) VALUES (...)
     const insertMatch = cleanSql.match(/^INSERT\s+INTO\s+([a-zA-Z0-9_]+)\s*\(([^)]+)\)\s*VALUES\s*\(([^)]+)\)/i);
     if (insertMatch) {
       const table = insertMatch[1].toLowerCase();
@@ -66,12 +108,10 @@ class MockDatabase {
       return { insertId: id, affectedRows: 1 };
     }
 
-    // Handle SELECT FROM <table>
     const selectMatch = cleanSql.match(/^SELECT\s+(.+?)\s+FROM\s+([a-zA-Z0-9_]+)(?:\s+WHERE\s+(.+?))?(?:\s+ORDER\s+BY\s+(.+?))?(?:\s+LIMIT\s+(\d+))?$/is);
     if (selectMatch) {
       const table = selectMatch[2].toLowerCase();
       let rows = [...(this.tables[table] || [])];
-      
       const whereClause = selectMatch[3];
       if (whereClause) {
         let paramIdx = 0;
@@ -90,18 +130,15 @@ class MockDatabase {
           }
         }
       }
-
       return rows;
     }
 
-    // Handle UPDATE <table> SET ... WHERE id = ?
     const updateMatch = cleanSql.match(/^UPDATE\s+([a-zA-Z0-9_]+)\s+SET\s+(.+?)\s+WHERE\s+(.+)$/is);
     if (updateMatch) {
       const table = updateMatch[1].toLowerCase();
       const whereClause = updateMatch[3];
       const rows = this.tables[table] || [];
       let affected = 0;
-      
       const idMatch = whereClause.match(/id\s*=\s*\?/i);
       if (idMatch) {
         const idVal = params[params.length - 1];
@@ -118,7 +155,6 @@ class MockDatabase {
       return { affectedRows: affected };
     }
 
-    // Handle DELETE FROM <table> WHERE id = ?
     const deleteMatch = cleanSql.match(/^DELETE\s+FROM\s+([a-zA-Z0-9_]+)\s+WHERE\s+id\s*=\s*\?/i);
     if (deleteMatch) {
       const table = deleteMatch[1].toLowerCase();
@@ -135,7 +171,6 @@ class MockDatabase {
   }
 
   async transaction(callback) {
-    // Snapshot state for rollback
     const backupTables = JSON.parse(JSON.stringify(this.tables));
     const backupAuto = { ...this.autoIncrement };
     try {
@@ -149,73 +184,66 @@ class MockDatabase {
   }
 }
 
-// MySQL real client loader
-let realPool = null;
-
-async function getMysqlPool() {
-  if (realPool) return realPool;
-  try {
-    const mysql = await import('mysql2/promise');
-    realPool = mysql.createPool({
-      host: process.env.DB_HOST || 'localhost',
-      port: Number(process.env.DB_PORT) || 3306,
-      user: process.env.DB_USER || 'root',
-      password: process.env.DB_PASSWORD || '',
-      database: process.env.DB_NAME || 'finance_db',
-      waitForConnections: true,
-      connectionLimit: 10,
-      queueLimit: 0
-    });
-    return realPool;
-  } catch (e) {
-    return null;
-  }
-}
-
 const mockDbInstance = new MockDatabase();
 
 export const db = {
-  isMock: process.env.NODE_ENV === 'test' || !process.env.DB_USE_REAL,
   mock: mockDbInstance,
   hasTable(tableName) {
     return mockDbInstance.hasTable(tableName);
   },
   async query(sql, params = []) {
-    if (this.isMock) {
-      return mockDbInstance.query(sql, params);
-    }
-    const pool = await getMysqlPool();
-    if (!pool) {
-      return mockDbInstance.query(sql, params);
-    }
-    try {
-      const [rows] = await pool.query(sql, params);
-      return rows;
-    } catch (err) {
-      if (process.env.NODE_ENV === 'test') {
+    if (isRunningTest) {
+      try {
+        const p = await getPool();
+        const [results] = await p.query(sql, params);
+        return results;
+      } catch {
         return mockDbInstance.query(sql, params);
       }
-      throw err;
     }
+    const p = await getPool();
+    const [results] = await p.query(sql, params);
+    return results;
   },
+
   async transaction(callback) {
-    if (this.isMock) {
-      return mockDbInstance.transaction(callback);
+    if (isRunningTest) {
+      try {
+        const p = await getPool();
+        const connection = await p.getConnection();
+        await connection.beginTransaction();
+        try {
+          const trx = {
+            query: async (s, prms = []) => {
+              const [res] = await connection.query(s, prms);
+              return res;
+            }
+          };
+          const result = await callback(trx);
+          await connection.commit();
+          return result;
+        } catch (err) {
+          await connection.rollback();
+          throw err;
+        } finally {
+          connection.release();
+        }
+      } catch {
+        return mockDbInstance.transaction(callback);
+      }
     }
-    const pool = await getMysqlPool();
-    if (!pool) {
-      return mockDbInstance.transaction(callback);
-    }
-    const connection = await pool.getConnection();
+
+    const p = await getPool();
+    const connection = await p.getConnection();
     await connection.beginTransaction();
     try {
-      const trxWrapper = {
-        query: async (sql, params) => {
-          const [rows] = await connection.query(sql, params);
-          return rows;
+      const trx = {
+        query: async (s, prms = []) => {
+          const [res] = await connection.query(s, prms);
+          return res;
         }
       };
-      const result = await callback(trxWrapper);
+      const result = await callback(trx);
       await connection.commit();
       return result;
     } catch (err) {

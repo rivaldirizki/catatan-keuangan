@@ -55,7 +55,7 @@ function request(app) {
 
 describe('Task 6: Express App & REST API Integration (TDD)', () => {
   before(() => {
-    db.mock.reset();
+    if (db.mock) db.mock.reset();
   });
 
   it('should return health check and API status', async () => {

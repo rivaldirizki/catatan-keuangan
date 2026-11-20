@@ -56,14 +56,20 @@ export const DebtService = {
   },
 
   async getDebts(userId, familyId = null, familyView = false) {
-    let rows = await db.query('SELECT * FROM debts');
-    if (familyView && familyId) {
-      rows = rows.filter(r => (r.family_id === familyId && r.scope === 'family') || r.user_id === userId);
-    } else {
-      rows = rows.filter(r => r.user_id === userId);
-    }
+    let sql = 'SELECT * FROM debts WHERE ';
+    const params = [];
 
-    return rows.map(debt => ({
+    if (familyView && familyId) {
+      sql += '((family_id = ? AND scope = "family") OR user_id = ?)';
+      params.push(familyId, userId);
+    } else {
+      sql += 'user_id = ?';
+      params.push(userId);
+    }
+    sql += ' ORDER BY due_date ASC';
+
+    const rows = await db.query(sql, params);
+    return (rows || []).map(debt => ({
       ...debt,
       total_amount: Number(debt.total_amount),
       remaining_amount: Number(debt.remaining_amount),
@@ -89,20 +95,15 @@ export const DebtService = {
     }
 
     return await db.transaction(async (trx) => {
-      // 1. Calculate remaining amount and new status
       const newRemaining = Math.max(0, Number(debt.remaining_amount) - numPayment);
       const newStatus = newRemaining === 0 ? 'paid' : 'partially_paid';
 
       await trx.query('UPDATE debts SET remaining_amount = ?, status = ? WHERE id = ?', [newRemaining, newStatus, debtId]);
 
-      // 2. Adjust wallet balance
-      // Payable (we pay debt) -> wallet balance decreases
-      // Receivable (other person pays us) -> wallet balance increases
       const walletDelta = debt.type === 'payable' ? -numPayment : numPayment;
       const newWalletBal = Number(wallet.balance) + walletDelta;
       await trx.query('UPDATE wallets SET balance = ? WHERE id = ?', [newWalletBal, walletId]);
 
-      // 3. Log transaction
       const txType = 'debt_payment';
       const memo = notes || (debt.type === 'payable' ? `Bayar hutang ke: ${debt.person_name}` : `Terima piutang dari: ${debt.person_name}`);
       await trx.query(

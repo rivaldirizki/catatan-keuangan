@@ -23,7 +23,33 @@ export async function runMigration() {
   const database = process.env.DB_NAME || 'finance_db';
 
   console.log(`[Migration] Menghubungkan ke MySQL ${host}:${port}...`);
-  const connection = await mysql.createConnection({ host, port, user, password, multipleStatements: true });
+  let connection;
+  try {
+    connection = await mysql.createConnection({
+      host,
+      port,
+      user,
+      password,
+      connectTimeout: 5000,
+      multipleStatements: true
+    });
+  } catch (err) {
+    if (err.code === 'ETIMEDOUT' || err.code === 'ECONNREFUSED') {
+      console.error('\n======================================================');
+      console.error('[Migration Error] Gagal terhubung ke MySQL pada port 3306!');
+      console.error('Penyebab utama: MySQL di XAMPP belum aktif atau mengalami port clash.');
+      console.error('Langkah perbaikan:');
+      console.error(' 1. Buka XAMPP Control Panel, pastikan MySQL dalam status START (warna hijau).');
+      console.error(' 2. Jika muncul error "Port 3306 in use":');
+      console.error('    - Buka Task Manager (Ctrl+Shift+Esc) -> Details -> End task semua "mysqld.exe".');
+      console.error('    - Cek services.msc, jika ada service "MySQL80" atau "MySQL" lain, klik Stop.');
+      console.error('    - Klik Start kembali di XAMPP Control Panel.');
+      console.error(' 3. Atau import langsung file schema.sql ke http://localhost/phpmyadmin:');
+      console.error('    c:\\xampp\\htdocs\\finance\\backend\\database\\schema.sql');
+      console.error('======================================================\n');
+    }
+    throw err;
+  }
 
   console.log(`[Migration] Membuat database \`${database}\` jika belum ada...`);
   await connection.query(`CREATE DATABASE IF NOT EXISTS \`${database}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`);

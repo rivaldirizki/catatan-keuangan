@@ -62,4 +62,6 @@ class DebtModel {
       'notes': notes,
     };
   }
+
+  String get dueStatus => computedStatus;
 }

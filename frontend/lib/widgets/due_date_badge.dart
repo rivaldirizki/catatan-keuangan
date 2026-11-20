@@ -20,49 +20,56 @@ class DueDateBadge extends StatelessWidget {
 
     switch (status) {
       case 'overdue':
-        bg = AppTheme.expenseRed.withOpacity(0.12);
+        bg = AppTheme.expenseRed.withValues(alpha: 0.12);
         fg = AppTheme.expenseRed;
         label = 'Lewat Tempo ($dueDate)';
-        icon = Icons.error_outline_rounded;
+        icon = Icons.error_rounded;
         break;
       case 'due_soon':
-        bg = AppTheme.warningAmber.withOpacity(0.15);
-        fg = const Color(0xFFB45309);
+        bg = AppTheme.warningOrange.withValues(alpha: 0.15);
+        fg = AppTheme.warningOrange;
         label = 'Segera ($dueDate)';
         icon = Icons.alarm_rounded;
         break;
       case 'paid':
-        bg = AppTheme.incomeGreen.withOpacity(0.12);
+        bg = AppTheme.incomeGreen.withValues(alpha: 0.12);
         fg = AppTheme.incomeGreen;
         label = 'Lunas';
-        icon = Icons.check_circle_outline_rounded;
+        icon = Icons.check_circle_rounded;
         break;
       case 'partially_paid':
-        bg = AppTheme.savingBlue.withOpacity(0.12);
-        fg = AppTheme.savingBlue;
+        bg = AppTheme.iosBlue.withValues(alpha: 0.12);
+        fg = AppTheme.iosBlue;
         label = 'Dicicil ($dueDate)';
-        icon = Icons.timelapse_rounded;
+        icon = Icons.pie_chart_rounded;
         break;
       default:
-        bg = Colors.grey.withOpacity(0.12);
-        fg = Colors.black87;
+        bg = const Color(0xFFF2F2F7);
+        fg = AppTheme.textSecondary;
         label = 'Tempo: $dueDate';
-        icon = Icons.calendar_today_outlined;
+        icon = Icons.calendar_today_rounded;
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: bg,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: fg.withOpacity(0.2)),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 13, color: fg),
+          Icon(icon, size: 12, color: fg),
           const SizedBox(width: 4),
-          Text(label, style: TextStyle(color: fg, fontSize: 11, fontWeight: FontWeight.bold)),
+          Text(
+            label,
+            style: TextStyle(
+              color: fg,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              letterSpacing: -0.2,
+            ),
+          ),
         ],
       ),
     );

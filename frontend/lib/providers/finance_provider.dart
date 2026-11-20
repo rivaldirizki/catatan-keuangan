@@ -148,6 +148,54 @@ class FinanceProvider extends ChangeNotifier {
     }
   }
 
+  Future<bool> createSavingGoal({
+    required String goalName,
+    required int targetAmount,
+    String? targetDate,
+    String scope = 'personal',
+  }) async {
+    try {
+      await apiClient.post(ApiConstants.savingsGoals, body: {
+        'goal_name': goalName,
+        'target_amount': targetAmount,
+        'target_date': targetDate,
+        'scope': scope,
+      });
+      await fetchDashboard();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> createDebt({
+    required String type,
+    required String personName,
+    required int amount,
+    required String dueDate,
+    String notes = '',
+    String scope = 'personal',
+  }) async {
+    try {
+      await apiClient.post(ApiConstants.debts, body: {
+        'type': type,
+        'person_name': personName,
+        'amount': amount,
+        'due_date': dueDate,
+        'notes': notes,
+        'scope': scope,
+      });
+      await fetchDashboard();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      notifyListeners();
+      return false;
+    }
+  }
+
   Future<bool> payDebt({required int debtId, required int walletId, required int amount, String notes = ''}) async {
     try {
       await apiClient.post(ApiConstants.debtPay(debtId), body: {

@@ -560,36 +560,43 @@ class _DebtsScreenState extends State<DebtsScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(9),
-                                  decoration: BoxDecoration(
-                                    color: (isPayable ? AppTheme.warningOrange : AppTheme.incomeGreen).withValues(alpha: 0.12),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(
-                                    isPayable ? Icons.call_made_rounded : Icons.call_received_rounded,
-                                    size: 16,
-                                    color: isPayable ? AppTheme.warningOrange : AppTheme.incomeGreen,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      debt.personName,
-                                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16, letterSpacing: -0.2),
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(9),
+                                    decoration: BoxDecoration(
+                                      color: (isPayable ? AppTheme.warningOrange : AppTheme.incomeGreen).withValues(alpha: 0.12),
+                                      shape: BoxShape.circle,
                                     ),
-                                    Text(
-                                      isPayable ? 'Hutang saya' : 'Piutang saya',
-                                      style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                                    child: Icon(
+                                      isPayable ? Icons.call_made_rounded : Icons.call_received_rounded,
+                                      size: 16,
+                                      color: isPayable ? AppTheme.warningOrange : AppTheme.incomeGreen,
                                     ),
-                                  ],
-                                ),
-                              ],
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          debt.personName,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16, letterSpacing: -0.2),
+                                        ),
+                                        Text(
+                                          isPayable ? 'Hutang saya' : 'Piutang saya',
+                                          style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
+                            const SizedBox(width: 8),
                             DueDateBadge(status: debt.dueStatus, dueDate: debt.dueDate),
                           ],
                         ),

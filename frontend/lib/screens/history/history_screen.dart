@@ -880,27 +880,35 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                                   const SizedBox(height: 2),
                                                   Row(
                                                     children: [
-                                                      Text(
-                                                        walletName,
-                                                        style: const TextStyle(
-                                                          fontSize: 12,
-                                                          color: AppTheme.textSecondary,
+                                                      Flexible(
+                                                        child: Text(
+                                                          walletName,
+                                                          maxLines: 1,
+                                                          overflow: TextOverflow.ellipsis,
+                                                          style: const TextStyle(
+                                                            fontSize: 12,
+                                                            color: AppTheme.textSecondary,
+                                                          ),
                                                         ),
                                                       ),
                                                       if (finance.isFamilyView && tx.userName != null) ...[
                                                         const SizedBox(width: 6),
-                                                        Container(
-                                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
-                                                          decoration: BoxDecoration(
-                                                            color: AppTheme.familyPurple.withValues(alpha: 0.1),
-                                                            borderRadius: BorderRadius.circular(4),
-                                                          ),
-                                                          child: Text(
-                                                            'Oleh: ${tx.userName}',
-                                                            style: const TextStyle(
-                                                              fontSize: 10,
-                                                              fontWeight: FontWeight.w600,
-                                                              color: AppTheme.familyPurple,
+                                                        Flexible(
+                                                          child: Container(
+                                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                                                            decoration: BoxDecoration(
+                                                              color: AppTheme.familyPurple.withValues(alpha: 0.1),
+                                                              borderRadius: BorderRadius.circular(4),
+                                                            ),
+                                                            child: Text(
+                                                              'Oleh: ${tx.userName}',
+                                                              maxLines: 1,
+                                                              overflow: TextOverflow.ellipsis,
+                                                              style: const TextStyle(
+                                                                fontSize: 10,
+                                                                fontWeight: FontWeight.w600,
+                                                                color: AppTheme.familyPurple,
+                                                              ),
                                                             ),
                                                           ),
                                                         ),

@@ -59,19 +59,24 @@ class SavingsScreen extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Nabung ke Celengan',
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
-                          ),
-                          Text(
-                            goal.goalName,
-                            style: const TextStyle(fontSize: 13, color: AppTheme.iosBlue, fontWeight: FontWeight.w600),
-                          ),
-                        ],
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Nabung ke Celengan',
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                            ),
+                            Text(
+                              goal.goalName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontSize: 13, color: AppTheme.iosBlue, fontWeight: FontWeight.w600),
+                            ),
+                          ],
+                        ),
                       ),
+                      const SizedBox(width: 8),
                       GestureDetector(
                         onTap: () => Navigator.pop(modalCtx),
                         child: Container(
@@ -465,10 +470,15 @@ class SavingsScreen extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        'Total Terkumpul di Celengan',
-                        style: TextStyle(fontSize: 13, color: AppTheme.textSecondary, fontWeight: FontWeight.w500),
+                      const Expanded(
+                        child: Text(
+                          'Total Terkumpul di Celengan',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 13, color: AppTheme.textSecondary, fontWeight: FontWeight.w500),
+                        ),
                       ),
+                      const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
@@ -567,57 +577,68 @@ class SavingsScreen extends StatelessWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(10),
-                                  decoration: BoxDecoration(
-                                    color: AppTheme.iosBlue.withValues(alpha: 0.12),
-                                    shape: BoxShape.circle,
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(10),
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.iosBlue.withValues(alpha: 0.12),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(Icons.savings_rounded, color: AppTheme.iosBlue, size: 20),
                                   ),
-                                  child: const Icon(Icons.savings_rounded, color: AppTheme.iosBlue, size: 20),
-                                ),
-                                const SizedBox(width: 12),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Text(
-                                          goal.goalName,
-                                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16, letterSpacing: -0.2),
-                                        ),
-                                        if (goal.isFamilyShared) ...[
-                                          const SizedBox(width: 6),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                            decoration: BoxDecoration(
-                                              color: AppTheme.familyPurple.withValues(alpha: 0.12),
-                                              borderRadius: BorderRadius.circular(6),
+                                        Row(
+                                          children: [
+                                            Flexible(
+                                              child: Text(
+                                                goal.goalName,
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16, letterSpacing: -0.2),
+                                              ),
                                             ),
-                                            child: const Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Icon(Icons.family_restroom_rounded, size: 11, color: AppTheme.familyPurple),
-                                                SizedBox(width: 3),
-                                                Text(
-                                                  'Bersama',
-                                                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppTheme.familyPurple),
+                                            if (goal.isFamilyShared) ...[
+                                              const SizedBox(width: 6),
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                decoration: BoxDecoration(
+                                                  color: AppTheme.familyPurple.withValues(alpha: 0.12),
+                                                  borderRadius: BorderRadius.circular(6),
                                                 ),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
+                                                child: const Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    Icon(Icons.family_restroom_rounded, size: 11, color: AppTheme.familyPurple),
+                                                    SizedBox(width: 3),
+                                                    Text(
+                                                      'Bersama',
+                                                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppTheme.familyPurple),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                          ],
+                                        ),
+                                        Text(
+                                          'Target: ${_formatRupiah(goal.targetAmount)}',
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                                        ),
                                       ],
                                     ),
-                                    Text(
-                                      'Target: ${_formatRupiah(goal.targetAmount)}',
-                                      style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                                  ),
+                                ],
+                              ),
                             ),
+                            const SizedBox(width: 8),
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
@@ -653,10 +674,15 @@ class SavingsScreen extends StatelessWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              _formatRupiah(goal.currentAmount),
-                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                            Expanded(
+                              child: Text(
+                                _formatRupiah(goal.currentAmount),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                              ),
                             ),
+                            const SizedBox(width: 8),
                             GestureDetector(
                               onTap: () {
                                 HapticFeedback.lightImpact();

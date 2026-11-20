@@ -115,25 +115,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        children: [
-                          Icon(
-                            isFamily ? Icons.family_restroom_rounded : Icons.edit_note_rounded,
-                            color: isFamily ? AppTheme.familyPurple : AppTheme.iosBlue,
-                            size: 22,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            isFamily ? 'Catat Finansial Keluarga' : 'Catat Transaksi Pribadi',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                              color: AppTheme.textPrimary,
-                              letterSpacing: -0.4,
+                      Expanded(
+                        child: Row(
+                          children: [
+                            Icon(
+                              isFamily ? Icons.family_restroom_rounded : Icons.edit_note_rounded,
+                              color: isFamily ? AppTheme.familyPurple : AppTheme.iosBlue,
+                              size: 22,
                             ),
-                          ),
-                        ],
+                            const SizedBox(width: 8),
+                            Flexible(
+                              child: Text(
+                                isFamily ? 'Catat Finansial Keluarga' : 'Catat Transaksi Pribadi',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppTheme.textPrimary,
+                                  letterSpacing: -0.4,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
+                      const SizedBox(width: 8),
                       GestureDetector(
                         onTap: () => Navigator.pop(modalCtx),
                         child: Container(
@@ -405,16 +412,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Row(
-                        children: [
-                          Icon(Icons.savings_rounded, color: AppTheme.familyPurple, size: 24),
-                          SizedBox(width: 8),
-                          Text(
-                            'Nabung Bersama Keluarga',
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
-                          ),
-                        ],
+                      const Expanded(
+                        child: Row(
+                          children: [
+                            Icon(Icons.savings_rounded, color: AppTheme.familyPurple, size: 24),
+                            SizedBox(width: 8),
+                            Flexible(
+                              child: Text(
+                                'Nabung Bersama Keluarga',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
+                      const SizedBox(width: 8),
                       GestureDetector(
                         onTap: () => Navigator.pop(modalCtx),
                         child: Container(
@@ -706,49 +720,58 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        children: [
-                          CircleAvatar(
-                            radius: 20,
-                            backgroundColor: AppTheme.familyPurple.withValues(alpha: 0.15),
-                            child: Text(
-                              memberName.isNotEmpty ? memberName[0].toUpperCase() : '?',
-                              style: const TextStyle(color: AppTheme.familyPurple, fontWeight: FontWeight.bold, fontSize: 16),
+                      Expanded(
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 20,
+                              backgroundColor: AppTheme.familyPurple.withValues(alpha: 0.15),
+                              child: Text(
+                                memberName.isNotEmpty ? memberName[0].toUpperCase() : '?',
+                                style: const TextStyle(color: AppTheme.familyPurple, fontWeight: FontWeight.bold, fontSize: 16),
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    memberName,
-                                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: memberRole == 'admin' ? AppTheme.familyPurple.withValues(alpha: 0.12) : const Color(0xFFF2F2F7),
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                    child: Text(
-                                      memberRole == 'admin' ? 'Kepala Keluarga' : 'Anggota',
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w700,
-                                        color: memberRole == 'admin' ? AppTheme.familyPurple : AppTheme.textSecondary,
+                                  Row(
+                                    children: [
+                                      Flexible(
+                                        child: Text(
+                                          memberName,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                                        ),
                                       ),
-                                    ),
+                                      const SizedBox(width: 6),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: memberRole == 'admin' ? AppTheme.familyPurple.withValues(alpha: 0.12) : const Color(0xFFF2F2F7),
+                                          borderRadius: BorderRadius.circular(6),
+                                        ),
+                                        child: Text(
+                                          memberRole == 'admin' ? 'Kepala Keluarga' : 'Anggota',
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w700,
+                                            color: memberRole == 'admin' ? AppTheme.familyPurple : AppTheme.textSecondary,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
+                                  Text(memberEmail, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
                                 ],
                               ),
-                              Text(memberEmail, style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
-                            ],
-                          ),
-                        ],
+                            ),
+                          ],
+                        ),
                       ),
+                      const SizedBox(width: 8),
                       GestureDetector(
                         onTap: () => Navigator.pop(ctx),
                         child: Container(
@@ -1678,21 +1701,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Row(
-                            children: [
-                              const Icon(Icons.vpn_key_rounded, size: 14, color: Colors.amberAccent),
-                              const SizedBox(width: 6),
-                              Text(
-                                'ID KELUARGA: $inviteCode',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 1.2,
+                          Expanded(
+                            child: Row(
+                              children: [
+                                const Icon(Icons.vpn_key_rounded, size: 14, color: Colors.amberAccent),
+                                const SizedBox(width: 6),
+                                Flexible(
+                                  child: Text(
+                                    'ID KELUARGA: $inviteCode',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 1.2,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
+                          const SizedBox(width: 8),
                           const Row(
                             children: [
                               Text('Salin', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w600)),
@@ -2034,32 +2064,41 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFEDE9FE),
-                                    borderRadius: BorderRadius.circular(10),
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFEDE9FE),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: const Icon(Icons.stars_rounded, color: AppTheme.familyPurple, size: 20),
                                   ),
-                                  child: const Icon(Icons.stars_rounded, color: AppTheme.familyPurple, size: 20),
-                                ),
-                                const SizedBox(width: 10),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      saving.goalName,
-                                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          saving.goalName,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                                        ),
+                                        Text(
+                                          'Target: ${_formatRupiah(saving.targetAmount)}',
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                                        ),
+                                      ],
                                     ),
-                                    Text(
-                                      'Target: ${_formatRupiah(saving.targetAmount)}',
-                                      style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                                  ),
+                                ],
+                              ),
                             ),
+                            const SizedBox(width: 8),
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
@@ -2098,10 +2137,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              'Terkumpul: ${_formatRupiah(saving.currentAmount)}',
-                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.familyPurple),
+                            Expanded(
+                              child: Text(
+                                'Terkumpul: ${_formatRupiah(saving.currentAmount)}',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.familyPurple),
+                              ),
                             ),
+                            const SizedBox(width: 8),
                             ElevatedButton(
                               onPressed: () => _showDepositToSharedSavingModal(saving),
                               style: ElevatedButton.styleFrom(
@@ -2765,15 +2809,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                             if (isFamilyMode && tx.userName != null) ...[
                               const Text(' • ', style: TextStyle(color: AppTheme.textSecondary)),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFEDE9FE),
-                                  borderRadius: BorderRadius.circular(5),
-                                ),
-                                child: Text(
-                                  'Oleh ${tx.userName}',
-                                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppTheme.familyPurple),
+                              Flexible(
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFEDE9FE),
+                                    borderRadius: BorderRadius.circular(5),
+                                  ),
+                                  child: Text(
+                                    'Oleh ${tx.userName}',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppTheme.familyPurple),
+                                  ),
                                 ),
                               ),
                             ],

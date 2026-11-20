@@ -12,6 +12,7 @@ class ApiConstants {
   static const String familyCreate = '/family/create';
   static const String familyJoin = '/family/join';
   static const String familyMembers = '/family/members';
+  static const String familyCurrent = '/family/current';
 
   // Wallets & Transactions
   static const String wallets = '/wallets';

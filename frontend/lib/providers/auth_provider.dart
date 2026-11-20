@@ -75,6 +75,70 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> refreshUser() async {
+    try {
+      final res = await apiClient.get(ApiConstants.me);
+      if (res is Map<String, dynamic> && res['user'] != null) {
+        _currentUser = UserModel.fromJson(res['user'] as Map<String, dynamic>);
+        notifyListeners();
+      }
+    } catch (_) {}
+  }
+
+  Future<Map<String, dynamic>?> createFamily(String name) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final res = await apiClient.post(ApiConstants.familyCreate, body: {
+        'name': name.trim(),
+      });
+      await refreshUser();
+      _isLoading = false;
+      notifyListeners();
+      return res as Map<String, dynamic>;
+    } catch (e) {
+      _isLoading = false;
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      notifyListeners();
+      return null;
+    }
+  }
+
+  Future<bool> joinFamily(String inviteCode) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await apiClient.post(ApiConstants.familyJoin, body: {
+        'invite_code': inviteCode.trim().toUpperCase(),
+      });
+      await refreshUser();
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _isLoading = false;
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<Map<String, dynamic>?> getCurrentFamily() async {
+    try {
+      final res = await apiClient.get(ApiConstants.familyCurrent);
+      if (res is Map<String, dynamic>) {
+        return res;
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
   void logout() {
     _currentUser = null;
     _token = null;

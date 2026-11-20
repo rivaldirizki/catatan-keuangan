@@ -92,6 +92,20 @@ app.get('/api/v1/family/members', authenticateJWT, async (req, res) => {
   }
 });
 
+app.get('/api/v1/family/current', authenticateJWT, async (req, res) => {
+  try {
+    const user = await AuthService.getUserById(req.user.id);
+    if (!user || !user.family_id) {
+      return res.json({ family: null, members: [] });
+    }
+    const family = await FamilyService.getFamilyById(user.family_id);
+    const members = await FamilyService.getFamilyMembers(user.family_id);
+    res.json({ family, members });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ======================= WALLETS ROUTES =======================
 app.get('/api/v1/wallets', authenticateJWT, async (req, res) => {
   try {

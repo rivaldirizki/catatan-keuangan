@@ -435,7 +435,7 @@ class SavingsScreen extends StatelessWidget {
                 icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: AppTheme.textPrimary),
                 onPressed: () => Navigator.pop(context),
               ),
-        title: const Text('Celengan & Target', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+        title: const Text('Celengan & Target', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, letterSpacing: -0.2)),
         actions: [
           IconButton(
             icon: const Icon(Icons.add_circle_outline_rounded, color: AppTheme.iosBlue, size: 24),
@@ -495,7 +495,7 @@ class SavingsScreen extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(
                     _formatRupiah(totalSaved),
-                    style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: AppTheme.textPrimary, letterSpacing: -0.5),
+                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: AppTheme.textPrimary, letterSpacing: -0.4),
                   ),
                   const SizedBox(height: 14),
                   ClipRRect(
@@ -510,7 +510,7 @@ class SavingsScreen extends StatelessWidget {
                   const SizedBox(height: 10),
                   Text(
                     'Dari total target ${_formatRupiah(totalTarget)} di ${finance.savings.length} celengan aktif',
-                    style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                    style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
                   ),
                 ],
               ),

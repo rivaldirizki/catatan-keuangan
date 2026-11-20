@@ -69,7 +69,7 @@ class _DebtsScreenState extends State<DebtsScreen> {
                         children: [
                           Text(
                             debt.type == 'payable' ? 'Bayar / Cicil Hutang' : 'Terima Pembayaran Piutang',
-                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                            style: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
                           ),
                           Text(
                             'Pihak: ${debt.personName}',
@@ -427,7 +427,7 @@ class _DebtsScreenState extends State<DebtsScreen> {
                 icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: AppTheme.textPrimary),
                 onPressed: () => Navigator.pop(context),
               ),
-        title: const Text('Hutang & Piutang', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+        title: const Text('Hutang & Piutang', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, letterSpacing: -0.2)),
         actions: [
           IconButton(
             icon: const Icon(Icons.add_circle_outline_rounded, color: AppTheme.iosBlue, size: 24),
@@ -458,13 +458,13 @@ class _DebtsScreenState extends State<DebtsScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Hutang Saya', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                        const Text('Hutang Saya', style: TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
                         const SizedBox(height: 6),
                         FittedBox(
                           fit: BoxFit.scaleDown,
                           child: Text(
                             _formatRupiah(totalPayable),
-                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.warningOrange),
+                            style: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700, color: AppTheme.warningOrange),
                           ),
                         ),
                       ],
@@ -486,13 +486,13 @@ class _DebtsScreenState extends State<DebtsScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Piutang (Dipinjam)', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                        const Text('Piutang (Dipinjam)', style: TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
                         const SizedBox(height: 6),
                         FittedBox(
                           fit: BoxFit.scaleDown,
                           child: Text(
                             _formatRupiah(totalReceivable),
-                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.incomeGreen),
+                            style: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700, color: AppTheme.incomeGreen),
                           ),
                         ),
                       ],
@@ -588,7 +588,7 @@ class _DebtsScreenState extends State<DebtsScreen> {
                                         ),
                                         Text(
                                           isPayable ? 'Hutang saya' : 'Piutang saya',
-                                          style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                                          style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
                                         ),
                                       ],
                                     ),

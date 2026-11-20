@@ -455,10 +455,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       child: TextField(
                         controller: _searchController,
                         onChanged: (val) => setState(() => _searchQuery = val),
-                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppTheme.textPrimary),
+                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppTheme.textPrimary),
                         decoration: InputDecoration(
                           hintText: 'Cari catatan, dompet, nominal...',
-                          hintStyle: const TextStyle(color: AppTheme.textSecondary, fontSize: 14),
+                          hintStyle: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
                           prefixIcon: const Icon(Icons.search_rounded, size: 20, color: AppTheme.textSecondary),
                           suffixIcon: _searchQuery.isNotEmpty
                               ? GestureDetector(
@@ -474,7 +474,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           enabledBorder: InputBorder.none,
                           focusedBorder: InputBorder.none,
                           filled: false,
-                          contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                          contentPadding: const EdgeInsets.symmetric(vertical: 9),
                         ),
                       ),
                     ),

@@ -103,7 +103,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     'Mulai Mencatat Keuangan',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 24,
+                      fontSize: 21,
                       fontWeight: FontWeight.w700,
                       letterSpacing: -0.4,
                       color: AppTheme.textPrimary,
@@ -114,7 +114,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     'Data keuangan pribadi Anda tersimpan aman dan terenkripsi.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 13,
                       color: AppTheme.textSecondary,
                       height: 1.35,
                     ),

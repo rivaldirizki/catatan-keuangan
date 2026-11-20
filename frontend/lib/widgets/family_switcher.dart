@@ -37,7 +37,7 @@ class FamilySwitcher extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFFE5E5EA),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(9),
       ),
       padding: const EdgeInsets.all(2),
       child: Row(
@@ -54,16 +54,16 @@ class FamilySwitcher extends StatelessWidget {
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               curve: Curves.easeOutCubic,
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 4.5),
               decoration: BoxDecoration(
                 color: !isFamily ? Colors.white : Colors.transparent,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(7),
                 boxShadow: !isFamily
                     ? [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.08),
-                          blurRadius: 4,
-                          offset: const Offset(0, 1.5),
+                          blurRadius: 3,
+                          offset: const Offset(0, 1),
                         ),
                       ]
                     : null,
@@ -72,14 +72,14 @@ class FamilySwitcher extends StatelessWidget {
                 children: [
                   Icon(
                     Icons.person_rounded,
-                    size: 14,
+                    size: 13,
                     color: !isFamily ? AppTheme.textPrimary : AppTheme.textSecondary,
                   ),
-                  const SizedBox(width: 5),
+                  const SizedBox(width: 4),
                   Text(
                     'Pribadi',
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 12,
                       fontWeight: !isFamily ? FontWeight.w600 : FontWeight.w500,
                       color: !isFamily ? AppTheme.textPrimary : AppTheme.textSecondary,
                       letterSpacing: -0.2,
@@ -105,16 +105,16 @@ class FamilySwitcher extends StatelessWidget {
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               curve: Curves.easeOutCubic,
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 4.5),
               decoration: BoxDecoration(
                 color: isFamily ? Colors.white : Colors.transparent,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(7),
                 boxShadow: isFamily
                     ? [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.08),
-                          blurRadius: 4,
-                          offset: const Offset(0, 1.5),
+                          blurRadius: 3,
+                          offset: const Offset(0, 1),
                         ),
                       ]
                     : null,
@@ -123,22 +123,22 @@ class FamilySwitcher extends StatelessWidget {
                 children: [
                   Icon(
                     Icons.group_rounded,
-                    size: 14,
+                    size: 13,
                     color: isFamily ? AppTheme.familyPurple : AppTheme.textSecondary,
                   ),
-                  const SizedBox(width: 5),
+                  const SizedBox(width: 4),
                   Text(
                     'Keluarga',
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 12,
                       fontWeight: isFamily ? FontWeight.w600 : FontWeight.w500,
                       color: isFamily ? AppTheme.familyPurple : AppTheme.textSecondary,
                       letterSpacing: -0.2,
                     ),
                   ),
                   if (hasFamily && isFamily) ...[
-                    const SizedBox(width: 4),
-                    const Icon(Icons.info_outline_rounded, size: 13, color: AppTheme.familyPurple),
+                    const SizedBox(width: 3),
+                    const Icon(Icons.info_outline_rounded, size: 12, color: AppTheme.familyPurple),
                   ],
                 ],
               ),
@@ -224,7 +224,7 @@ class _FamilySetupModalState extends State<_FamilySetupModal> {
         SnackBar(
           content: Row(
             children: [
-              const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
+              const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
               const SizedBox(width: 8),
               Text('Berhasil bergabung ke keluarga dengan kode $code!'),
             ],
@@ -243,10 +243,10 @@ class _FamilySetupModalState extends State<_FamilySetupModal> {
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
         title: const Row(
           children: [
-            Icon(Icons.check_circle_rounded, color: AppTheme.incomeGreen, size: 26),
+            Icon(Icons.check_circle_rounded, color: AppTheme.incomeGreen, size: 22),
             SizedBox(width: 8),
             Text('Keluarga Dibuat!'),
           ],
@@ -257,14 +257,14 @@ class _FamilySetupModalState extends State<_FamilySetupModal> {
           children: [
             Text(
               'Grup "$familyName" berhasil dibuat. Setiap keluarga memiliki ID unik acak berikut:',
-              style: const TextStyle(fontSize: 14, color: AppTheme.textSecondary, height: 1.4),
+              style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary, height: 1.35),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               decoration: BoxDecoration(
                 color: AppTheme.iosBg,
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: AppTheme.iosDivider, width: 0.8),
               ),
               child: Row(
@@ -273,12 +273,12 @@ class _FamilySetupModalState extends State<_FamilySetupModal> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('ID / KODE UNDANGAN', style: TextStyle(fontSize: 10, color: AppTheme.textSecondary, fontWeight: FontWeight.w600)),
-                      const SizedBox(height: 3),
+                      const Text('ID / KODE UNDANGAN', style: TextStyle(fontSize: 9.5, color: AppTheme.textSecondary, fontWeight: FontWeight.w600)),
+                      const SizedBox(height: 2),
                       Text(
                         inviteCode,
                         style: const TextStyle(
-                          fontSize: 22,
+                          fontSize: 20,
                           fontWeight: FontWeight.w800,
                           letterSpacing: 2.0,
                           color: AppTheme.familyPurple,
@@ -287,7 +287,7 @@ class _FamilySetupModalState extends State<_FamilySetupModal> {
                     ],
                   ),
                   IconButton(
-                    icon: const Icon(Icons.copy_rounded, color: AppTheme.iosBlue),
+                    icon: const Icon(Icons.copy_rounded, color: AppTheme.iosBlue, size: 18),
                     tooltip: 'Salin Kode',
                     onPressed: () {
                       Clipboard.setData(ClipboardData(text: inviteCode));
@@ -303,10 +303,10 @@ class _FamilySetupModalState extends State<_FamilySetupModal> {
                 ],
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             const Text(
               'Bagikan ID acak ini kepada anggota keluarga Anda agar mereka dapat masuk dan mencatat keuangan bersama.',
-              style: TextStyle(fontSize: 12, color: AppTheme.textSecondary, height: 1.35),
+              style: TextStyle(fontSize: 11.5, color: AppTheme.textSecondary, height: 1.35),
             ),
           ],
         ),
@@ -316,10 +316,10 @@ class _FamilySetupModalState extends State<_FamilySetupModal> {
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.textPrimary,
               foregroundColor: Colors.white,
-              minimumSize: const Size(double.infinity, 48),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              minimumSize: const Size(double.infinity, 44),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(11)),
             ),
-            child: const Text('Mulai Kelola Keuangan'),
+            child: const Text('Mulai Kelola Keuangan', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
           ),
         ],
       ),
@@ -331,10 +331,10 @@ class _FamilySetupModalState extends State<_FamilySetupModal> {
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom + 28,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
         left: 20,
         right: 20,
         top: 12,
@@ -345,12 +345,12 @@ class _FamilySetupModalState extends State<_FamilySetupModal> {
         children: [
           Center(
             child: Container(
-              width: 38,
-              height: 4.5,
-              margin: const EdgeInsets.only(bottom: 20),
+              width: 36,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 18),
               decoration: BoxDecoration(
                 color: const Color(0xFFD1D1D6),
-                borderRadius: BorderRadius.circular(3),
+                borderRadius: BorderRadius.circular(2.5),
               ),
             ),
           ),
@@ -359,29 +359,29 @@ class _FamilySetupModalState extends State<_FamilySetupModal> {
             children: [
               const Text(
                 'Keuangan Keluarga',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppTheme.textPrimary, letterSpacing: -0.4),
+                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: AppTheme.textPrimary, letterSpacing: -0.3),
               ),
               GestureDetector(
                 onTap: () => Navigator.pop(context),
                 child: Container(
-                  padding: const EdgeInsets.all(6),
+                  padding: const EdgeInsets.all(5),
                   decoration: const BoxDecoration(color: Color(0xFFF2F2F7), shape: BoxShape.circle),
-                  child: const Icon(Icons.close_rounded, size: 18, color: AppTheme.textSecondary),
+                  child: const Icon(Icons.close_rounded, size: 16, color: AppTheme.textSecondary),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 4),
           const Text(
-            'Kelola anggaran rumah tangga bersama keluarga Anda dalam satu sistem tersinkronisasi.',
-            style: TextStyle(fontSize: 13, color: AppTheme.textSecondary, height: 1.35),
+            'Kelola tabungan bersama dan pantau catatan keuangan keluarga.',
+            style: TextStyle(fontSize: 12, color: AppTheme.textSecondary, height: 1.35),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
           Container(
-            padding: const EdgeInsets.all(3),
+            padding: const EdgeInsets.all(2.5),
             decoration: BoxDecoration(
               color: const Color(0xFFE5E5EA),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(10),
             ),
             child: Row(
               children: [
@@ -395,15 +395,15 @@ class _FamilySetupModalState extends State<_FamilySetupModal> {
                       });
                     },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      padding: const EdgeInsets.symmetric(vertical: 7),
                       decoration: BoxDecoration(
                         color: _activeTab == 0 ? Colors.white : Colors.transparent,
-                        borderRadius: BorderRadius.circular(9),
+                        borderRadius: BorderRadius.circular(8),
                         boxShadow: _activeTab == 0
                             ? [
                                 BoxShadow(
                                   color: Colors.black.withValues(alpha: 0.08),
-                                  blurRadius: 4,
+                                  blurRadius: 3,
                                   offset: const Offset(0, 1),
                                 ),
                               ]
@@ -413,7 +413,7 @@ class _FamilySetupModalState extends State<_FamilySetupModal> {
                         'Buat Keluarga',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: 12.5,
                           fontWeight: _activeTab == 0 ? FontWeight.w600 : FontWeight.w500,
                           color: _activeTab == 0 ? AppTheme.textPrimary : AppTheme.textSecondary,
                         ),
@@ -431,15 +431,15 @@ class _FamilySetupModalState extends State<_FamilySetupModal> {
                       });
                     },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      padding: const EdgeInsets.symmetric(vertical: 7),
                       decoration: BoxDecoration(
                         color: _activeTab == 1 ? Colors.white : Colors.transparent,
-                        borderRadius: BorderRadius.circular(9),
+                        borderRadius: BorderRadius.circular(8),
                         boxShadow: _activeTab == 1
                             ? [
                                 BoxShadow(
                                   color: Colors.black.withValues(alpha: 0.08),
-                                  blurRadius: 4,
+                                  blurRadius: 3,
                                   offset: const Offset(0, 1),
                                 ),
                               ]
@@ -449,7 +449,7 @@ class _FamilySetupModalState extends State<_FamilySetupModal> {
                         'Masuk Keluarga',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: 12.5,
                           fontWeight: _activeTab == 1 ? FontWeight.w600 : FontWeight.w500,
                           color: _activeTab == 1 ? AppTheme.textPrimary : AppTheme.textSecondary,
                         ),
@@ -460,25 +460,25 @@ class _FamilySetupModalState extends State<_FamilySetupModal> {
               ],
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 18),
 
           if (_errorMessage != null) ...[
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              margin: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              margin: const EdgeInsets.only(bottom: 14),
               decoration: BoxDecoration(
                 color: AppTheme.expenseRed.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: AppTheme.expenseRed.withValues(alpha: 0.25), width: 0.8),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.info_outline_rounded, size: 18, color: AppTheme.expenseRed),
+                  const Icon(Icons.info_outline_rounded, size: 16, color: AppTheme.expenseRed),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       _errorMessage!,
-                      style: const TextStyle(color: AppTheme.expenseRed, fontSize: 13, fontWeight: FontWeight.w500),
+                      style: const TextStyle(color: AppTheme.expenseRed, fontSize: 12, fontWeight: FontWeight.w500),
                     ),
                   ),
                 ],
@@ -490,100 +490,101 @@ class _FamilySetupModalState extends State<_FamilySetupModal> {
             Container(
               decoration: BoxDecoration(
                 color: AppTheme.iosBg,
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: AppTheme.iosDivider, width: 0.8),
               ),
               child: TextField(
                 controller: _nameController,
                 textCapitalization: TextCapitalization.words,
+                style: const TextStyle(fontSize: 13.5),
                 decoration: const InputDecoration(
                   hintText: 'Nama Keluarga (contoh: Keluarga Pratama)',
-                  hintStyle: TextStyle(color: AppTheme.textSecondary, fontSize: 14),
-                  prefixIcon: Icon(Icons.home_outlined, size: 20, color: AppTheme.textSecondary),
+                  hintStyle: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                  prefixIcon: Icon(Icons.home_outlined, size: 18, color: AppTheme.textSecondary),
                   border: InputBorder.none,
                   enabledBorder: InputBorder.none,
                   focusedBorder: InputBorder.none,
                   filled: false,
-                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                 ),
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             const Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.vpn_key_outlined, size: 15, color: AppTheme.familyPurple),
+                Icon(Icons.vpn_key_outlined, size: 14, color: AppTheme.familyPurple),
                 SizedBox(width: 6),
                 Expanded(
                   child: Text(
                     'Sistem akan otomatis membuat ID acak unik untuk keluarga Anda yang bisa dibagikan ke anggota lain.',
-                    style: TextStyle(fontSize: 12, color: AppTheme.textSecondary, height: 1.3),
+                    style: TextStyle(fontSize: 11, color: AppTheme.textSecondary, height: 1.3),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _isLoading ? null : _handleCreateFamily,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.textPrimary,
                 foregroundColor: Colors.white,
-                minimumSize: const Size(double.infinity, 50),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                minimumSize: const Size(double.infinity, 46),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               child: _isLoading
-                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                  : const Text('Buat Keluarga Baru', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                  : const Text('Buat Keluarga Baru', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
             ),
           ] else ...[
             Container(
               decoration: BoxDecoration(
                 color: AppTheme.iosBg,
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: AppTheme.iosDivider, width: 0.8),
               ),
               child: TextField(
                 controller: _codeController,
                 textCapitalization: TextCapitalization.characters,
-                style: const TextStyle(fontWeight: FontWeight.w700, letterSpacing: 1.5),
+                style: const TextStyle(fontWeight: FontWeight.w700, letterSpacing: 1.5, fontSize: 14),
                 decoration: const InputDecoration(
                   hintText: 'Masukkan 8 Karakter Kode ID',
-                  hintStyle: TextStyle(color: AppTheme.textSecondary, fontSize: 14, letterSpacing: 0),
-                  prefixIcon: Icon(Icons.vpn_key_rounded, size: 20, color: AppTheme.textSecondary),
+                  hintStyle: TextStyle(color: AppTheme.textSecondary, fontSize: 13, letterSpacing: 0),
+                  prefixIcon: Icon(Icons.vpn_key_rounded, size: 18, color: AppTheme.textSecondary),
                   border: InputBorder.none,
                   enabledBorder: InputBorder.none,
                   focusedBorder: InputBorder.none,
                   filled: false,
-                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                 ),
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             const Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.info_outline_rounded, size: 15, color: AppTheme.iosBlue),
+                Icon(Icons.info_outline_rounded, size: 14, color: AppTheme.iosBlue),
                 SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    'Minta kode ID acak dari kepala keluarga atau anggota yang sudah membuat keluarga, lalu masukkan di sini.',
-                    style: TextStyle(fontSize: 12, color: AppTheme.textSecondary, height: 1.3),
+                    'Minta kode ID acak dari keluarga Anda, lalu masukkan di sini untuk bergabung.',
+                    style: TextStyle(fontSize: 11, color: AppTheme.textSecondary, height: 1.3),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _isLoading ? null : _handleJoinFamily,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.familyPurple,
                 foregroundColor: Colors.white,
-                minimumSize: const Size(double.infinity, 50),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                minimumSize: const Size(double.infinity, 46),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               child: _isLoading
-                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                  : const Text('Gabung Sekarang', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                  : const Text('Gabung Sekarang', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
             ),
           ],
         ],
@@ -640,21 +641,21 @@ class _FamilyDetailsModalState extends State<_FamilyDetailsModal> {
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Center(
             child: Container(
-              width: 38,
-              height: 4.5,
-              margin: const EdgeInsets.only(bottom: 20),
+              width: 36,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 18),
               decoration: BoxDecoration(
                 color: const Color(0xFFD1D1D6),
-                borderRadius: BorderRadius.circular(3),
+                borderRadius: BorderRadius.circular(2.5),
               ),
             ),
           ),
@@ -664,49 +665,49 @@ class _FamilyDetailsModalState extends State<_FamilyDetailsModal> {
               const Text(
                 'Informasi Keluarga',
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: 17,
                   fontWeight: FontWeight.w700,
                   color: AppTheme.textPrimary,
-                  letterSpacing: -0.4,
+                  letterSpacing: -0.3,
                 ),
               ),
               GestureDetector(
                 onTap: () => Navigator.pop(context),
                 child: Container(
-                  padding: const EdgeInsets.all(6),
+                  padding: const EdgeInsets.all(5),
                   decoration: const BoxDecoration(
                     color: Color(0xFFF2F2F7),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.close_rounded, size: 18, color: AppTheme.textSecondary),
+                  child: const Icon(Icons.close_rounded, size: 16, color: AppTheme.textSecondary),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
 
           if (_isLoading)
             const Center(
               child: Padding(
-                padding: EdgeInsets.all(32),
+                padding: EdgeInsets.all(28),
                 child: CircularProgressIndicator(color: AppTheme.familyPurple),
               ),
             )
           else ...[
             Container(
-              padding: const EdgeInsets.all(18),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF5856D6), Color(0xFF3634A3)],
+                  colors: [Color(0xFF2E1065), Color(0xFF4C1D95)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
                     color: AppTheme.familyPurple.withValues(alpha: 0.25),
-                    blurRadius: 16,
-                    offset: const Offset(0, 6),
+                    blurRadius: 14,
+                    offset: const Offset(0, 5),
                   ),
                 ],
               ),
@@ -718,31 +719,31 @@ class _FamilyDetailsModalState extends State<_FamilyDetailsModal> {
                     children: [
                       Text(
                         familyName,
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white),
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
                         decoration: BoxDecoration(
                           color: Colors.white.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(7),
                         ),
                         child: Text(
                           '${_members.length} Anggota',
-                          style: const TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w600),
+                          style: const TextStyle(fontSize: 10.5, color: Colors.white, fontWeight: FontWeight.w600),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 14),
-                  const Text('ID / KODE GABUNG KELUARGA:', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w600)),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 12),
+                  const Text('ID / KODE GABUNG KELUARGA:', style: TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 3),
                   Row(
                     children: [
                       Text(
                         inviteCode,
-                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, letterSpacing: 3.0, color: Colors.white),
+                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, letterSpacing: 2.5, color: Colors.white),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 10),
                       ElevatedButton.icon(
                         onPressed: () {
                           Clipboard.setData(ClipboardData(text: inviteCode));
@@ -754,16 +755,16 @@ class _FamilyDetailsModalState extends State<_FamilyDetailsModal> {
                             ),
                           );
                         },
-                        icon: const Icon(Icons.copy_rounded, size: 14),
+                        icon: const Icon(Icons.copy_rounded, size: 13),
                         label: const Text('Salin'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,
                           foregroundColor: AppTheme.familyPurple,
-                          minimumSize: const Size(0, 34),
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          minimumSize: const Size(0, 32),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                           elevation: 0,
-                          textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                          textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
                         ),
                       ),
                     ],
@@ -771,85 +772,95 @@ class _FamilyDetailsModalState extends State<_FamilyDetailsModal> {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
 
             const Text(
               'Bagikan ID di atas agar anggota keluarga lain dapat bergabung dan sinkronisasi catatan keuangan bersama.',
-              style: TextStyle(fontSize: 12, color: AppTheme.textSecondary, height: 1.35),
+              style: TextStyle(fontSize: 11.5, color: AppTheme.textSecondary, height: 1.35),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
 
             const Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Daftar Anggota Keluarga', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
-                Text('Ketuk untuk lihat catatan', style: TextStyle(fontSize: 11, color: AppTheme.familyPurple, fontWeight: FontWeight.w600)),
+                Text('Daftar Anggota Keluarga', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+                Text('Ketuk untuk catatan', style: TextStyle(fontSize: 11, color: AppTheme.familyPurple, fontWeight: FontWeight.w600)),
               ],
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
 
             Container(
               decoration: BoxDecoration(
                 color: AppTheme.iosBg,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(14),
                 border: Border.all(color: AppTheme.iosDivider, width: 0.8),
               ),
               child: ListView.separated(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: _members.length,
-                separatorBuilder: (_, __) => const Divider(height: 1, indent: 52, color: AppTheme.iosDivider),
+                separatorBuilder: (_, __) => const Divider(height: 1, indent: 48, color: AppTheme.iosDivider),
                 itemBuilder: (ctx, index) {
                   final member = _members[index] as Map<String, dynamic>;
                   final name = member['name']?.toString() ?? 'Anggota';
                   final email = member['email']?.toString() ?? '';
                   final role = member['role']?.toString() ?? 'user';
+                  final totalBalance = int.tryParse(member['total_balance']?.toString() ?? '0') ?? 0;
 
                   return InkWell(
                     onTap: () => _showMemberInspection(member),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(14),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                       child: Row(
                         children: [
                           CircleAvatar(
-                            radius: 17,
+                            radius: 15,
                             backgroundColor: AppTheme.familyPurple.withValues(alpha: 0.15),
                             child: Text(
                               name.isNotEmpty ? name[0].toUpperCase() : '?',
-                              style: const TextStyle(color: AppTheme.familyPurple, fontWeight: FontWeight.w700, fontSize: 13),
+                              style: const TextStyle(color: AppTheme.familyPurple, fontWeight: FontWeight.w700, fontSize: 11.5),
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 10),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Row(
                                   children: [
-                                    Text(name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
+                                    Text(name, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
                                     if (role == 'admin') ...[
-                                      const SizedBox(width: 6),
+                                      const SizedBox(width: 5),
                                       Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                                         decoration: BoxDecoration(
                                           color: AppTheme.familyPurple.withValues(alpha: 0.1),
-                                          borderRadius: BorderRadius.circular(5),
+                                          borderRadius: BorderRadius.circular(4),
                                         ),
-                                        child: const Text('Admin', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: AppTheme.familyPurple)),
+                                        child: const Text('Admin', style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.w700, color: AppTheme.familyPurple)),
                                       ),
                                     ],
                                   ],
                                 ),
-                                Text(email, style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                                Text(email, style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
                               ],
                             ),
                           ),
-                          const Row(
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              Text('Catatan', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.iosBlue)),
-                              SizedBox(width: 2),
-                              Icon(Icons.chevron_right_rounded, size: 16, color: AppTheme.iosBlue),
+                              Text(
+                                NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(totalBalance),
+                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.familyPurple),
+                              ),
+                              const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text('Catatan', style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: AppTheme.iosBlue)),
+                                  Icon(Icons.chevron_right_rounded, size: 14, color: AppTheme.iosBlue),
+                                ],
+                              ),
                             ],
                           ),
                         ],
@@ -859,17 +870,17 @@ class _FamilyDetailsModalState extends State<_FamilyDetailsModal> {
                 },
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 18),
 
             ElevatedButton(
               onPressed: () => Navigator.pop(context),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.textPrimary,
                 foregroundColor: Colors.white,
-                minimumSize: const Size(double.infinity, 48),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                minimumSize: const Size(double.infinity, 44),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(11)),
               ),
-              child: const Text('Tutup', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+              child: const Text('Tutup', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
             ),
           ],
         ],
@@ -919,28 +930,28 @@ class _MemberInspectionModalState extends State<_MemberInspectionModal> {
     final memberName = widget.member['name']?.toString() ?? 'Anggota';
     final memberEmail = widget.member['email']?.toString() ?? '';
     final txList = (_summary?['transactions'] as List<dynamic>?) ?? [];
+    final totalBalance = int.tryParse(_summary?['total_balance']?.toString() ?? '0') ?? 0;
     final income = int.tryParse(_summary?['total_income']?.toString() ?? '0') ?? 0;
     final expense = int.tryParse(_summary?['total_expense']?.toString() ?? '0') ?? 0;
-    final net = int.tryParse(_summary?['net_cashflow']?.toString() ?? '0') ?? 0;
 
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Center(
             child: Container(
-              width: 38,
-              height: 4.5,
-              margin: const EdgeInsets.only(bottom: 20),
+              width: 36,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 18),
               decoration: BoxDecoration(
                 color: const Color(0xFFD1D1D6),
-                borderRadius: BorderRadius.circular(3),
+                borderRadius: BorderRadius.circular(2.5),
               ),
             ),
           ),
@@ -952,22 +963,22 @@ class _MemberInspectionModalState extends State<_MemberInspectionModal> {
               Row(
                 children: [
                   CircleAvatar(
-                    radius: 18,
+                    radius: 16,
                     backgroundColor: AppTheme.familyPurple.withValues(alpha: 0.15),
                     child: Text(
                       memberName.isNotEmpty ? memberName[0].toUpperCase() : '?',
-                      style: const TextStyle(color: AppTheme.familyPurple, fontWeight: FontWeight.w700, fontSize: 14),
+                      style: const TextStyle(color: AppTheme.familyPurple, fontWeight: FontWeight.w700, fontSize: 13),
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 9),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         'Catatan: $memberName',
-                        style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
                       ),
-                      Text(memberEmail, style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                      Text(memberEmail, style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
                     ],
                   ),
                 ],
@@ -975,29 +986,29 @@ class _MemberInspectionModalState extends State<_MemberInspectionModal> {
               GestureDetector(
                 onTap: () => Navigator.pop(context),
                 child: Container(
-                  padding: const EdgeInsets.all(6),
+                  padding: const EdgeInsets.all(5),
                   decoration: const BoxDecoration(color: Color(0xFFF2F2F7), shape: BoxShape.circle),
-                  child: const Icon(Icons.close_rounded, size: 18, color: AppTheme.textSecondary),
+                  child: const Icon(Icons.close_rounded, size: 16, color: AppTheme.textSecondary),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 16),
 
           if (_isLoading)
             const Center(
               child: Padding(
-                padding: EdgeInsets.all(32),
+                padding: EdgeInsets.all(28),
                 child: CircularProgressIndicator(color: AppTheme.familyPurple),
               ),
             )
           else ...[
-            // Summary Inset Grouped Card
+            // Summary Inset Grouped Card: Saldo Akhir | Pemasukan | Pengeluaran
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: AppTheme.iosBg,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(14),
                 border: Border.all(color: AppTheme.iosDivider, width: 0.8),
               ),
               child: Row(
@@ -1006,53 +1017,49 @@ class _MemberInspectionModalState extends State<_MemberInspectionModal> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Pemasukan', style: TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
-                        const SizedBox(height: 3),
+                        const Text('Saldo Akhir', style: TextStyle(fontSize: 10.5, color: AppTheme.textSecondary)),
+                        const SizedBox(height: 2),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            _formatRupiah(totalBalance),
+                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.familyPurple),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(width: 0.8, height: 26, color: AppTheme.iosDivider),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Pemasukan', style: TextStyle(fontSize: 10.5, color: AppTheme.textSecondary)),
+                        const SizedBox(height: 2),
                         FittedBox(
                           fit: BoxFit.scaleDown,
                           child: Text(
                             '+ ${_formatRupiah(income)}',
-                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.incomeGreen),
+                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.incomeGreen),
                           ),
                         ),
                       ],
                     ),
                   ),
-                  Container(width: 0.8, height: 28, color: AppTheme.iosDivider),
+                  Container(width: 0.8, height: 26, color: AppTheme.iosDivider),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Pengeluaran', style: TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
-                        const SizedBox(height: 3),
+                        const Text('Pengeluaran', style: TextStyle(fontSize: 10.5, color: AppTheme.textSecondary)),
+                        const SizedBox(height: 2),
                         FittedBox(
                           fit: BoxFit.scaleDown,
                           child: Text(
                             '- ${_formatRupiah(expense)}',
-                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.expenseRed),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(width: 0.8, height: 28, color: AppTheme.iosDivider),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('Selisih', style: TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
-                        const SizedBox(height: 3),
-                        FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(
-                            _formatRupiah(net),
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: net >= 0 ? AppTheme.textPrimary : AppTheme.expenseRed,
-                            ),
+                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.expenseRed),
                           ),
                         ),
                       ],
@@ -1061,45 +1068,45 @@ class _MemberInspectionModalState extends State<_MemberInspectionModal> {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
 
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Riwayat Transaksi', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
-                Text('${txList.length} mutasi', style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                const Text('Riwayat Transaksi', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+                Text('${txList.length} mutasi', style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
               ],
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
 
             if (txList.isEmpty)
               Container(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(22),
                 decoration: BoxDecoration(
                   color: AppTheme.iosBg,
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: AppTheme.iosDivider, width: 0.8),
                 ),
                 child: Center(
                   child: Text(
                     'Belum ada transaksi yang dicatat oleh $memberName.',
-                    style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+                    style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
                   ),
                 ),
               )
             else
               ConstrainedBox(
-                constraints: const BoxConstraints(maxHeight: 280),
+                constraints: const BoxConstraints(maxHeight: 260),
                 child: Container(
                   decoration: BoxDecoration(
                     color: AppTheme.iosBg,
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(14),
                     border: Border.all(color: AppTheme.iosDivider, width: 0.8),
                   ),
                   child: ListView.separated(
                     shrinkWrap: true,
                     itemCount: txList.length,
-                    separatorBuilder: (_, __) => const Divider(height: 1, indent: 52, color: AppTheme.iosDivider),
+                    separatorBuilder: (_, __) => const Divider(height: 1, indent: 48, color: AppTheme.iosDivider),
                     itemBuilder: (ctx, idx) {
                       final tx = txList[idx] as Map<String, dynamic>;
                       final type = tx['type']?.toString() ?? 'expense';
@@ -1114,33 +1121,33 @@ class _MemberInspectionModalState extends State<_MemberInspectionModal> {
                       final notes = tx['notes']?.toString();
 
                       return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         child: Row(
                           children: [
                             Container(
-                              padding: const EdgeInsets.all(7),
+                              padding: const EdgeInsets.all(6),
                               decoration: BoxDecoration(
                                 color: color.withValues(alpha: 0.12),
                                 shape: BoxShape.circle,
                               ),
-                              child: Icon(icon, size: 15, color: color),
+                              child: Icon(icon, size: 13, color: color),
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: 10),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
                                     notes?.isNotEmpty == true ? notes! : (isIncome ? 'Pemasukan' : 'Pengeluaran'),
-                                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
+                                    style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
                                   ),
-                                  Text(date, style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
+                                  Text(date, style: const TextStyle(fontSize: 10.5, color: AppTheme.textSecondary)),
                                 ],
                               ),
                             ),
                             Text(
                               '${isIncome ? "+" : "-"} ${_formatRupiah(amount)}',
-                              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: color),
+                              style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: color),
                             ),
                           ],
                         ),
@@ -1149,17 +1156,17 @@ class _MemberInspectionModalState extends State<_MemberInspectionModal> {
                   ),
                 ),
               ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 18),
 
             ElevatedButton(
               onPressed: () => Navigator.pop(context),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.textPrimary,
                 foregroundColor: Colors.white,
-                minimumSize: const Size(double.infinity, 48),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                minimumSize: const Size(double.infinity, 44),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(11)),
               ),
-              child: const Text('Tutup', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+              child: const Text('Tutup', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
             ),
           ],
         ],

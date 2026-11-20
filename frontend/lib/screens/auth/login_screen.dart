@@ -69,15 +69,15 @@ class _LoginScreenState extends State<LoginScreen> {
                   // Apple-Style App Monogram
                   Center(
                     child: Container(
-                      width: 80,
-                      height: 80,
+                      width: 68,
+                      height: 68,
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
                           colors: [Color(0xFF2C2C2E), Color(0xFF1C1C1E)],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
-                        borderRadius: BorderRadius.circular(22),
+                        borderRadius: BorderRadius.circular(18),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withValues(alpha: 0.12),
@@ -89,7 +89,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: const Center(
                         child: Icon(
                           Icons.account_balance_wallet_rounded,
-                          size: 40,
+                          size: 32,
                           color: Colors.white,
                         ),
                       ),
@@ -102,7 +102,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     'Catatan Keuangan',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 26,
+                      fontSize: 22,
                       fontWeight: FontWeight.w700,
                       letterSpacing: -0.5,
                       color: AppTheme.textPrimary,
@@ -113,7 +113,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     'Kelola anggaran pribadi & keluarga secara rapi dan elegan',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 13,
                       color: AppTheme.textSecondary,
                       height: 1.35,
                     ),

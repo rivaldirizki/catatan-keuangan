@@ -1131,63 +1131,70 @@ class _DashboardScreenState extends State<DashboardScreen> {
       backgroundColor: isFamily ? const Color(0xFFF6F5FC) : AppTheme.iosBg,
       appBar: _currentTab == 0
           ? AppBar(
-              toolbarHeight: 64,
+              toolbarHeight: 56,
               backgroundColor: isFamily ? const Color(0xFFF6F5FC) : Colors.white,
               elevation: 0,
-              title: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              title: Row(
                 children: [
-                  Row(
-                    children: [
-                      if (isFamily)
-                        Container(
-                          margin: const EdgeInsets.only(right: 6),
-                          padding: const EdgeInsets.all(4),
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFEDE9FE),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(Icons.family_restroom_rounded, size: 14, color: AppTheme.familyPurple),
-                        ),
-                      Text(
-                        isFamily
-                            ? (finance.currentFamily?.name ?? (hasFamily ? 'Ruang Keluarga' : 'Finansial Keluarga'))
-                            : 'Halo, ${auth.currentUser?.name ?? "Pengguna"}',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: AppTheme.textPrimary,
-                          letterSpacing: -0.3,
-                        ),
-                      ),
-                    ],
+                  CircleAvatar(
+                    radius: 16,
+                    backgroundColor: isFamily ? AppTheme.familyPurple.withValues(alpha: 0.15) : AppTheme.iosBlue.withValues(alpha: 0.15),
+                    child: Icon(
+                      isFamily ? Icons.family_restroom_rounded : Icons.person_rounded,
+                      size: 16,
+                      color: isFamily ? AppTheme.familyPurple : AppTheme.iosBlue,
+                    ),
                   ),
-                  Text(
-                    isFamily
-                        ? (hasFamily
-                            ? 'ID: ${finance.currentFamily?.inviteCode ?? "..."} • ${finance.familyMembers.length} Anggota Aktif'
-                            : 'Mulai Ruang Keuangan Bersama')
-                        : 'Tampilan Finansial Pribadi',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: isFamily ? AppTheme.familyPurple : AppTheme.textSecondary,
-                      fontWeight: isFamily ? FontWeight.w600 : FontWeight.w400,
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          isFamily
+                              ? (finance.currentFamily?.name ?? (hasFamily ? 'Ruang Keluarga' : 'Finansial Keluarga'))
+                              : 'Halo, ${auth.currentUser?.name ?? "Pengguna"}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.textPrimary,
+                            letterSpacing: -0.2,
+                          ),
+                        ),
+                        const SizedBox(height: 1),
+                        Text(
+                          isFamily
+                              ? (hasFamily
+                                  ? 'ID: ${finance.currentFamily?.inviteCode ?? "..."} • ${finance.familyMembers.length} Anggota'
+                                  : 'Mulai Ruang Keuangan Bersama')
+                              : 'Tampilan Finansial Pribadi',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 10.5,
+                            color: isFamily ? AppTheme.familyPurple : AppTheme.textSecondary,
+                            fontWeight: isFamily ? FontWeight.w600 : FontWeight.w400,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
               actions: [
                 const FamilySwitcher(),
-                const SizedBox(width: 8),
+                const SizedBox(width: 4),
                 IconButton(
-                  icon: const Icon(Icons.logout_rounded, size: 20, color: AppTheme.textSecondary),
+                  icon: const Icon(Icons.logout_rounded, size: 18, color: AppTheme.textSecondary),
                   onPressed: () {
                     HapticFeedback.lightImpact();
                     auth.logout();
                     Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
                   },
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
               ],
             )
           : null,
@@ -1258,22 +1265,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Apple Wallet Classic Hero Card (Carbon Black)
+            // Apple Titanium Hero Card (Carbon Black)
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(22),
+              padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
                   colors: [Color(0xFF1C1C1E), Color(0xFF2C2C2E)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.18),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
+                    color: Colors.black.withValues(alpha: 0.14),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
                   ),
                 ],
               ),
@@ -1286,18 +1293,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                             decoration: BoxDecoration(
                               color: Colors.white.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: BorderRadius.circular(7),
                             ),
                             child: const Text(
                               'KAS PRIBADI',
                               style: TextStyle(
                                 color: Colors.white70,
-                                fontSize: 10,
+                                fontSize: 9.5,
                                 fontWeight: FontWeight.w700,
-                                letterSpacing: 1.0,
+                                letterSpacing: 0.8,
                               ),
                             ),
                           ),
@@ -1306,7 +1313,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             '${finance.wallets.length} Akun aktif',
                             style: TextStyle(
                               color: Colors.white.withValues(alpha: 0.5),
-                              fontSize: 12,
+                              fontSize: 11,
                             ),
                           ),
                         ],
@@ -1314,7 +1321,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       GestureDetector(
                         onTap: () => setState(() => _isBalanceVisible = !_isBalanceVisible),
                         child: Container(
-                          padding: const EdgeInsets.all(6),
+                          padding: const EdgeInsets.all(5),
                           decoration: BoxDecoration(
                             color: Colors.white.withValues(alpha: 0.1),
                             shape: BoxShape.circle,
@@ -1322,55 +1329,59 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           child: Icon(
                             _isBalanceVisible ? Icons.visibility_outlined : Icons.visibility_off_outlined,
                             color: Colors.white70,
-                            size: 16,
+                            size: 15,
                           ),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 14),
                   Text(
                     'Total Saldo Saya',
                     style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.6),
-                      fontSize: 13,
+                      color: Colors.white.withValues(alpha: 0.65),
+                      fontSize: 11.5,
                       fontWeight: FontWeight.w400,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    _isBalanceVisible ? _formatRupiah(finance.totalBalance) : '••••••••',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 32,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.6,
+                  const SizedBox(height: 2),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      _isBalanceVisible ? _formatRupiah(finance.totalBalance) : '••••••••',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 25,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.5,
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 22),
+                  const SizedBox(height: 18),
                   Row(
                     children: [
                       Expanded(
                         child: GestureDetector(
                           onTap: () => _showAddTransactionModal(isFamilyPreselected: false),
                           child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            padding: const EdgeInsets.symmetric(vertical: 9),
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(12),
+                              color: Colors.white.withValues(alpha: 0.14),
+                              borderRadius: BorderRadius.circular(10),
                             ),
                             child: const Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.add_rounded, size: 16, color: Colors.white),
-                                SizedBox(width: 6),
-                                Text('Catat', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
+                                Icon(Icons.add_rounded, size: 15, color: Colors.white),
+                                SizedBox(width: 5),
+                                Text('Catat', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
                               ],
                             ),
                           ),
                         ),
                       ),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: 8),
                       Expanded(
                         child: GestureDetector(
                           onTap: () {
@@ -1378,23 +1389,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             setState(() => _currentTab = 2);
                           },
                           child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            padding: const EdgeInsets.symmetric(vertical: 9),
                             decoration: BoxDecoration(
                               color: Colors.white.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(10),
                             ),
                             child: const Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.savings_rounded, size: 16, color: Colors.white),
-                                SizedBox(width: 6),
-                                Text('Celengan', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
+                                Icon(Icons.savings_rounded, size: 15, color: Colors.white),
+                                SizedBox(width: 5),
+                                Text('Celengan', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
                               ],
                             ),
                           ),
                         ),
                       ),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: 8),
                       Expanded(
                         child: GestureDetector(
                           onTap: () {
@@ -1402,17 +1413,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             setState(() => _currentTab = 3);
                           },
                           child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            padding: const EdgeInsets.symmetric(vertical: 9),
                             decoration: BoxDecoration(
                               color: Colors.white.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(10),
                             ),
                             child: const Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.event_note_rounded, size: 16, color: Colors.white),
-                                SizedBox(width: 6),
-                                Text('Hutang', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
+                                Icon(Icons.event_note_rounded, size: 15, color: Colors.white),
+                                SizedBox(width: 5),
+                                Text('Hutang', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
                               ],
                             ),
                           ),
@@ -1423,91 +1434,178 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
 
-            // Cashflow Group
+            // Cashflow Group (Pemasukan & Pengeluaran)
             Container(
-              padding: const EdgeInsets.all(18),
+              padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: AppTheme.iosDivider, width: 0.8),
-              ),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(9),
-                              decoration: BoxDecoration(
-                                color: AppTheme.incomeGreen.withValues(alpha: 0.12),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(Icons.arrow_downward_rounded, size: 16, color: AppTheme.incomeGreen),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text('Pemasukan', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
-                                  const SizedBox(height: 2),
-                                  FittedBox(
-                                    fit: BoxFit.scaleDown,
-                                    child: Text(
-                                      _formatRupiah(finance.totalIncome),
-                                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.incomeGreen),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Container(width: 1, height: 36, color: AppTheme.iosDivider),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(9),
-                              decoration: BoxDecoration(
-                                color: AppTheme.expenseRed.withValues(alpha: 0.12),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(Icons.arrow_upward_rounded, size: 16, color: AppTheme.expenseRed),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text('Pengeluaran', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
-                                  const SizedBox(height: 2),
-                                  FittedBox(
-                                    fit: BoxFit.scaleDown,
-                                    child: Text(
-                                      _formatRupiah(finance.totalExpense),
-                                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.expenseRed),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.02),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
                   ),
-
+                ],
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(7),
+                          decoration: BoxDecoration(
+                            color: AppTheme.incomeGreen.withValues(alpha: 0.12),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.arrow_downward_rounded, size: 14, color: AppTheme.incomeGreen),
+                        ),
+                        const SizedBox(width: 9),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Pemasukan', style: TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
+                              const SizedBox(height: 1),
+                              FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  _formatRupiah(finance.totalIncome),
+                                  style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w700, color: AppTheme.incomeGreen),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(width: 0.8, height: 30, color: AppTheme.iosDivider),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(7),
+                          decoration: BoxDecoration(
+                            color: AppTheme.expenseRed.withValues(alpha: 0.12),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.arrow_upward_rounded, size: 14, color: AppTheme.expenseRed),
+                        ),
+                        const SizedBox(width: 9),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Pengeluaran', style: TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
+                              const SizedBox(height: 1),
+                              FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  _formatRupiah(finance.totalExpense),
+                                  style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w700, color: AppTheme.expenseRed),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 18),
+
+            // Dompet Saya Section (Apple Wallet horizontal cards)
+            if (finance.wallets.isNotEmpty) ...[
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Dompet Saya',
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.textPrimary,
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                    Text(
+                      '${finance.wallets.length} Akun',
+                      style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                height: 74,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: finance.wallets.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 8),
+                  itemBuilder: (context, i) {
+                    final wallet = finance.wallets[i];
+                    return Container(
+                      width: 124,
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(13),
+                        border: Border.all(color: AppTheme.iosDivider, width: 0.8),
+                        boxShadow: [
+                          BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 4, offset: const Offset(0, 1)),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.iosBlue.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: const Icon(Icons.account_balance_wallet_rounded, size: 12, color: AppTheme.iosBlue),
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  wallet.name,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
+                                ),
+                              ),
+                            ],
+                          ),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              _formatRupiah(wallet.balance),
+                              style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 18),
+            ],
 
             // Transaksi Terbaru
             Padding(
@@ -1518,10 +1616,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   const Text(
                     'Transaksi Pribadi Terbaru',
                     style: TextStyle(
-                      fontSize: 17,
+                      fontSize: 13.5,
                       fontWeight: FontWeight.w700,
                       color: AppTheme.textPrimary,
-                      letterSpacing: -0.3,
+                      letterSpacing: -0.2,
                     ),
                   ),
                   GestureDetector(
@@ -1531,19 +1629,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     },
                     child: const Row(
                       children: [
-                        Text('Lihat Semua', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.iosBlue)),
+                        Text('Lihat Semua', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppTheme.iosBlue)),
                         SizedBox(width: 2),
-                        Icon(Icons.chevron_right_rounded, size: 16, color: AppTheme.iosBlue),
+                        Icon(Icons.chevron_right_rounded, size: 14, color: AppTheme.iosBlue),
                       ],
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
 
             _buildTransactionList(finance.transactions),
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
           ],
         ),
       ),
@@ -1574,19 +1672,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
             // 1. ROYAL VIOLET FAMILY HERO CARD
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(22),
+              padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF2E1065), Color(0xFF4C1D95), Color(0xFF3B28CC)],
+                  colors: [Color(0xFF261047), Color(0xFF3B1E6D)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF4C1D95).withValues(alpha: 0.35),
-                    blurRadius: 22,
-                    offset: const Offset(0, 8),
+                    color: const Color(0xFF261047).withValues(alpha: 0.3),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
                   ),
                 ],
               ),
@@ -1600,22 +1698,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                             decoration: BoxDecoration(
                               color: Colors.white.withValues(alpha: 0.16),
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: BorderRadius.circular(7),
                             ),
                             child: const Row(
                               children: [
-                                Icon(Icons.family_restroom_rounded, size: 12, color: Colors.white),
-                                SizedBox(width: 5),
+                                Icon(Icons.family_restroom_rounded, size: 11, color: Colors.white),
+                                SizedBox(width: 4),
                                 Text(
                                   'RUANG KELUARGA',
                                   style: TextStyle(
                                     color: Colors.white,
-                                    fontSize: 10,
+                                    fontSize: 9.5,
                                     fontWeight: FontWeight.w700,
-                                    letterSpacing: 1.0,
+                                    letterSpacing: 0.8,
                                   ),
                                 ),
                               ],
@@ -1626,7 +1724,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             '${finance.familyMembers.length} Anggota',
                             style: TextStyle(
                               color: Colors.white.withValues(alpha: 0.7),
-                              fontSize: 12,
+                              fontSize: 11,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -1635,32 +1733,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       GestureDetector(
                         onTap: () => setState(() => _isBalanceVisible = !_isBalanceVisible),
                         child: Container(
-                          padding: const EdgeInsets.all(6),
+                          padding: const EdgeInsets.all(5),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.14),
+                            color: Colors.white.withValues(alpha: 0.12),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
                             _isBalanceVisible ? Icons.visibility_outlined : Icons.visibility_off_outlined,
                             color: Colors.white,
-                            size: 16,
+                            size: 15,
                           ),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 14),
 
                   // Tabungan Bersama Terkumpul
                   Text(
                     'Total Celengan Bersama Terkumpul',
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.75),
-                      fontSize: 13,
+                      fontSize: 11.5,
                       fontWeight: FontWeight.w400,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 2),
                   FittedBox(
                     fit: BoxFit.scaleDown,
                     alignment: Alignment.centerLeft,
@@ -1668,9 +1766,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       _isBalanceVisible ? _formatRupiah(totalSharedSavings) : '••••••••',
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 32,
+                        fontSize: 25,
                         fontWeight: FontWeight.w800,
-                        letterSpacing: -0.6,
+                        letterSpacing: -0.5,
                       ),
                     ),
                   ),
@@ -1679,20 +1777,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     '${sharedSavings.length} target celengan aktif',
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.65),
-                      fontSize: 11,
+                      fontSize: 10.5,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 12),
 
                   // Inline ID Undangan Bar (1-Tap Copy)
                   GestureDetector(
                     onTap: () => _copyToClipboard(inviteCode, 'ID Keluarga $inviteCode disalin!'),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6.5),
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
                       ),
                       child: Row(
@@ -1701,8 +1799,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           Expanded(
                             child: Row(
                               children: [
-                                const Icon(Icons.vpn_key_rounded, size: 14, color: Colors.amberAccent),
-                                const SizedBox(width: 6),
+                                const Icon(Icons.vpn_key_rounded, size: 13, color: Colors.amberAccent),
+                                const SizedBox(width: 5),
                                 Flexible(
                                   child: Text(
                                     'ID KELUARGA: $inviteCode',
@@ -1710,9 +1808,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     overflow: TextOverflow.ellipsis,
                                     style: const TextStyle(
                                       color: Colors.white,
-                                      fontSize: 12,
+                                      fontSize: 11,
                                       fontWeight: FontWeight.w700,
-                                      letterSpacing: 1.2,
+                                      letterSpacing: 1.0,
                                     ),
                                   ),
                                 ),
@@ -1722,36 +1820,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           const SizedBox(width: 8),
                           const Row(
                             children: [
-                              Text('Salin', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w600)),
-                              SizedBox(width: 4),
-                              Icon(Icons.copy_rounded, size: 13, color: Colors.white70),
+                              Text('Salin', style: TextStyle(color: Colors.white70, fontSize: 10.5, fontWeight: FontWeight.w600)),
+                              SizedBox(width: 3),
+                              Icon(Icons.copy_rounded, size: 12, color: Colors.white70),
                             ],
                           ),
                         ],
                       ),
                     ),
                   ),
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 14),
 
-                  // 4 Quick Action Buttons
+                  // 3 Quick Action Buttons
                   Row(
                     children: [
                       Expanded(
                         child: GestureDetector(
                           onTap: () => _showDepositToSharedSavingModal(),
                           child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            padding: const EdgeInsets.symmetric(vertical: 8),
                             decoration: BoxDecoration(
                               color: Colors.white.withValues(alpha: 0.16),
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(10),
                             ),
                             child: const Column(
                               children: [
-                                Icon(Icons.savings_rounded, size: 18, color: Colors.amberAccent),
-                                SizedBox(height: 4),
+                                Icon(Icons.savings_rounded, size: 16, color: Colors.amberAccent),
+                                SizedBox(height: 3),
                                 Text(
                                   'Nabung',
-                                  style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
+                                  style: TextStyle(color: Colors.white, fontSize: 10.5, fontWeight: FontWeight.w600),
                                 ),
                               ],
                             ),
@@ -1763,41 +1861,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         child: GestureDetector(
                           onTap: () => _showAddTransactionModal(isFamilyPreselected: true),
                           child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            padding: const EdgeInsets.symmetric(vertical: 8),
                             decoration: BoxDecoration(
                               color: Colors.white.withValues(alpha: 0.16),
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(10),
                             ),
                             child: const Column(
                               children: [
-                                Icon(Icons.add_circle_outline_rounded, size: 18, color: Colors.white),
-                                SizedBox(height: 4),
+                                Icon(Icons.receipt_long_rounded, size: 16, color: Colors.white),
+                                SizedBox(height: 3),
                                 Text(
-                                  'Catat',
-                                  style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: _showCreateFamilySavingModal,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 10),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.16),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Column(
-                              children: [
-                                Icon(Icons.flag_rounded, size: 18, color: Colors.white),
-                                SizedBox(height: 4),
-                                Text(
-                                  '+ Target',
-                                  style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
+                                  '+ Catat',
+                                  style: TextStyle(color: Colors.white, fontSize: 10.5, fontWeight: FontWeight.w600),
                                 ),
                               ],
                             ),
@@ -1809,18 +1884,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         child: GestureDetector(
                           onTap: _showFamilyInfoModal,
                           child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            padding: const EdgeInsets.symmetric(vertical: 8),
                             decoration: BoxDecoration(
                               color: Colors.white.withValues(alpha: 0.16),
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(10),
                             ),
                             child: const Column(
                               children: [
-                                Icon(Icons.group_outlined, size: 18, color: Colors.white),
-                                SizedBox(height: 4),
+                                Icon(Icons.person_add_rounded, size: 16, color: Colors.white),
+                                SizedBox(height: 3),
                                 Text(
-                                  'Anggota',
-                                  style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
+                                  'Undang',
+                                  style: TextStyle(color: Colors.white, fontSize: 10.5, fontWeight: FontWeight.w600),
                                 ),
                               ],
                             ),
@@ -1832,50 +1907,81 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
 
             // 2. RINGKASAN PEMASUKAN & PENGELUARAN KELUARGA
             Container(
-              padding: const EdgeInsets.all(18),
+              padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFFEDE9FE), width: 1.2),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFEDE9FE), width: 0.8),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF6B21A8).withValues(alpha: 0.04),
-                    blurRadius: 10,
-                    offset: const Offset(0, 3),
+                    color: const Color(0xFF4C1D95).withValues(alpha: 0.03),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
                   ),
                 ],
               ),
               child: Column(
                 children: [
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Row(
+                        children: [
+                          Icon(Icons.analytics_rounded, size: 14, color: AppTheme.familyPurple),
+                          SizedBox(width: 5),
+                          Text(
+                            'Ringkasan Bulan Ini (Keluarga)',
+                            style: TextStyle(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.textPrimary,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEDE9FE),
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: const Text(
+                          'Keluarga',
+                          style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w700, color: AppTheme.familyPurple),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
                     children: [
                       Expanded(
                         child: Row(
                           children: [
                             Container(
-                              padding: const EdgeInsets.all(9),
+                              padding: const EdgeInsets.all(7),
                               decoration: BoxDecoration(
                                 color: AppTheme.incomeGreen.withValues(alpha: 0.12),
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(Icons.arrow_downward_rounded, size: 16, color: AppTheme.incomeGreen),
+                              child: const Icon(Icons.arrow_downward_rounded, size: 14, color: AppTheme.incomeGreen),
                             ),
-                            const SizedBox(width: 10),
+                            const SizedBox(width: 9),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text('Pemasukan Keluarga', style: TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
-                                  const SizedBox(height: 2),
+                                  const Text('Pemasukan Keluarga', style: TextStyle(fontSize: 10.5, color: AppTheme.textSecondary)),
+                                  const SizedBox(height: 1),
                                   FittedBox(
                                     fit: BoxFit.scaleDown,
                                     child: Text(
                                       _formatRupiah(finance.totalIncome),
-                                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.incomeGreen),
+                                      style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w700, color: AppTheme.incomeGreen),
                                     ),
                                   ),
                                 ],
@@ -1884,31 +1990,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ],
                         ),
                       ),
-                      Container(width: 1, height: 36, color: AppTheme.iosDivider),
-                      const SizedBox(width: 14),
+                      Container(width: 0.8, height: 28, color: const Color(0xFFEDE9FE)),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: Row(
                           children: [
                             Container(
-                              padding: const EdgeInsets.all(9),
+                              padding: const EdgeInsets.all(7),
                               decoration: BoxDecoration(
                                 color: AppTheme.expenseRed.withValues(alpha: 0.12),
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(Icons.arrow_upward_rounded, size: 16, color: AppTheme.expenseRed),
+                              child: const Icon(Icons.arrow_upward_rounded, size: 14, color: AppTheme.expenseRed),
                             ),
-                            const SizedBox(width: 10),
+                            const SizedBox(width: 9),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text('Pengeluaran Keluarga', style: TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
-                                  const SizedBox(height: 2),
+                                  const Text('Pengeluaran Keluarga', style: TextStyle(fontSize: 10.5, color: AppTheme.textSecondary)),
+                                  const SizedBox(height: 1),
                                   FittedBox(
                                     fit: BoxFit.scaleDown,
                                     child: Text(
                                       _formatRupiah(finance.totalExpense),
-                                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.expenseRed),
+                                      style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w700, color: AppTheme.expenseRed),
                                     ),
                                   ),
                                 ],
@@ -1919,11 +2025,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ],
                   ),
-
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
 
             // 3. FITUR UTAMA 1: CELENGAN BERSAMA (SHARED SAVINGS)
             Row(

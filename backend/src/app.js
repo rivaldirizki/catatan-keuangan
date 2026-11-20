@@ -1,5 +1,8 @@
 import express from 'express';
 import cors from 'cors';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { AuthService } from './services/auth.service.js';
 import { FamilyService } from './services/family.service.js';
 import { WalletService } from './services/wallet.service.js';
@@ -8,6 +11,9 @@ import { SavingService } from './services/saving.service.js';
 import { DebtService } from './services/debt.service.js';
 import { authenticateJWT, requireAdmin } from './middleware/auth.middleware.js';
 import { AdminController } from './controllers/admin.controller.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export const app = express();
 
@@ -278,211 +284,23 @@ app.post('/api/v1/debts/:id/pay', authenticateJWT, async (req, res) => {
 // ======================= ADMIN API ROUTES =======================
 app.get('/admin/api/stats', authenticateJWT, requireAdmin, AdminController.getStats);
 app.get('/admin/api/users', authenticateJWT, requireAdmin, AdminController.getUsers);
+app.get('/admin/api/families', authenticateJWT, requireAdmin, AdminController.getFamilies);
+app.get('/admin/api/transactions', authenticateJWT, requireAdmin, AdminController.getTransactions);
+app.get('/admin/api/savings', authenticateJWT, requireAdmin, AdminController.getSavings);
+app.get('/admin/api/debts', authenticateJWT, requireAdmin, AdminController.getDebts);
+app.put('/admin/api/users/:id/role', authenticateJWT, requireAdmin, AdminController.updateUserRole);
 
 // ======================= ADMIN WEB PORTAL WITH LOGIN GATE =======================
+const adminHtmlPath = path.join(__dirname, 'views', 'admin.html');
 app.get('/admin', (req, res) => {
-  res.send(`
-<!DOCTYPE html>
-<html lang="id">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Portal - Catatan Keuangan</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-slate-900 text-slate-100 min-h-screen font-sans">
-  
-  <!-- 1. LOGIN GATE VIEW (Ditampilkan jika belum login) -->
-  <div id="login-view" class="flex items-center justify-center min-h-screen px-4">
-    <div class="w-full max-w-md bg-slate-800/80 p-8 rounded-2xl border border-slate-700 shadow-2xl backdrop-blur-sm">
-      <div class="text-center mb-6">
-        <div class="w-14 h-14 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-2xl flex items-center justify-center mx-auto mb-3">
-          <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-          </svg>
-        </div>
-        <h1 class="text-2xl font-bold text-white">Login Admin Portal</h1>
-        <p class="text-slate-400 text-sm mt-1">Khusus akun dengan role administrator</p>
-      </div>
-
-      <div id="login-alert" class="hidden mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs"></div>
-
-      <form id="admin-login-form" class="space-y-4">
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Email Admin</label>
-          <input type="email" id="email" value="admin@gmail.com" required class="w-full px-4 py-3 rounded-xl bg-slate-900/80 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition-colors text-sm">
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Password</label>
-          <input type="password" id="password" value="alvian14" required class="w-full px-4 py-3 rounded-xl bg-slate-900/80 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition-colors text-sm">
-        </div>
-        <button type="submit" id="btn-login" class="w-full py-3.5 px-4 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold rounded-xl transition-all shadow-lg shadow-emerald-500/20 active:scale-[0.99] text-sm">
-          Masuk ke Dashboard
-        </button>
-      </form>
-    </div>
-  </div>
-
-  <!-- 2. PROTECTED ADMIN DASHBOARD VIEW (Hanya muncul jika sudah login) -->
-  <div id="dashboard-view" class="hidden">
-    <div class="max-w-6xl mx-auto px-4 py-8">
-      <header class="flex flex-col md:flex-row md:items-center justify-between pb-6 border-b border-slate-800 gap-4">
-        <div>
-          <div class="flex items-center gap-3">
-            <h1 class="text-2xl font-bold text-white">Admin Management Portal</h1>
-            <span class="px-2.5 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 rounded-full text-xs font-semibold">Active</span>
-          </div>
-          <p class="text-slate-400 text-sm mt-1">Monitoring sistem keuangan, keluarga, dan seluruh pengguna</p>
-        </div>
-        <div class="flex items-center gap-3">
-          <span id="admin-user-label" class="text-sm font-medium text-slate-300 bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">admin@gmail.com</span>
-          <button id="btn-logout" class="px-4 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg text-sm font-semibold transition-colors">
-            Keluar
-          </button>
-        </div>
-      </header>
-
-      <!-- Stat Cards -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 my-8">
-        <div class="bg-slate-800/60 p-6 rounded-2xl border border-slate-700/50">
-          <p class="text-sm font-medium text-slate-400">Total Pengguna Terdaftar</p>
-          <p class="text-3xl font-extrabold text-white mt-2" id="stat-users">-</p>
-        </div>
-        <div class="bg-slate-800/60 p-6 rounded-2xl border border-slate-700/50">
-          <p class="text-sm font-medium text-slate-400">Total Grup Keluarga</p>
-          <p class="text-3xl font-extrabold text-emerald-400 mt-2" id="stat-families">-</p>
-        </div>
-        <div class="bg-slate-800/60 p-6 rounded-2xl border border-slate-700/50">
-          <p class="text-sm font-medium text-slate-400">Total Mutasi Transaksi</p>
-          <p class="text-3xl font-extrabold text-blue-400 mt-2" id="stat-transactions">-</p>
-        </div>
-      </div>
-
-      <!-- Users Table -->
-      <div class="bg-slate-800/40 rounded-2xl border border-slate-800 p-6">
-        <h2 class="text-lg font-semibold text-white mb-4">Daftar Pengguna Sistem</h2>
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-sm text-slate-300">
-            <thead class="text-xs uppercase bg-slate-800/80 text-slate-400">
-              <tr>
-                <th class="px-4 py-3">ID</th>
-                <th class="px-4 py-3">Nama</th>
-                <th class="px-4 py-3">Email</th>
-                <th class="px-4 py-3">Role</th>
-                <th class="px-4 py-3">Family ID</th>
-              </tr>
-            </thead>
-            <tbody id="user-rows" class="divide-y divide-slate-800">
-              <tr><td colspan="5" class="px-4 py-4 text-center text-slate-500">Memuat data pengguna...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    const tokenKey = 'finance_admin_token';
-
-    function checkAuth() {
-      const token = localStorage.getItem(tokenKey);
-      if (!token) {
-        document.getElementById('login-view').classList.remove('hidden');
-        document.getElementById('dashboard-view').classList.add('hidden');
-      } else {
-        document.getElementById('login-view').classList.add('hidden');
-        document.getElementById('dashboard-view').classList.remove('hidden');
-        loadDashboardData(token);
-      }
+  if (fs.existsSync(adminHtmlPath)) {
+    if (typeof res.sendFile === 'function') {
+      res.sendFile(adminHtmlPath);
+    } else {
+      res.setHeader('content-type', 'text/html');
+      res.send(fs.readFileSync(adminHtmlPath, 'utf-8'));
     }
-
-    document.getElementById('admin-login-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value;
-      const alertBox = document.getElementById('login-alert');
-      const btn = document.getElementById('btn-login');
-
-      alertBox.classList.add('hidden');
-      btn.disabled = true;
-      btn.innerText = 'Memverifikasi...';
-
-      try {
-        const res = await fetch('/api/v1/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
-        });
-        const data = await res.json();
-
-        if (!res.ok) {
-          throw new Error(data.error || 'Login gagal');
-        }
-
-        if (data.user.role !== 'admin') {
-          throw new Error('Akses ditolak: Akun ini bukan administrator');
-        }
-
-        localStorage.setItem(tokenKey, data.token);
-        localStorage.setItem('admin_email', data.user.email);
-        document.getElementById('admin-user-label').innerText = data.user.email;
-        checkAuth();
-      } catch (err) {
-        alertBox.innerText = err.message;
-        alertBox.classList.remove('hidden');
-      } finally {
-        btn.disabled = false;
-        btn.innerText = 'Masuk ke Dashboard';
-      }
-    });
-
-    document.getElementById('btn-logout').addEventListener('click', () => {
-      localStorage.removeItem(tokenKey);
-      localStorage.removeItem('admin_email');
-      checkAuth();
-    });
-
-    async function loadDashboardData(token) {
-      const headers = { 'Authorization': 'Bearer ' + token };
-      try {
-        // Fetch stats
-        const statsRes = await fetch('/admin/api/stats', { headers });
-        if (statsRes.status === 401 || statsRes.status === 403) {
-          localStorage.removeItem(tokenKey);
-          return checkAuth();
-        }
-        const stats = await statsRes.json();
-        document.getElementById('stat-users').innerText = stats.total_users;
-        document.getElementById('stat-families').innerText = stats.total_families;
-        document.getElementById('stat-transactions').innerText = stats.total_transactions;
-
-        // Fetch users
-        const usersRes = await fetch('/admin/api/users', { headers });
-        const users = await usersRes.json();
-        const tbody = document.getElementById('user-rows');
-        if (Array.isArray(users) && users.length > 0) {
-          tbody.innerHTML = users.map(u => \`
-            <tr class="hover:bg-slate-800/40">
-              <td class="px-4 py-3 font-mono text-xs">\${u.id}</td>
-              <td class="px-4 py-3 font-medium text-white">\${u.name}</td>
-              <td class="px-4 py-3 text-slate-300">\${u.email}</td>
-              <td class="px-4 py-3">
-                <span class="px-2 py-0.5 rounded text-xs font-semibold \${u.role === 'admin' ? 'bg-purple-500/10 text-purple-400 border border-purple-500/30' : 'bg-slate-700 text-slate-300'}">
-                  \${u.role}
-                </span>
-              </td>
-              <td class="px-4 py-3 text-slate-400">\${u.family_id || '-'}</td>
-            </tr>
-          \`).join('');
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    }
-
-    checkAuth();
-  </script>
-</body>
-</html>
-  `);
+  } else {
+    res.status(404).send('Admin view file not found');
+  }
 });

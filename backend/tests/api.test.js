@@ -1,6 +1,7 @@
 import { describe, it, before } from 'node:test';
 import assert from 'node:assert';
 import { EventEmitter } from 'node:events';
+import fs from 'node:fs';
 import { app } from '../src/app.js';
 import { db } from '../src/config/database.js';
 
@@ -44,6 +45,10 @@ function request(app) {
         };
         res.send = (val) => {
           res.end(typeof val === 'object' ? JSON.stringify(val) : String(val));
+        };
+        res.sendFile = (filePath) => {
+          res.setHeader('content-type', 'text/html');
+          res.end(fs.readFileSync(filePath, 'utf-8'));
         };
 
         // Forward to express app
@@ -99,5 +104,35 @@ describe('Task 6: Express App & REST API Integration (TDD)', () => {
     });
     assert.strictEqual(adminStatsRes.status, 200);
     assert.ok(adminStatsRes.body.total_users >= 1);
+
+    // Verify /admin HTML portal endpoint
+    const htmlRes = await client.send('GET', '/admin');
+    assert.strictEqual(htmlRes.status, 200);
+    assert.ok(htmlRes.body.includes('Finance OS'));
+
+    // Verify extended Admin API endpoints
+    const familiesRes = await client.send('GET', '/admin/api/families', {
+      headers: { 'authorization': `Bearer ${adminReg.body.token}` }
+    });
+    assert.strictEqual(familiesRes.status, 200);
+    assert.ok(Array.isArray(familiesRes.body));
+
+    const txRes = await client.send('GET', '/admin/api/transactions', {
+      headers: { 'authorization': `Bearer ${adminReg.body.token}` }
+    });
+    assert.strictEqual(txRes.status, 200);
+    assert.ok(Array.isArray(txRes.body));
+
+    const savingsRes = await client.send('GET', '/admin/api/savings', {
+      headers: { 'authorization': `Bearer ${adminReg.body.token}` }
+    });
+    assert.strictEqual(savingsRes.status, 200);
+    assert.ok(Array.isArray(savingsRes.body));
+
+    const debtsRes = await client.send('GET', '/admin/api/debts', {
+      headers: { 'authorization': `Bearer ${adminReg.body.token}` }
+    });
+    assert.strictEqual(debtsRes.status, 200);
+    assert.ok(Array.isArray(debtsRes.body));
   });
 });

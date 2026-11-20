@@ -8,31 +8,30 @@ import 'screens/auth/login_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  final apiClient = ApiClient();
-
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider(apiClient: apiClient)),
-        ChangeNotifierProvider(create: (_) => FinanceProvider(apiClient: apiClient)),
-      ],
-      child: const FinanceApp(),
-    ),
-  );
+  runApp(const FinanceApp());
 }
 
 class FinanceApp extends StatelessWidget {
-  const FinanceApp({super.key});
+  final ApiClient? apiClient;
+  const FinanceApp({super.key, this.apiClient});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Catatan Keuangan & Keluarga',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.light,
-      home: const LoginScreen(),
+    final client = apiClient ?? ApiClient();
+
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider(apiClient: client)),
+        ChangeNotifierProvider(create: (_) => FinanceProvider(apiClient: client)),
+      ],
+      child: MaterialApp(
+        title: 'Catatan Keuangan & Keluarga',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
+        themeMode: ThemeMode.light,
+        home: const LoginScreen(),
+      ),
     );
   }
 }

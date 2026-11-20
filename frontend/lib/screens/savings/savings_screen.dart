@@ -7,7 +7,8 @@ import '../../core/theme/app_theme.dart';
 import '../../models/saving_model.dart';
 
 class SavingsScreen extends StatelessWidget {
-  const SavingsScreen({super.key});
+  final bool isEmbedded;
+  const SavingsScreen({super.key, this.isEmbedded = false});
 
   String _formatRupiah(int val) {
     final currency = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
@@ -307,6 +308,13 @@ class SavingsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppTheme.iosBg,
       appBar: AppBar(
+        automaticallyImplyLeading: !isEmbedded,
+        leading: isEmbedded
+            ? null
+            : IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: AppTheme.textPrimary),
+                onPressed: () => Navigator.pop(context),
+              ),
         title: const Text('Celengan & Target', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
         actions: [
           IconButton(

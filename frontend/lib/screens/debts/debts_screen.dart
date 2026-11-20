@@ -8,7 +8,8 @@ import '../../models/debt_model.dart';
 import '../../widgets/due_date_badge.dart';
 
 class DebtsScreen extends StatefulWidget {
-  const DebtsScreen({super.key});
+  final bool isEmbedded;
+  const DebtsScreen({super.key, this.isEmbedded = false});
 
   @override
   State<DebtsScreen> createState() => _DebtsScreenState();
@@ -419,6 +420,13 @@ class _DebtsScreenState extends State<DebtsScreen> {
     return Scaffold(
       backgroundColor: AppTheme.iosBg,
       appBar: AppBar(
+        automaticallyImplyLeading: !widget.isEmbedded,
+        leading: widget.isEmbedded
+            ? null
+            : IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: AppTheme.textPrimary),
+                onPressed: () => Navigator.pop(context),
+              ),
         title: const Text('Hutang & Piutang', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
         actions: [
           IconButton(

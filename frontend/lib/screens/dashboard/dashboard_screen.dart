@@ -6,6 +6,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/finance_provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../widgets/family_switcher.dart';
+import '../history/history_screen.dart';
 import '../savings/savings_screen.dart';
 import '../debts/debts_screen.dart';
 import '../auth/login_screen.dart';
@@ -18,7 +19,7 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  final int _currentTab = 0;
+  int _currentTab = 0;
   bool _isBalanceVisible = true;
 
   @override
@@ -304,49 +305,95 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     return Scaffold(
       backgroundColor: AppTheme.iosBg,
-      appBar: AppBar(
-        toolbarHeight: 64,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Halo, ${auth.currentUser?.name ?? "Pengguna"}',
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: AppTheme.textPrimary,
-                letterSpacing: -0.3,
+      appBar: _currentTab == 0
+          ? AppBar(
+              toolbarHeight: 64,
+              title: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Halo, ${auth.currentUser?.name ?? "Pengguna"}',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textPrimary,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                  Text(
+                    finance.isFamilyView ? 'Tampilan Finansial Keluarga' : 'Tampilan Finansial Pribadi',
+                    style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary, fontWeight: FontWeight.w400),
+                  ),
+                ],
               ),
-            ),
-            Text(
-              finance.isFamilyView ? 'Tampilan Finansial Keluarga' : 'Tampilan Finansial Pribadi',
-              style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary, fontWeight: FontWeight.w400),
-            ),
-          ],
-        ),
-        actions: [
-          const FamilySwitcher(),
-          const SizedBox(width: 8),
-          IconButton(
-            icon: const Icon(Icons.logout_rounded, size: 20, color: AppTheme.textSecondary),
-            onPressed: () {
-              HapticFeedback.lightImpact();
-              auth.logout();
-              Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
-            },
+              actions: [
+                const FamilySwitcher(),
+                const SizedBox(width: 8),
+                IconButton(
+                  icon: const Icon(Icons.logout_rounded, size: 20, color: AppTheme.textSecondary),
+                  onPressed: () {
+                    HapticFeedback.lightImpact();
+                    auth.logout();
+                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+                  },
+                ),
+                const SizedBox(width: 12),
+              ],
+            )
+          : null,
+      body: IndexedStack(
+        index: _currentTab,
+        children: [
+          _buildSummaryView(finance, auth),
+          HistoryScreen(
+            isEmbedded: true,
+            onAddTransactionPressed: _showAddTransactionModal,
           ),
-          const SizedBox(width: 12),
+          const SavingsScreen(isEmbedded: true),
+          const DebtsScreen(isEmbedded: true),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: () => finance.fetchDashboard(),
-        color: AppTheme.iosBlue,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+      bottomNavigationBar: Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          border: Border(top: BorderSide(color: AppTheme.iosDivider, width: 0.8)),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildNavItem(0, Icons.account_balance_wallet_rounded, 'Ringkasan', () {
+                  setState(() => _currentTab = 0);
+                }),
+                _buildNavItem(1, Icons.receipt_long_rounded, 'Riwayat', () {
+                  setState(() => _currentTab = 1);
+                }),
+                _buildNavItem(2, Icons.savings_rounded, 'Celengan', () {
+                  setState(() => _currentTab = 2);
+                }),
+                _buildNavItem(3, Icons.event_note_rounded, 'Hutang', () {
+                  setState(() => _currentTab = 3);
+                }),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSummaryView(FinanceProvider finance, AuthProvider auth) {
+    return RefreshIndicator(
+      onRefresh: () => finance.fetchDashboard(),
+      color: AppTheme.iosBlue,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
               // 1. HERO APPLE WALLET CARD
               Container(
                 width: double.infinity,
@@ -470,7 +517,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         const SizedBox(width: 10),
                         Expanded(
                           child: GestureDetector(
-                            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SavingsScreen())),
+                            onTap: () {
+                              HapticFeedback.lightImpact();
+                              setState(() => _currentTab = 2);
+                            },
                             child: Container(
                               padding: const EdgeInsets.symmetric(vertical: 10),
                               decoration: BoxDecoration(
@@ -494,7 +544,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         const SizedBox(width: 10),
                         Expanded(
                           child: GestureDetector(
-                            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DebtsScreen())),
+                            onTap: () {
+                              HapticFeedback.lightImpact();
+                              setState(() => _currentTab = 3);
+                            },
                             child: Container(
                               padding: const EdgeInsets.symmetric(vertical: 10),
                               decoration: BoxDecoration(
@@ -650,9 +703,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         letterSpacing: -0.3,
                       ),
                     ),
-                    Text(
-                      '${finance.transactions.length} mutasi',
-                      style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+                    GestureDetector(
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        setState(() => _currentTab = 1);
+                      },
+                      child: const Row(
+                        children: [
+                          Text(
+                            'Lihat Riwayat',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.iosBlue,
+                            ),
+                          ),
+                          SizedBox(width: 2),
+                          Icon(Icons.chevron_right_rounded, size: 16, color: AppTheme.iosBlue),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -767,32 +836,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ],
           ),
         ),
-      ),
-      bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          border: Border(top: BorderSide(color: AppTheme.iosDivider, width: 0.8)),
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildNavItem(0, Icons.account_balance_wallet_rounded, 'Ringkasan', () {}),
-                _buildNavItem(1, Icons.savings_rounded, 'Celengan', () {
-                  Navigator.push(context, MaterialPageRoute(builder: (_) => const SavingsScreen()));
-                }),
-                _buildNavItem(2, Icons.event_note_rounded, 'Hutang', () {
-                  Navigator.push(context, MaterialPageRoute(builder: (_) => const DebtsScreen()));
-                }),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+      );
+    }
 
   Widget _buildNavItem(int index, IconData icon, String label, VoidCallback onTap) {
     final isSelected = _currentTab == index;
@@ -803,13 +848,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
       },
       behavior: HitTestBehavior.opaque,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               icon,
-              size: 24,
+              size: 23,
               color: isSelected ? AppTheme.iosBlue : AppTheme.textSecondary,
             ),
             const SizedBox(height: 3),

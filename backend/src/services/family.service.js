@@ -50,7 +50,13 @@ export const FamilyService = {
       'SELECT id, name, email, role, family_id, created_at FROM users WHERE family_id = ?',
       [familyId]
     );
-    return members || [];
+    if (!members || members.length === 0) return [];
+
+    for (const m of members) {
+      const wallets = await db.query('SELECT balance FROM wallets WHERE user_id = ?', [m.id]);
+      m.total_balance = (wallets || []).reduce((sum, w) => sum + Number(w.balance || 0), 0);
+    }
+    return members;
   },
 
   async getFamilyById(familyId) {

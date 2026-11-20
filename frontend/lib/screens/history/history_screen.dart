@@ -387,7 +387,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
         totalExpense += tx.amount;
       }
     }
-    final netCashflow = totalIncome - totalExpense;
 
     // 3. Group by date
     final Map<String, List<TransactionModel>> groupedByDate = {};
@@ -676,28 +675,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                   ],
                                 ),
                               ),
-                              Container(width: 0.8, height: 32, color: AppTheme.iosDivider),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text('Selisih Net', style: TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
-                                    const SizedBox(height: 3),
-                                    FittedBox(
-                                      fit: BoxFit.scaleDown,
-                                      child: Text(
-                                        _formatRupiah(netCashflow),
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w700,
-                                          color: netCashflow >= 0 ? AppTheme.textPrimary : AppTheme.expenseRed,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
+
                             ],
                           ),
                         ],

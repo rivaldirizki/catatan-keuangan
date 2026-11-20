@@ -140,11 +140,14 @@ export const TransactionService = {
       if (tx.type === 'expense' || tx.type === 'saving_deposit') totalExpense += Number(tx.amount);
     }
     const memberRows = await db.query('SELECT id, name, email, role FROM users WHERE id = ?', [targetUserId]);
+    const wallets = await db.query('SELECT balance FROM wallets WHERE user_id = ?', [targetUserId]);
+    const totalBalance = (wallets || []).reduce((sum, w) => sum + Number(w.balance || 0), 0);
+
     return {
       member: memberRows && memberRows.length > 0 ? memberRows[0] : null,
+      total_balance: totalBalance,
       total_income: totalIncome,
       total_expense: totalExpense,
-      net_cashflow: totalIncome - totalExpense,
       transactions: transactions || []
     };
   },

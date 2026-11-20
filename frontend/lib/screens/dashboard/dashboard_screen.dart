@@ -809,11 +809,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                const Text('Saldo Akhir', style: TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
+                                const SizedBox(height: 2),
+                                FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    _formatRupiah(int.tryParse(snapshot.data!['total_balance']?.toString() ?? '0') ?? 0),
+                                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.familyPurple),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Container(width: 1, height: 30, color: AppTheme.iosDivider),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
                                 const Text('Pemasukan', style: TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
                                 const SizedBox(height: 2),
-                                Text(
-                                  _formatRupiah(int.tryParse(snapshot.data!['total_income'].toString()) ?? 0),
-                                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.incomeGreen),
+                                FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    _formatRupiah(int.tryParse(snapshot.data!['total_income']?.toString() ?? '0') ?? 0),
+                                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.incomeGreen),
+                                  ),
                                 ),
                               ],
                             ),
@@ -826,29 +847,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               children: [
                                 const Text('Pengeluaran', style: TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
                                 const SizedBox(height: 2),
-                                Text(
-                                  _formatRupiah(int.tryParse(snapshot.data!['total_expense'].toString()) ?? 0),
-                                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.expenseRed),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Container(width: 1, height: 30, color: AppTheme.iosDivider),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text('Arus Kas', style: TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
-                                const SizedBox(height: 2),
-                                Text(
-                                  _formatRupiah(int.tryParse(snapshot.data!['net_cashflow'].toString()) ?? 0),
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w700,
-                                    color: (int.tryParse(snapshot.data!['net_cashflow'].toString()) ?? 0) >= 0
-                                        ? AppTheme.incomeGreen
-                                        : AppTheme.expenseRed,
+                                FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    _formatRupiah(int.tryParse(snapshot.data!['total_expense']?.toString() ?? '0') ?? 0),
+                                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.expenseRed),
                                   ),
                                 ),
                               ],
@@ -1500,27 +1503,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ],
                   ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 12),
-                    child: Divider(color: AppTheme.iosDivider, height: 1),
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Arus Kas Bersih (Bulan Ini)',
-                        style: TextStyle(fontSize: 13, color: AppTheme.textSecondary, fontWeight: FontWeight.w500),
-                      ),
-                      Text(
-                        _formatRupiah(finance.netCashflow),
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: finance.netCashflow >= 0 ? AppTheme.incomeGreen : AppTheme.expenseRed,
-                        ),
-                      ),
-                    ],
-                  ),
+
                 ],
               ),
             ),
@@ -1572,6 +1555,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final family = finance.currentFamily;
     final inviteCode = family?.inviteCode ?? '--------';
     final sharedSavings = finance.savings.where((s) => s.isFamilyShared).toList();
+    final totalSharedSavings = sharedSavings.fold<int>(0, (sum, s) => sum + s.currentAmount);
 
     // Transactions filtered by selected member if any
     final displayedTransactions = _selectedMemberFilterId == null
@@ -1667,9 +1651,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   const SizedBox(height: 18),
 
-                  // Saldo Gabungan
+                  // Tabungan Bersama Terkumpul
                   Text(
-                    'Total Kas Bersama Keluarga',
+                    'Total Celengan Bersama Terkumpul',
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.75),
                       fontSize: 13,
@@ -1677,13 +1661,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                   ),
                   const SizedBox(height: 4),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      _isBalanceVisible ? _formatRupiah(totalSharedSavings) : '••••••••',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 32,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.6,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
                   Text(
-                    _isBalanceVisible ? _formatRupiah(finance.totalBalance) : '••••••••',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 32,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.6,
+                    '${sharedSavings.length} target celengan aktif',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.65),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                   const SizedBox(height: 14),
@@ -1837,7 +1834,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             const SizedBox(height: 20),
 
-            // 2. ARUS KAS KELUARGA
+            // 2. RINGKASAN PEMASUKAN & PENGELUARAN KELUARGA
             Container(
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
@@ -1922,27 +1919,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ],
                   ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 12),
-                    child: Divider(color: Color(0xFFEDE9FE), height: 1),
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Arus Kas Bersih Keluarga',
-                        style: TextStyle(fontSize: 13, color: AppTheme.textSecondary, fontWeight: FontWeight.w500),
-                      ),
-                      Text(
-                        _formatRupiah(finance.netCashflow),
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: finance.netCashflow >= 0 ? AppTheme.incomeGreen : AppTheme.expenseRed,
-                        ),
-                      ),
-                    ],
-                  ),
+
                 ],
               ),
             ),
@@ -2185,7 +2162,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                     SizedBox(height: 2),
                     Text(
-                      'Ketuk anggota untuk inspeksi catatan & arus kasnya',
+                      'Ketuk anggota untuk inspeksi catatan & saldo akhirnya',
                       style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
                     ),
                   ],
@@ -2211,7 +2188,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
             // Horizontal Member Selector
             SizedBox(
-              height: 82,
+              height: 98,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: finance.familyMembers.length + 1,
@@ -2225,7 +2202,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         setState(() => _selectedMemberFilterId = null);
                       },
                       child: Container(
-                        width: 78,
+                        width: 92,
                         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
                         decoration: BoxDecoration(
                           color: isAll ? AppTheme.familyPurple : Colors.white,
@@ -2244,7 +2221,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.groups_rounded, size: 24, color: isAll ? Colors.white : AppTheme.textSecondary),
+                            Icon(Icons.groups_rounded, size: 22, color: isAll ? Colors.white : AppTheme.textSecondary),
                             const SizedBox(height: 4),
                             Text(
                               'Semua',
@@ -2252,6 +2229,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 fontSize: 11,
                                 fontWeight: FontWeight.w700,
                                 color: isAll ? Colors.white : AppTheme.textPrimary,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              '${finance.familyMembers.length} Anggota',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w500,
+                                color: isAll ? Colors.white.withValues(alpha: 0.8) : AppTheme.textSecondary,
                               ),
                             ),
                           ],
@@ -2265,6 +2251,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   final name = member['name']?.toString() ?? 'Anggota';
                   final isCurrent = memberId == auth.currentUser?.id;
                   final isSelected = _selectedMemberFilterId == memberId;
+                  final totalBalance = int.tryParse(member['total_balance']?.toString() ?? '0') ?? 0;
 
                   return GestureDetector(
                     onTap: () {
@@ -2273,7 +2260,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       _showMemberInspectionModal(member);
                     },
                     child: Container(
-                      width: 96,
+                      width: 102,
                       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
                       decoration: BoxDecoration(
                         color: isSelected ? const Color(0xFFEDE9FE) : Colors.white,
@@ -2284,7 +2271,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           CircleAvatar(
-                            radius: 16,
+                            radius: 15,
                             backgroundColor: AppTheme.familyPurple.withValues(alpha: 0.15),
                             child: Text(
                               name.isNotEmpty ? name[0].toUpperCase() : '?',
@@ -2300,6 +2287,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               fontSize: 11,
                               fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
                               color: isSelected ? AppTheme.familyPurple : AppTheme.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              _formatRupiah(totalBalance),
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: isSelected ? AppTheme.familyPurple : AppTheme.textSecondary,
+                              ),
                             ),
                           ),
                         ],

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/finance_provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/saving_model.dart';
@@ -207,91 +208,205 @@ class SavingsScreen extends StatelessWidget {
     final nameController = TextEditingController();
     final targetController = TextEditingController();
 
+    final auth = context.read<AuthProvider>();
+    final hasFamily = auth.currentUser?.familyId != null;
+    String selectedScope = finance.isFamilyView && hasFamily ? 'family' : 'personal';
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-          ),
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(ctx).viewInsets.bottom + 28,
-            left: 20,
-            right: 20,
-            top: 12,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 5,
-                  margin: const EdgeInsets.only(bottom: 20),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFD1D1D6),
-                    borderRadius: BorderRadius.circular(2.5),
+        return StatefulBuilder(
+          builder: (modalCtx, setModalState) {
+            return Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+              ),
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(modalCtx).viewInsets.bottom + 28,
+                left: 20,
+                right: 20,
+                top: 12,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 5,
+                      margin: const EdgeInsets.only(bottom: 20),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFD1D1D6),
+                        borderRadius: BorderRadius.circular(2.5),
+                      ),
+                    ),
                   ),
-                ),
-              ),
-              const Text(
-                'Buat Celengan Baru',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: nameController,
-                decoration: InputDecoration(
-                  labelText: 'Nama Target (misal: Liburan, DP Rumah, Gadget)',
-                  prefixIcon: const Icon(Icons.flag_outlined, size: 20),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
-                  filled: true,
-                  fillColor: const Color(0xFFF2F2F7),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: targetController,
-                keyboardType: TextInputType.number,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-                decoration: InputDecoration(
-                  labelText: 'Target Nominal',
-                  prefixText: 'Rp ',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
-                  filled: true,
-                  fillColor: const Color(0xFFF2F2F7),
-                ),
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () async {
-                  final name = nameController.text.trim();
-                  final target = int.tryParse(targetController.text.replaceAll('.', '').replaceAll(',', '')) ?? 0;
-                  if (name.isEmpty || target <= 0) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Harap masukkan nama dan target nominal')),
-                    );
-                    return;
-                  }
+                  const Text(
+                    'Buat Celengan Baru',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                  ),
+                  const SizedBox(height: 16),
 
-                  HapticFeedback.mediumImpact();
-                  Navigator.pop(ctx);
-                  await finance.createSavingGoal(goalName: name, targetAmount: target);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.textPrimary,
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size(double.infinity, 52),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                ),
-                child: const Text('Buat Celengan', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                  // Scope selector if user has family
+                  if (hasFamily) ...[
+                    Container(
+                      padding: const EdgeInsets.all(3),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE5E5EA),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () {
+                                HapticFeedback.selectionClick();
+                                setModalState(() => selectedScope = 'personal');
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: selectedScope == 'personal' ? Colors.white : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(9),
+                                  boxShadow: selectedScope == 'personal'
+                                      ? [
+                                          BoxShadow(
+                                            color: Colors.black.withValues(alpha: 0.08),
+                                            blurRadius: 4,
+                                            offset: const Offset(0, 1),
+                                          ),
+                                        ]
+                                      : null,
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.person_outline_rounded, size: 14, color: selectedScope == 'personal' ? AppTheme.textPrimary : AppTheme.textSecondary),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'Pribadi',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: selectedScope == 'personal' ? FontWeight.w600 : FontWeight.w500,
+                                        color: selectedScope == 'personal' ? AppTheme.textPrimary : AppTheme.textSecondary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () {
+                                HapticFeedback.selectionClick();
+                                setModalState(() => selectedScope = 'family');
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: selectedScope == 'family' ? Colors.white : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(9),
+                                  boxShadow: selectedScope == 'family'
+                                      ? [
+                                          BoxShadow(
+                                            color: Colors.black.withValues(alpha: 0.08),
+                                            blurRadius: 4,
+                                            offset: const Offset(0, 1),
+                                          ),
+                                        ]
+                                      : null,
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.family_restroom_rounded, size: 14, color: selectedScope == 'family' ? AppTheme.familyPurple : AppTheme.textSecondary),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'Bersama Keluarga',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: selectedScope == 'family' ? FontWeight.w600 : FontWeight.w500,
+                                        color: selectedScope == 'family' ? AppTheme.familyPurple : AppTheme.textSecondary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      selectedScope == 'family'
+                          ? '🎯 Celengan bersama dapat diakses dan diisi oleh seluruh anggota keluarga hingga target tercapai.'
+                          : '🔒 Celengan pribadi hanya dapat dilihat dan diisi oleh Anda.',
+                      style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary, height: 1.3),
+                    ),
+                    const SizedBox(height: 14),
+                  ],
+
+                  TextField(
+                    controller: nameController,
+                    decoration: InputDecoration(
+                      labelText: 'Nama Target (misal: Liburan, DP Rumah, Gadget)',
+                      prefixIcon: const Icon(Icons.flag_outlined, size: 20),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                      filled: true,
+                      fillColor: const Color(0xFFF2F2F7),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: targetController,
+                    keyboardType: TextInputType.number,
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                    decoration: InputDecoration(
+                      labelText: 'Target Nominal',
+                      prefixText: 'Rp ',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                      filled: true,
+                      fillColor: const Color(0xFFF2F2F7),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: () async {
+                      final name = nameController.text.trim();
+                      final target = int.tryParse(targetController.text.replaceAll('.', '').replaceAll(',', '')) ?? 0;
+                      if (name.isEmpty || target <= 0) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Harap masukkan nama dan target nominal')),
+                        );
+                        return;
+                      }
+
+                      HapticFeedback.mediumImpact();
+                      Navigator.pop(modalCtx);
+                      await finance.createSavingGoal(
+                        goalName: name,
+                        targetAmount: target,
+                        scope: selectedScope,
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.textPrimary,
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size(double.infinity, 52),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    ),
+                    child: const Text('Buat Celengan', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                  ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         );
       },
     );
@@ -466,9 +581,34 @@ class SavingsScreen extends StatelessWidget {
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      goal.goalName,
-                                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16, letterSpacing: -0.2),
+                                    Row(
+                                      children: [
+                                        Text(
+                                          goal.goalName,
+                                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16, letterSpacing: -0.2),
+                                        ),
+                                        if (goal.isFamilyShared) ...[
+                                          const SizedBox(width: 6),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                            decoration: BoxDecoration(
+                                              color: AppTheme.familyPurple.withValues(alpha: 0.12),
+                                              borderRadius: BorderRadius.circular(6),
+                                            ),
+                                            child: const Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(Icons.family_restroom_rounded, size: 11, color: AppTheme.familyPurple),
+                                                SizedBox(width: 3),
+                                                Text(
+                                                  'Bersama',
+                                                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppTheme.familyPurple),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ],
                                     ),
                                     Text(
                                       'Target: ${_formatRupiah(goal.targetAmount)}',
@@ -542,6 +682,68 @@ class SavingsScreen extends StatelessWidget {
                             ),
                           ],
                         ),
+
+                        // Contributors list for family shared goals
+                        if (goal.isFamilyShared) ...[
+                          const SizedBox(height: 12),
+                          const Divider(height: 1, color: AppTheme.iosDivider),
+                          const SizedBox(height: 10),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Kontribusi Anggota:',
+                                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
+                              ),
+                              Text(
+                                '${goal.contributors.length} Kontributor',
+                                style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          if (goal.contributors.isEmpty)
+                            const Text(
+                              'Belum ada setoran dari anggota keluarga.',
+                              style: TextStyle(fontSize: 11, fontStyle: FontStyle.italic, color: AppTheme.textSecondary),
+                            )
+                          else
+                            Wrap(
+                              spacing: 6,
+                              runSpacing: 6,
+                              children: goal.contributors.map((c) {
+                                final share = goal.targetAmount > 0
+                                    ? ((c.totalContributed / goal.targetAmount) * 100).toStringAsFixed(0)
+                                    : '0';
+                                return Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.iosBg,
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: AppTheme.iosDivider, width: 0.8),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      CircleAvatar(
+                                        radius: 8,
+                                        backgroundColor: AppTheme.familyPurple.withValues(alpha: 0.15),
+                                        child: Text(
+                                          c.userName.isNotEmpty ? c.userName[0].toUpperCase() : '?',
+                                          style: const TextStyle(fontSize: 8, fontWeight: FontWeight.w700, color: AppTheme.familyPurple),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 5),
+                                      Text(
+                                        '${c.userName}: ${_formatRupiah(c.totalContributed)} ($share%)',
+                                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                        ],
                       ],
                     ),
                   );

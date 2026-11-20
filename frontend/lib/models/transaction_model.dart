@@ -12,6 +12,7 @@ class TransactionModel {
   final int? destinationSavingId;
   final int? debtId;
   final String scope;
+  final String? userName;
 
   const TransactionModel({
     required this.id,
@@ -27,6 +28,7 @@ class TransactionModel {
     this.destinationSavingId,
     this.debtId,
     required this.scope,
+    this.userName,
   });
 
   factory TransactionModel.fromJson(Map<String, dynamic> json) {
@@ -44,6 +46,7 @@ class TransactionModel {
       destinationSavingId: json['destination_saving_id'] != null ? json['destination_saving_id'] as int : null,
       debtId: json['debt_id'] != null ? json['debt_id'] as int : null,
       scope: (json['scope'] as String?) ?? 'personal',
+      userName: json['user_name'] as String?,
     );
   }
 
@@ -62,6 +65,7 @@ class TransactionModel {
       'destination_saving_id': destinationSavingId,
       'debt_id': debtId,
       'scope': scope,
+      'user_name': userName,
     };
   }
 }

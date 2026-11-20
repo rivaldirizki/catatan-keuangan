@@ -17,6 +17,7 @@ class FinanceProvider extends ChangeNotifier {
   List<TransactionModel> _transactions = [];
   List<SavingModel> _savings = [];
   List<DebtModel> _debts = [];
+  List<Map<String, dynamic>> _familyMembers = [];
 
   int _totalBalance = 0;
   int _totalIncome = 0;
@@ -33,6 +34,7 @@ class FinanceProvider extends ChangeNotifier {
   List<TransactionModel> get transactions => _transactions;
   List<SavingModel> get savings => _savings;
   List<DebtModel> get debts => _debts;
+  List<Map<String, dynamic>> get familyMembers => _familyMembers;
 
   int get totalBalance => _totalBalance;
   int get totalIncome => _totalIncome;
@@ -84,6 +86,18 @@ class FinanceProvider extends ChangeNotifier {
       final debtsData = await apiClient.get(ApiConstants.debts, queryParams: queryParams);
       if (debtsData is List) {
         _debts = debtsData.map((d) => DebtModel.fromJson(d as Map<String, dynamic>)).toList();
+      }
+
+      // 6. Family members if family view
+      if (_isFamilyView) {
+        try {
+          final famData = await apiClient.get(ApiConstants.familyCurrent);
+          if (famData is Map<String, dynamic> && famData['members'] is List) {
+            _familyMembers = (famData['members'] as List).cast<Map<String, dynamic>>();
+          }
+        } catch (_) {}
+      } else {
+        _familyMembers = [];
       }
 
       _isLoading = false;
@@ -209,6 +223,20 @@ class FinanceProvider extends ChangeNotifier {
       _errorMessage = e.toString().replaceAll('Exception: ', '');
       notifyListeners();
       return false;
+    }
+  }
+
+  Future<Map<String, dynamic>?> getMemberFinancialSummary(int memberId) async {
+    try {
+      final res = await apiClient.get(ApiConstants.familyMemberSummary(memberId));
+      if (res is Map<String, dynamic>) {
+        return res;
+      }
+      return null;
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      notifyListeners();
+      return null;
     }
   }
 }

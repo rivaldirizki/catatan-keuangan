@@ -1,3 +1,31 @@
+class SavingContributor {
+  final int userId;
+  final String userName;
+  final int totalContributed;
+
+  const SavingContributor({
+    required this.userId,
+    required this.userName,
+    required this.totalContributed,
+  });
+
+  factory SavingContributor.fromJson(Map<String, dynamic> json) {
+    return SavingContributor(
+      userId: json['user_id'] as int,
+      userName: (json['user_name'] as String?) ?? 'Anggota',
+      totalContributed: int.tryParse(json['total_contributed'].toString()) ?? 0,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'user_id': userId,
+      'user_name': userName,
+      'total_contributed': totalContributed,
+    };
+  }
+}
+
 class SavingModel {
   final int id;
   final int userId;
@@ -9,6 +37,7 @@ class SavingModel {
   final String scope;
   final String status;
   final int progressPercentage;
+  final List<SavingContributor> contributors;
 
   const SavingModel({
     required this.id,
@@ -21,12 +50,22 @@ class SavingModel {
     required this.scope,
     required this.status,
     required this.progressPercentage,
+    this.contributors = const [],
   });
+
+  bool get isFamilyShared => scope == 'family';
 
   factory SavingModel.fromJson(Map<String, dynamic> json) {
     final target = int.tryParse(json['target_amount'].toString()) ?? 0;
     final current = int.tryParse(json['current_amount'].toString()) ?? 0;
     final progress = target > 0 ? ((current / target) * 100).clamp(0, 100).toInt() : 0;
+
+    List<SavingContributor> contributors = [];
+    if (json['contributions'] is List) {
+      contributors = (json['contributions'] as List)
+          .map((c) => SavingContributor.fromJson(c as Map<String, dynamic>))
+          .toList();
+    }
 
     return SavingModel(
       id: json['id'] as int,
@@ -39,6 +78,7 @@ class SavingModel {
       scope: (json['scope'] as String?) ?? 'personal',
       status: (json['status'] as String?) ?? 'active',
       progressPercentage: (json['progress_percentage'] as int?) ?? progress,
+      contributors: contributors,
     );
   }
 
@@ -54,6 +94,7 @@ class SavingModel {
       'scope': scope,
       'status': status,
       'progress_percentage': progressPercentage,
+      'contributions': contributors.map((c) => c.toJson()).toList(),
     };
   }
 }

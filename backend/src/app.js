@@ -106,6 +106,20 @@ app.get('/api/v1/family/current', authenticateJWT, async (req, res) => {
   }
 });
 
+app.get('/api/v1/family/members/:id/summary', authenticateJWT, async (req, res) => {
+  try {
+    const user = await AuthService.getUserById(req.user.id);
+    if (!user || !user.family_id) {
+      return res.status(400).json({ error: 'Pengguna belum terhubung ke grup keluarga' });
+    }
+    const memberId = Number(req.params.id);
+    const summary = await TransactionService.getMemberSummary(user.family_id, memberId);
+    res.json(summary);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ======================= WALLETS ROUTES =======================
 app.get('/api/v1/wallets', authenticateJWT, async (req, res) => {
   try {

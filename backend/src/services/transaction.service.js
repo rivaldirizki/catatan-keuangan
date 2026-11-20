@@ -92,36 +92,61 @@ export const TransactionService = {
   },
 
   async getTransactions(userId, familyId = null, familyView = false, filters = {}) {
-    let sql = 'SELECT * FROM transactions WHERE ';
+    let sql = 'SELECT t.*, u.name as user_name FROM transactions t LEFT JOIN users u ON t.user_id = u.id WHERE ';
     const params = [];
 
     if (familyView && familyId) {
-      sql += '((family_id = ? AND scope = "family") OR user_id = ?)';
+      sql += '((t.family_id = ? AND t.scope = "family") OR t.user_id = ?)';
       params.push(familyId, userId);
     } else {
-      sql += 'user_id = ?';
+      sql += 't.user_id = ?';
       params.push(userId);
     }
 
+    if (filters.user_id) {
+      sql += ' AND t.user_id = ?';
+      params.push(Number(filters.user_id));
+    }
     if (filters.type) {
-      sql += ' AND type = ?';
+      sql += ' AND t.type = ?';
       params.push(filters.type);
     }
     if (filters.wallet_id) {
-      sql += ' AND wallet_id = ?';
+      sql += ' AND t.wallet_id = ?';
       params.push(Number(filters.wallet_id));
     }
     if (filters.startDate) {
-      sql += ' AND transaction_date >= ?';
+      sql += ' AND t.transaction_date >= ?';
       params.push(filters.startDate);
     }
     if (filters.endDate) {
-      sql += ' AND transaction_date <= ?';
+      sql += ' AND t.transaction_date <= ?';
       params.push(filters.endDate);
     }
 
-    sql += ' ORDER BY transaction_date DESC, id DESC';
+    sql += ' ORDER BY t.transaction_date DESC, t.id DESC';
     return await db.query(sql, params);
+  },
+
+  async getMemberSummary(familyId, targetUserId) {
+    const transactions = await db.query(
+      'SELECT t.*, u.name as user_name FROM transactions t LEFT JOIN users u ON t.user_id = u.id WHERE t.user_id = ? AND (t.family_id = ? OR t.scope = "family" OR t.user_id = ?) ORDER BY t.transaction_date DESC, t.id DESC',
+      [targetUserId, familyId, targetUserId]
+    );
+    let totalIncome = 0;
+    let totalExpense = 0;
+    for (const tx of transactions) {
+      if (tx.type === 'income') totalIncome += Number(tx.amount);
+      if (tx.type === 'expense' || tx.type === 'saving_deposit') totalExpense += Number(tx.amount);
+    }
+    const memberRows = await db.query('SELECT id, name, email, role FROM users WHERE id = ?', [targetUserId]);
+    return {
+      member: memberRows && memberRows.length > 0 ? memberRows[0] : null,
+      total_income: totalIncome,
+      total_expense: totalExpense,
+      net_cashflow: totalIncome - totalExpense,
+      transactions: transactions || []
+    };
   },
 
   async getSummary(userId, familyId = null, familyView = false) {

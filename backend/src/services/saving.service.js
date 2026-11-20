@@ -25,6 +25,23 @@ export const SavingService = {
     };
   },
 
+  async getGoalContributions(savingId) {
+    const rows = await db.query(
+      `SELECT t.user_id, u.name as user_name, SUM(t.amount) as total_contributed
+       FROM transactions t
+       JOIN users u ON t.user_id = u.id
+       WHERE t.destination_saving_id = ? AND t.type = 'saving_deposit'
+       GROUP BY t.user_id, u.name
+       ORDER BY total_contributed DESC`,
+      [savingId]
+    );
+    return (rows || []).map(r => ({
+      user_id: r.user_id,
+      user_name: r.user_name,
+      total_contributed: Number(r.total_contributed)
+    }));
+  },
+
   async getGoalById(savingId) {
     const rows = await db.query('SELECT * FROM savings WHERE id = ?', [savingId]);
     if (!rows || rows.length === 0) return null;
@@ -32,11 +49,13 @@ export const SavingService = {
     const target = Number(goal.target_amount);
     const current = Number(goal.current_amount);
     const progress = target > 0 ? Math.min(100, Math.round((current / target) * 100)) : 0;
+    const contributions = await this.getGoalContributions(goal.id);
     return {
       ...goal,
       target_amount: target,
       current_amount: current,
-      progress_percentage: progress
+      progress_percentage: progress,
+      contributions
     };
   },
 
@@ -54,17 +73,21 @@ export const SavingService = {
     sql += ' ORDER BY id DESC';
 
     const rows = await db.query(sql, params);
-    return (rows || []).map(goal => {
+    const result = [];
+    for (const goal of (rows || [])) {
       const target = Number(goal.target_amount);
       const current = Number(goal.current_amount);
       const progress = target > 0 ? Math.min(100, Math.round((current / target) * 100)) : 0;
-      return {
+      const contributions = await this.getGoalContributions(goal.id);
+      result.push({
         ...goal,
         target_amount: target,
         current_amount: current,
-        progress_percentage: progress
-      };
-    });
+        progress_percentage: progress,
+        contributions
+      });
+    }
+    return result;
   },
 
   async deposit(userId, walletId, savingId, amount, date = new Date().toISOString().split('T')[0], notes = '') {

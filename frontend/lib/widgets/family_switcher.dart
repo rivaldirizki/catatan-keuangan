@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/finance_provider.dart';
@@ -94,13 +95,10 @@ class FamilySwitcher extends StatelessWidget {
             onTap: () {
               HapticFeedback.lightImpact();
               if (!hasFamily) {
-                // Belum punya keluarga -> Tampilkan opsi Buat / Masuk Keluarga
                 _showFamilySetupSheet(context);
               } else if (!isFamily) {
-                // Punya keluarga -> Aktifkan tampilan keluarga
                 finance.toggleFamilyView(true);
               } else {
-                // Sedang di tampilan keluarga -> Buka detail keluarga & ID acak
                 _showFamilyDetailsSheet(context);
               }
             },
@@ -345,7 +343,6 @@ class _FamilySetupModalState extends State<_FamilySetupModal> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // iOS Drag Handle
           Center(
             child: Container(
               width: 38,
@@ -357,28 +354,18 @@ class _FamilySetupModalState extends State<_FamilySetupModal> {
               ),
             ),
           ),
-
-          // Header
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
                 'Keuangan Keluarga',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: AppTheme.textPrimary,
-                  letterSpacing: -0.4,
-                ),
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppTheme.textPrimary, letterSpacing: -0.4),
               ),
               GestureDetector(
                 onTap: () => Navigator.pop(context),
                 child: Container(
                   padding: const EdgeInsets.all(6),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFF2F2F7),
-                    shape: BoxShape.circle,
-                  ),
+                  decoration: const BoxDecoration(color: Color(0xFFF2F2F7), shape: BoxShape.circle),
                   child: const Icon(Icons.close_rounded, size: 18, color: AppTheme.textSecondary),
                 ),
               ),
@@ -390,8 +377,6 @@ class _FamilySetupModalState extends State<_FamilySetupModal> {
             style: TextStyle(fontSize: 13, color: AppTheme.textSecondary, height: 1.35),
           ),
           const SizedBox(height: 20),
-
-          // Sliding Segmented Tab: Buat Keluarga vs Masuk Keluarga
           Container(
             padding: const EdgeInsets.all(3),
             decoration: BoxDecoration(
@@ -477,7 +462,6 @@ class _FamilySetupModalState extends State<_FamilySetupModal> {
           ),
           const SizedBox(height: 20),
 
-          // Error Banner if any
           if (_errorMessage != null) ...[
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -502,7 +486,6 @@ class _FamilySetupModalState extends State<_FamilySetupModal> {
             ),
           ],
 
-          // Content Tab 0: Buat Keluarga Baru
           if (_activeTab == 0) ...[
             Container(
               decoration: BoxDecoration(
@@ -553,7 +536,6 @@ class _FamilySetupModalState extends State<_FamilySetupModal> {
                   : const Text('Buat Keluarga Baru', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
             ),
           ] else ...[
-            // Content Tab 1: Masuk Keluarga
             Container(
               decoration: BoxDecoration(
                 color: AppTheme.iosBg,
@@ -610,7 +592,7 @@ class _FamilySetupModalState extends State<_FamilySetupModal> {
   }
 }
 
-/// Modal Detail Keluarga & Tampilan ID Acak (Untuk Keluarga yang Sudah Ada)
+/// Modal Detail Keluarga & Tampilan ID Acak (Dapat Diklik untuk Cek Catatan Anggota)
 class _FamilyDetailsModal extends StatefulWidget {
   const _FamilyDetailsModal();
 
@@ -641,6 +623,15 @@ class _FamilyDetailsModalState extends State<_FamilyDetailsModal> {
     }
   }
 
+  void _showMemberInspection(Map<String, dynamic> member) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => _MemberInspectionModal(member: member),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final inviteCode = _familyData?['invite_code']?.toString() ?? '--------';
@@ -656,7 +647,6 @@ class _FamilyDetailsModalState extends State<_FamilyDetailsModal> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // iOS Drag Handle
           Center(
             child: Container(
               width: 38,
@@ -668,8 +658,6 @@ class _FamilyDetailsModalState extends State<_FamilyDetailsModal> {
               ),
             ),
           ),
-
-          // Header
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -705,7 +693,6 @@ class _FamilyDetailsModalState extends State<_FamilyDetailsModal> {
               ),
             )
           else ...[
-            // Family Card with ID
             Container(
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
@@ -731,11 +718,7 @@ class _FamilyDetailsModalState extends State<_FamilyDetailsModal> {
                     children: [
                       Text(
                         familyName,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white),
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -757,12 +740,7 @@ class _FamilyDetailsModalState extends State<_FamilyDetailsModal> {
                     children: [
                       Text(
                         inviteCode,
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 3.0,
-                          color: Colors.white,
-                        ),
+                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, letterSpacing: 3.0, color: Colors.white),
                       ),
                       const SizedBox(width: 12),
                       ElevatedButton.icon(
@@ -801,10 +779,12 @@ class _FamilyDetailsModalState extends State<_FamilyDetailsModal> {
             ),
             const SizedBox(height: 20),
 
-            // Members List
-            const Text(
-              'Daftar Anggota Keluarga',
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+            const Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Daftar Anggota Keluarga', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+                Text('Ketuk untuk lihat catatan', style: TextStyle(fontSize: 11, color: AppTheme.familyPurple, fontWeight: FontWeight.w600)),
+              ],
             ),
             const SizedBox(height: 10),
 
@@ -825,43 +805,350 @@ class _FamilyDetailsModalState extends State<_FamilyDetailsModal> {
                   final email = member['email']?.toString() ?? '';
                   final role = member['role']?.toString() ?? 'user';
 
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 16,
-                          backgroundColor: AppTheme.familyPurple.withValues(alpha: 0.15),
-                          child: Text(
-                            name.isNotEmpty ? name[0].toUpperCase() : '?',
-                            style: const TextStyle(color: AppTheme.familyPurple, fontWeight: FontWeight.w700, fontSize: 13),
+                  return InkWell(
+                    onTap: () => _showMemberInspection(member),
+                    borderRadius: BorderRadius.circular(16),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 17,
+                            backgroundColor: AppTheme.familyPurple.withValues(alpha: 0.15),
+                            child: Text(
+                              name.isNotEmpty ? name[0].toUpperCase() : '?',
+                              style: const TextStyle(color: AppTheme.familyPurple, fontWeight: FontWeight.w700, fontSize: 13),
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
+                                    if (role == 'admin') ...[
+                                      const SizedBox(width: 6),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                        decoration: BoxDecoration(
+                                          color: AppTheme.familyPurple.withValues(alpha: 0.1),
+                                          borderRadius: BorderRadius.circular(5),
+                                        ),
+                                        child: const Text('Admin', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: AppTheme.familyPurple)),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                                Text(email, style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                              ],
+                            ),
+                          ),
+                          const Row(
                             children: [
-                              Text(name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
-                              Text(email, style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                              Text('Catatan', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.iosBlue)),
+                              SizedBox(width: 2),
+                              Icon(Icons.chevron_right_rounded, size: 16, color: AppTheme.iosBlue),
                             ],
                           ),
-                        ),
-                        if (role == 'admin')
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: AppTheme.familyPurple.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: const Text('Admin', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppTheme.familyPurple)),
-                          ),
-                      ],
+                        ],
+                      ),
                     ),
                   );
                 },
               ),
             ),
+            const SizedBox(height: 20),
+
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.textPrimary,
+                foregroundColor: Colors.white,
+                minimumSize: const Size(double.infinity, 48),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: const Text('Tutup', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Modal Inspeksi Catatan Keuangan Anggota Keluarga Tertentu
+class _MemberInspectionModal extends StatefulWidget {
+  final Map<String, dynamic> member;
+  const _MemberInspectionModal({required this.member});
+
+  @override
+  State<_MemberInspectionModal> createState() => _MemberInspectionModalState();
+}
+
+class _MemberInspectionModalState extends State<_MemberInspectionModal> {
+  Map<String, dynamic>? _summary;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchMemberSummary();
+  }
+
+  String _formatRupiah(int val) {
+    final currency = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+    return currency.format(val);
+  }
+
+  Future<void> _fetchMemberSummary() async {
+    final finance = context.read<FinanceProvider>();
+    final memberId = widget.member['id'] as int;
+    final res = await finance.getMemberFinancialSummary(memberId);
+    if (mounted) {
+      setState(() {
+        _summary = res;
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final memberName = widget.member['name']?.toString() ?? 'Anggota';
+    final memberEmail = widget.member['email']?.toString() ?? '';
+    final txList = (_summary?['transactions'] as List<dynamic>?) ?? [];
+    final income = int.tryParse(_summary?['total_income']?.toString() ?? '0') ?? 0;
+    final expense = int.tryParse(_summary?['total_expense']?.toString() ?? '0') ?? 0;
+    final net = int.tryParse(_summary?['net_cashflow']?.toString() ?? '0') ?? 0;
+
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Center(
+            child: Container(
+              width: 38,
+              height: 4.5,
+              margin: const EdgeInsets.only(bottom: 20),
+              decoration: BoxDecoration(
+                color: const Color(0xFFD1D1D6),
+                borderRadius: BorderRadius.circular(3),
+              ),
+            ),
+          ),
+
+          // Header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 18,
+                    backgroundColor: AppTheme.familyPurple.withValues(alpha: 0.15),
+                    child: Text(
+                      memberName.isNotEmpty ? memberName[0].toUpperCase() : '?',
+                      style: const TextStyle(color: AppTheme.familyPurple, fontWeight: FontWeight.w700, fontSize: 14),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Catatan: $memberName',
+                        style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                      ),
+                      Text(memberEmail, style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                    ],
+                  ),
+                ],
+              ),
+              GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: const BoxDecoration(color: Color(0xFFF2F2F7), shape: BoxShape.circle),
+                  child: const Icon(Icons.close_rounded, size: 18, color: AppTheme.textSecondary),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+
+          if (_isLoading)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.all(32),
+                child: CircularProgressIndicator(color: AppTheme.familyPurple),
+              ),
+            )
+          else ...[
+            // Summary Inset Grouped Card
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppTheme.iosBg,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppTheme.iosDivider, width: 0.8),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Pemasukan', style: TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
+                        const SizedBox(height: 3),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            '+ ${_formatRupiah(income)}',
+                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.incomeGreen),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(width: 0.8, height: 28, color: AppTheme.iosDivider),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Pengeluaran', style: TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
+                        const SizedBox(height: 3),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            '- ${_formatRupiah(expense)}',
+                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.expenseRed),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(width: 0.8, height: 28, color: AppTheme.iosDivider),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Selisih', style: TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
+                        const SizedBox(height: 3),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            _formatRupiah(net),
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: net >= 0 ? AppTheme.textPrimary : AppTheme.expenseRed,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Riwayat Transaksi', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+                Text('${txList.length} mutasi', style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+              ],
+            ),
+            const SizedBox(height: 10),
+
+            if (txList.isEmpty)
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: AppTheme.iosBg,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: AppTheme.iosDivider, width: 0.8),
+                ),
+                child: Center(
+                  child: Text(
+                    'Belum ada transaksi yang dicatat oleh $memberName.',
+                    style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+                  ),
+                ),
+              )
+            else
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 280),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppTheme.iosBg,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppTheme.iosDivider, width: 0.8),
+                  ),
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    itemCount: txList.length,
+                    separatorBuilder: (_, __) => const Divider(height: 1, indent: 52, color: AppTheme.iosDivider),
+                    itemBuilder: (ctx, idx) {
+                      final tx = txList[idx] as Map<String, dynamic>;
+                      final type = tx['type']?.toString() ?? 'expense';
+                      final isIncome = type == 'income';
+                      final isSaving = type == 'saving_deposit';
+                      final color = isIncome ? AppTheme.incomeGreen : (isSaving ? AppTheme.iosBlue : AppTheme.expenseRed);
+                      final icon = isIncome
+                          ? Icons.arrow_downward_rounded
+                          : (isSaving ? Icons.savings_rounded : Icons.arrow_upward_rounded);
+                      final amount = int.tryParse(tx['amount']?.toString() ?? '0') ?? 0;
+                      final date = tx['transaction_date']?.toString().split('T')[0] ?? '';
+                      final notes = tx['notes']?.toString();
+
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(7),
+                              decoration: BoxDecoration(
+                                color: color.withValues(alpha: 0.12),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(icon, size: 15, color: color),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    notes?.isNotEmpty == true ? notes! : (isIncome ? 'Pemasukan' : 'Pengeluaran'),
+                                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
+                                  ),
+                                  Text(date, style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
+                                ],
+                              ),
+                            ),
+                            Text(
+                              '${isIncome ? "+" : "-"} ${_formatRupiah(amount)}',
+                              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: color),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
             const SizedBox(height: 20),
 
             ElevatedButton(

@@ -108,22 +108,31 @@ class MockDatabase {
       return { insertId: id, affectedRows: 1 };
     }
 
-    const selectMatch = cleanSql.match(/^SELECT\s+(.+?)\s+FROM\s+([a-zA-Z0-9_]+)(?:\s+WHERE\s+(.+?))?(?:\s+ORDER\s+BY\s+(.+?))?(?:\s+LIMIT\s+(\d+))?$/is);
+    const selectMatch = cleanSql.match(/^SELECT\s+(.+?)\s+FROM\s+([a-zA-Z0-9_]+)(?:\s+[a-zA-Z0-9_]+)?(?:\s+LEFT\s+JOIN\s+([a-zA-Z0-9_]+)(?:\s+[a-zA-Z0-9_]+)?\s+ON\s+[^\s]+\s*=\s*[^\s]+)?(?:\s+WHERE\s+(.+?))?(?:\s+ORDER\s+BY\s+(.+?))?(?:\s+LIMIT\s+(\d+))?$/is);
     if (selectMatch) {
       const table = selectMatch[2].toLowerCase();
-      let rows = [...(this.tables[table] || [])];
-      const whereClause = selectMatch[3];
+      let rows = (this.tables[table] || []).map(r => ({ ...r }));
+      const joinTable = selectMatch[3] ? selectMatch[3].toLowerCase() : null;
+      if (joinTable && this.tables[joinTable]) {
+        if (joinTable === 'users') {
+          rows.forEach(r => {
+            const u = this.tables.users.find(user => user.id === r.user_id);
+            if (u) r.user_name = u.name;
+          });
+        }
+      }
+      const whereClause = selectMatch[4];
       if (whereClause) {
         let paramIdx = 0;
         const conditions = whereClause.split(/\s+AND\s+/i);
         for (const cond of conditions) {
-          const eqMatch = cond.match(/([a-zA-Z0-9_]+)\s*=\s*\?/);
+          const eqMatch = cond.match(/(?:[a-zA-Z0-9_]+\.)?([a-zA-Z0-9_]+)\s*=\s*\?/);
           if (eqMatch) {
             const col = eqMatch[1];
             const val = params[paramIdx++];
             rows = rows.filter(r => String(r[col]) === String(val));
           }
-          const nullMatch = cond.match(/([a-zA-Z0-9_]+)\s+IS\s+NULL/i);
+          const nullMatch = cond.match(/(?:[a-zA-Z0-9_]+\.)?([a-zA-Z0-9_]+)\s+IS\s+NULL/i);
           if (nullMatch) {
             const col = nullMatch[1];
             rows = rows.filter(r => r[col] === null || r[col] === undefined);

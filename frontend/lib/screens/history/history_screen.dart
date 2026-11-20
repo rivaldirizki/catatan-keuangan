@@ -28,6 +28,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   String _datePreset = 'all'; // 'all', 'today', '7days', 'month', 'custom'
   DateTimeRange? _customDateRange;
   int? _selectedWalletId;
+  int? _selectedMemberId; // For member filtering in Family mode
 
   @override
   void dispose() {
@@ -124,6 +125,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
       _datePreset = 'all';
       _customDateRange = null;
       _selectedWalletId = null;
+      _selectedMemberId = null;
     });
   }
 
@@ -248,6 +250,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     _buildDetailRow('Jenis Transaksi', _txTypeLabel(tx.type)),
                     const Divider(height: 1, indent: 16, endIndent: 16, color: AppTheme.iosDivider),
                     _buildDetailRow('Lingkup', tx.scope == 'family' ? 'Keluarga' : 'Pribadi'),
+                    if (tx.userName != null) ...[
+                      const Divider(height: 1, indent: 16, endIndent: 16, color: AppTheme.iosDivider),
+                      _buildDetailRow('Dicatat Oleh', tx.userName!),
+                    ],
                     if (tx.notes?.isNotEmpty == true) ...[
                       const Divider(height: 1, indent: 16, endIndent: 16, color: AppTheme.iosDivider),
                       _buildDetailRow('Catatan', tx.notes!),
@@ -329,6 +335,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
         return false;
       }
 
+      // Member Filter (Family View)
+      if (finance.isFamilyView && _selectedMemberId != null && tx.userId != _selectedMemberId) {
+        return false;
+      }
+
       // Date Filter
       if (activeRange != null) {
         try {
@@ -345,6 +356,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
       if (_searchQuery.trim().isNotEmpty) {
         final query = _searchQuery.toLowerCase().trim();
         final notes = (tx.notes ?? '').toLowerCase();
+        final userName = (tx.userName ?? '').toLowerCase();
         final amountStr = tx.amount.toString();
         final typeStr = _txTypeLabel(tx.type).toLowerCase();
 
@@ -356,7 +368,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
         final matches = notes.contains(query) ||
             amountStr.contains(query) ||
             typeStr.contains(query) ||
-            walletName.contains(query);
+            walletName.contains(query) ||
+            userName.contains(query);
 
         if (!matches) return false;
       }
@@ -538,6 +551,28 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       ),
                     ],
 
+                    // Member Filter Chips Row (Family Mode)
+                    if (finance.isFamilyView && finance.familyMembers.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        physics: const BouncingScrollPhysics(),
+                        child: Row(
+                          children: [
+                            _buildMemberChip(null, 'Semua Anggota'),
+                            ...finance.familyMembers.map((m) {
+                              final memberId = m['id'] as int;
+                              final memberName = m['name']?.toString() ?? 'Anggota';
+                              return Padding(
+                                padding: const EdgeInsets.only(left: 8),
+                                child: _buildMemberChip(memberId, memberName),
+                              );
+                            }),
+                          ],
+                        ),
+                      ),
+                    ],
+
                     const SizedBox(height: 16),
 
                     // Dynamic Filter Summary Inset Card
@@ -568,7 +603,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                   color: AppTheme.textSecondary,
                                 ),
                               ),
-                              if (_searchQuery.isNotEmpty || _selectedType != 'all' || _datePreset != 'all')
+                              if (_searchQuery.isNotEmpty || _selectedType != 'all' || _datePreset != 'all' || _selectedMemberId != null)
                                 GestureDetector(
                                   onTap: _resetAllFilters,
                                   child: const Text(
@@ -852,7 +887,24 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                                           color: AppTheme.textSecondary,
                                                         ),
                                                       ),
-                                                      if (tx.scope == 'family') ...[
+                                                      if (finance.isFamilyView && tx.userName != null) ...[
+                                                        const SizedBox(width: 6),
+                                                        Container(
+                                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                                                          decoration: BoxDecoration(
+                                                            color: AppTheme.familyPurple.withValues(alpha: 0.1),
+                                                            borderRadius: BorderRadius.circular(4),
+                                                          ),
+                                                          child: Text(
+                                                            'Oleh: ${tx.userName}',
+                                                            style: const TextStyle(
+                                                              fontSize: 10,
+                                                              fontWeight: FontWeight.w600,
+                                                              color: AppTheme.familyPurple,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ] else if (tx.scope == 'family') ...[
                                                         const SizedBox(width: 6),
                                                         Container(
                                                           padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
@@ -1011,6 +1063,46 @@ class _HistoryScreenState extends State<HistoryScreen> {
             const SizedBox(width: 5),
             Text(
               isSelected ? 'Rentang Dipilih' : 'Pilih Rentang...',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                color: isSelected ? Colors.white : AppTheme.textPrimary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMemberChip(int? memberId, String label) {
+    final isSelected = _selectedMemberId == memberId;
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.selectionClick();
+        setState(() => _selectedMemberId = memberId);
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+        decoration: BoxDecoration(
+          color: isSelected ? AppTheme.familyPurple : Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isSelected ? AppTheme.familyPurple : AppTheme.iosDivider,
+            width: 0.8,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              memberId == null ? Icons.people_alt_rounded : Icons.person_rounded,
+              size: 14,
+              color: isSelected ? Colors.white : AppTheme.familyPurple,
+            ),
+            const SizedBox(width: 5),
+            Text(
+              label,
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,

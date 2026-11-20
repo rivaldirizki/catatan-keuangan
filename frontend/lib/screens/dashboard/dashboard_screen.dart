@@ -810,7 +810,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      tx.transactionDate,
+                                      finance.isFamilyView && tx.userName != null
+                                          ? '${tx.transactionDate} • Oleh ${tx.userName}'
+                                          : tx.transactionDate,
                                       style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
                                     ),
                                   ],

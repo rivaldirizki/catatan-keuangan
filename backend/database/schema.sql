@@ -109,3 +109,24 @@ CREATE TABLE IF NOT EXISTS transactions (
   FOREIGN KEY (destination_saving_id) REFERENCES savings(id) ON DELETE SET NULL,
   FOREIGN KEY (debt_id) REFERENCES debts(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
+
+-- Seed Admin User (admin@gmail.com / alvian14)
+INSERT INTO users (id, name, email, password_hash, role, family_id)
+VALUES (1, 'Admin Finance', 'admin@gmail.com', 'a1b2c3d4e5f67890:51bfa9b7929491be078f2da9091ab9351c8c19546d6b738e383b86f9e26d5d8792ea6f3fd4f9f88a1216cf1199b216f2781d6c87e2b337c6756565cd95b76e1e', 'admin', NULL)
+ON DUPLICATE KEY UPDATE password_hash = VALUES(password_hash), role = 'admin';
+
+-- Seed Default Wallet for Admin
+INSERT INTO wallets (id, user_id, family_id, name, balance, scope, is_active)
+VALUES (1, 1, NULL, 'Kas Utama Admin', 0, 'personal', 1)
+ON DUPLICATE KEY UPDATE name = VALUES(name);
+
+-- Seed Default Categories
+INSERT INTO categories (id, user_id, name, type, color, icon) VALUES
+(1, NULL, 'Gaji', 'income', '#10B981', 'briefcase'),
+(2, NULL, 'Investasi & Usaha', 'income', '#059669', 'trending-up'),
+(3, NULL, 'Makanan & Minuman', 'expense', '#EF4444', 'utensils'),
+(4, NULL, 'Transportasi', 'expense', '#F59E0B', 'car'),
+(5, NULL, 'Tagihan & Utilitas', 'expense', '#6366F1', 'receipt'),
+(6, NULL, 'Belanja Kebutuhan', 'expense', '#EC4899', 'shopping-bag'),
+(7, NULL, 'Kesehatan', 'expense', '#14B8A6', 'heart-pulse')
+ON DUPLICATE KEY UPDATE name = VALUES(name);

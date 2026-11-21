@@ -6,7 +6,8 @@ import '../auth/login_screen.dart';
 import '../dashboard/dashboard_screen.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+  final bool isPostLogin;
+  const SplashScreen({super.key, this.isPostLogin = false});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -22,7 +23,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     super.initState();
     _animController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 900),
+      duration: const Duration(milliseconds: 800),
     );
 
     _fadeAnimation = CurvedAnimation(
@@ -30,7 +31,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       curve: Curves.easeOut,
     );
 
-    _scaleAnimation = Tween<double>(begin: 0.92, end: 1.0).animate(
+    _scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
       CurvedAnimation(
         parent: _animController,
         curve: Curves.easeOutBack,
@@ -39,11 +40,14 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
     _animController.forward();
 
-    // Navigate to next screen after splash display
-    Future.delayed(const Duration(milliseconds: 2000), () {
+    // The animated GIF duration is 3.0s (30 frames x 100ms)
+    // Delay 3.2s so the user sees the complete smooth loop
+    Future.delayed(const Duration(milliseconds: 3200), () {
       if (!mounted) return;
       final auth = context.read<AuthProvider>();
-      final nextScreen = auth.isAuthenticated ? const DashboardScreen() : const LoginScreen();
+      final nextScreen = (widget.isPostLogin || auth.isAuthenticated)
+          ? const DashboardScreen()
+          : const LoginScreen();
 
       Navigator.pushReplacement(
         context,
@@ -76,8 +80,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    Color(0xFFFAFAFC),
-                    Color(0xFFF2F4F8),
+                    Color(0xFFFCFCFD),
+                    Color(0xFFF3F5F9),
                   ],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
@@ -93,58 +97,38 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               child: ScaleTransition(
                 scale: _scaleAnimation,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Company Logo Card (LINC)
+                      // Animated GIF Frame
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                        constraints: const BoxConstraints(maxWidth: 240, maxHeight: 320),
                         decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(22),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF0038FF).withValues(alpha: 0.08),
-                              blurRadius: 28,
-                              offset: const Offset(0, 10),
-                            ),
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.04),
-                              blurRadius: 10,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
+                          color: Colors.transparent,
+                          borderRadius: BorderRadius.circular(28),
                         ),
-                        child: Image.asset(
-                          'assets/images/linc_logo.png',
-                          width: 220,
-                          fit: BoxFit.contain,
-                          errorBuilder: (_, __, ___) {
-                            return const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.business_rounded, color: Color(0xFF0038FF), size: 28),
-                                SizedBox(width: 8),
-                                Text(
-                                  'LiNC',
-                                  style: TextStyle(
-                                    fontSize: 26,
-                                    fontWeight: FontWeight.w900,
-                                    color: Color(0xFF0038FF),
-                                    letterSpacing: 1.2,
-                                  ),
-                                ),
-                              ],
-                            );
-                          },
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(28),
+                          child: Image.asset(
+                            'assets/images/splash_animation.gif',
+                            fit: BoxFit.contain,
+                            errorBuilder: (_, __, ___) {
+                              return Image.asset(
+                                'assets/images/app_icon.png',
+                                width: 140,
+                                height: 140,
+                                fit: BoxFit.contain,
+                              );
+                            },
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 28),
 
-                      // System Name: Uangku
+                      // System Name: Dompet Linc
                       const Text(
-                        'Uangku',
+                        'Dompet Linc',
                         style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.w800,
@@ -153,17 +137,19 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                         ),
                       ),
                       const SizedBox(height: 8),
-                      const Text(
-                        'Sistem Finansial Pribadi, Keluarga & Bisnis',
+                      Text(
+                        widget.isPostLogin
+                            ? 'Masuk Berhasil • Menyiapkan Dompet Anda...'
+                            : 'Sistem Finansial Pribadi, Keluarga & Bisnis',
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 13.5,
                           fontWeight: FontWeight.w500,
                           color: AppTheme.textSecondary,
                           height: 1.3,
                         ),
                       ),
-                      const SizedBox(height: 36),
+                      const SizedBox(height: 28),
 
                       // Subtle iOS Loading Indicator
                       const SizedBox(

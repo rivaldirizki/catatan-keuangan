@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../core/theme/app_theme.dart';
 import 'register_screen.dart';
-import '../dashboard/dashboard_screen.dart';
+import '../splash/splash_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -44,7 +44,11 @@ class _LoginScreenState extends State<LoginScreen> {
     if (success && mounted) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const DashboardScreen()),
+        PageRouteBuilder(
+          pageBuilder: (_, __, ___) => const SplashScreen(isPostLogin: true),
+          transitionsBuilder: (_, animation, __, child) => FadeTransition(opacity: animation, child: child),
+          transitionDuration: const Duration(milliseconds: 350),
+        ),
       );
     }
   }
@@ -97,7 +101,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   // Brand Display Title (Clean Typography)
                   const Text(
-                    'Uangku',
+                    'Dompet Linc',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 32,

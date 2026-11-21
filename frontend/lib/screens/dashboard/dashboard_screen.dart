@@ -1170,7 +1170,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ],
         ),
         content: const Text(
-          'Apakah Anda yakin ingin keluar dari akun Uangku Anda?',
+          'Apakah Anda yakin ingin keluar dari akun Dompet Linc Anda?',
           style: TextStyle(fontSize: 13.5, color: AppTheme.textSecondary, height: 1.4),
         ),
         actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -1515,7 +1515,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ? (hasFamily
                 ? 'ID: ${finance.currentFamily?.inviteCode ?? "..."} • ${finance.familyMembers.length} Anggota'
                 : 'Mulai Ruang Keuangan Bersama')
-            : 'Uangku • Finansial Pribadi');
+            : 'Dompet Linc • Finansial Pribadi');
 
     final headerSubtitleColor = isCompany
         ? const Color(0xFF1E3A8A)

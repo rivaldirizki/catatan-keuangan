@@ -25,7 +25,7 @@ class FinanceApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => FinanceProvider(apiClient: client)),
       ],
       child: MaterialApp(
-        title: 'Uangku',
+        title: 'Dompet Linc',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,

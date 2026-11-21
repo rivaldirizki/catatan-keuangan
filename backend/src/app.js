@@ -29,7 +29,7 @@ app.get('/', (req, res) => {
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Uangku Backend API • LiNC</title>
+  <title>Dompet Linc Backend API • LiNC</title>
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #F8FAFC; color: #1E293B; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
     .card { background: white; border: 1px solid #E2E8F0; border-radius: 20px; padding: 36px; max-width: 440px; text-align: center; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); }
@@ -44,7 +44,7 @@ app.get('/', (req, res) => {
 <body>
   <div class="card">
     <div class="badge"><span class="dot"></span> Sistem Aktif (Online)</div>
-    <h1>Uangku Backend REST API</h1>
+    <h1>Dompet Linc Backend REST API</h1>
     <p>Server backend operasional untuk platform finansial pribadi, keluarga, dan perusahaan.</p>
     <div>
       <a href="/admin" class="btn">Buka Admin Console</a>

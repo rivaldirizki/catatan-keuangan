@@ -59,7 +59,8 @@ export const AuthService = {
       name: name.trim(),
       email: email.toLowerCase().trim(),
       role,
-      family_id: null
+      family_id: null,
+      company_id: null
     };
 
     // Auto-create default wallet (Kas Tunai) for new user
@@ -68,7 +69,7 @@ export const AuthService = {
       [user.id, null, 'Kas Utama', 0, 'personal', 1]
     );
 
-    const token = generateToken({ id: user.id, email: user.email, role: user.role, family_id: null });
+    const token = generateToken({ id: user.id, email: user.email, role: user.role, family_id: null, company_id: null });
     return { user, token };
   },
 
@@ -89,15 +90,16 @@ export const AuthService = {
       name: user.name,
       email: user.email,
       role: user.role,
-      family_id: user.family_id
+      family_id: user.family_id,
+      company_id: user.company_id
     };
 
-    const token = generateToken({ id: user.id, email: user.email, role: user.role, family_id: user.family_id });
+    const token = generateToken({ id: user.id, email: user.email, role: user.role, family_id: user.family_id, company_id: user.company_id });
     return { user: userSafe, token };
   },
 
   async getUserById(id) {
-    const users = await db.query('SELECT id, name, email, role, family_id, created_at FROM users WHERE id = ?', [id]);
+    const users = await db.query('SELECT id, name, email, role, family_id, company_id, created_at FROM users WHERE id = ?', [id]);
     return users && users.length > 0 ? users[0] : null;
   }
 };

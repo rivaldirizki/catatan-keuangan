@@ -5,6 +5,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { AuthService } from './services/auth.service.js';
 import { FamilyService } from './services/family.service.js';
+import { CompanyService } from './services/company.service.js';
+import { ProjectService } from './services/project.service.js';
 import { WalletService } from './services/wallet.service.js';
 import { TransactionService } from './services/transaction.service.js';
 import { SavingService } from './services/saving.service.js';
@@ -123,6 +125,128 @@ app.get('/api/v1/family/members/:id/summary', authenticateJWT, async (req, res) 
     res.json(summary);
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+// ======================= COMPANY ROUTES =======================
+app.post('/api/v1/company/create', authenticateJWT, async (req, res) => {
+  try {
+    const { name } = req.body;
+    if (!name) return res.status(400).json({ error: 'Company name is required' });
+    const company = await CompanyService.createCompany(req.user.id, name);
+    res.status(201).json(company);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.post('/api/v1/company/join', authenticateJWT, async (req, res) => {
+  try {
+    const { invite_code } = req.body;
+    if (!invite_code) return res.status(400).json({ error: 'Invite code is required' });
+    const result = await CompanyService.joinCompany(req.user.id, invite_code);
+    res.json(result);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.get('/api/v1/company/members', authenticateJWT, async (req, res) => {
+  try {
+    const user = await AuthService.getUserById(req.user.id);
+    if (!user || !user.company_id) {
+      return res.json([]);
+    }
+    const members = await CompanyService.getCompanyMembers(user.company_id);
+    res.json(members);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/v1/company/current', authenticateJWT, async (req, res) => {
+  try {
+    const user = await AuthService.getUserById(req.user.id);
+    if (!user || !user.company_id) {
+      return res.json({ company: null, members: [] });
+    }
+    const company = await CompanyService.getCompanyById(user.company_id);
+    const members = await CompanyService.getCompanyMembers(user.company_id);
+    res.json({ company, members });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ======================= PROJECT ROUTES =======================
+app.get('/api/v1/projects', authenticateJWT, async (req, res) => {
+  try {
+    const user = await AuthService.getUserById(req.user.id);
+    if (!user || !user.company_id) {
+      return res.json([]);
+    }
+    const projects = await ProjectService.getProjects(user.company_id, req.query.status);
+    res.json(projects);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/v1/projects', authenticateJWT, async (req, res) => {
+  try {
+    const user = await AuthService.getUserById(req.user.id);
+    if (!user || !user.company_id) {
+      return res.status(400).json({ error: 'Pengguna belum terhubung ke perusahaan' });
+    }
+    const project = await ProjectService.createProject(user.company_id, user.id, req.body);
+    res.status(201).json(project);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.get('/api/v1/projects/:id', authenticateJWT, async (req, res) => {
+  try {
+    const user = await AuthService.getUserById(req.user.id);
+    if (!user || !user.company_id) {
+      return res.status(400).json({ error: 'Pengguna belum terhubung ke perusahaan' });
+    }
+    const project = await ProjectService.getProjectById(user.company_id, Number(req.params.id));
+    res.json(project);
+  } catch (err) {
+    res.status(404).json({ error: err.message });
+  }
+});
+
+app.post('/api/v1/projects/:id/transaction', authenticateJWT, async (req, res) => {
+  try {
+    const user = await AuthService.getUserById(req.user.id);
+    if (!user || !user.company_id) {
+      return res.status(400).json({ error: 'Pengguna belum terhubung ke perusahaan' });
+    }
+    const result = await ProjectService.recordTransaction(
+      user.id,
+      user.company_id,
+      Number(req.params.id),
+      req.body
+    );
+    res.status(201).json(result);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.patch('/api/v1/projects/:id/status', authenticateJWT, async (req, res) => {
+  try {
+    const user = await AuthService.getUserById(req.user.id);
+    if (!user || !user.company_id) {
+      return res.status(400).json({ error: 'Pengguna belum terhubung ke perusahaan' });
+    }
+    const { status } = req.body;
+    const result = await ProjectService.updateProjectStatus(user.company_id, Number(req.params.id), status);
+    res.json(result);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
   }
 });
 

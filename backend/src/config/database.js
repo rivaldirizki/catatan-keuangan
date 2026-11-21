@@ -112,16 +112,22 @@ class MockDatabase {
       return { insertId: id, affectedRows: 1 };
     }
 
-    const selectMatch = cleanSql.match(/^SELECT\s+(.+?)\s+FROM\s+([a-zA-Z0-9_]+)(?:\s+[a-zA-Z0-9_]+)?(?:\s+LEFT\s+JOIN\s+([a-zA-Z0-9_]+)(?:\s+[a-zA-Z0-9_]+)?\s+ON\s+[^\s]+\s*=\s*[^\s]+)?(?:\s+WHERE\s+(.+?))?(?:\s+ORDER\s+BY\s+(.+?))?(?:\s+LIMIT\s+(\d+))?$/is);
+    const selectMatch = cleanSql.match(/^SELECT\s+(.+?)\s+FROM\s+([a-zA-Z0-9_]+)(?:\s+[a-zA-Z0-9_]+)?((?:\s+LEFT\s+JOIN\s+[a-zA-Z0-9_]+(?:\s+[a-zA-Z0-9_]+)?\s+ON\s+[^\s]+\s*=\s*[^\s]+)*)(?:\s+WHERE\s+(.+?))?(?:\s+ORDER\s+BY\s+(.+?))?(?:\s+LIMIT\s+(\d+))?$/is);
     if (selectMatch) {
       const table = selectMatch[2].toLowerCase();
       let rows = (this.tables[table] || []).map(r => ({ ...r }));
-      const joinTable = selectMatch[3] ? selectMatch[3].toLowerCase() : null;
-      if (joinTable && this.tables[joinTable]) {
-        if (joinTable === 'users') {
+      const joinClause = selectMatch[3] ? selectMatch[3] : '';
+      if (joinClause) {
+        if (/LEFT\s+JOIN\s+users/i.test(joinClause) && this.tables.users) {
           rows.forEach(r => {
             const u = this.tables.users.find(user => user.id === r.user_id);
             if (u) r.user_name = u.name;
+          });
+        }
+        if (/LEFT\s+JOIN\s+wallets/i.test(joinClause) && this.tables.wallets) {
+          rows.forEach(r => {
+            const w = this.tables.wallets.find(wal => wal.id === r.wallet_id);
+            if (w) r.wallet_name = w.name;
           });
         }
       }

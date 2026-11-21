@@ -135,4 +135,73 @@ describe('Task 6: Express App & REST API Integration (TDD)', () => {
     assert.strictEqual(debtsRes.status, 200);
     assert.ok(Array.isArray(debtsRes.body));
   });
+
+  it('should create company, create project, and record project cashflow via API', async () => {
+    const client = request(app);
+    // 1. Auth
+    const auth = await client.send('POST', '/api/v1/auth/register', {
+      body: { name: 'Manager Bob', email: 'manager@corp.com', password: 'password123' }
+    });
+    const token = auth.body.token;
+
+    // 2. Create Company
+    const compRes = await client.send('POST', '/api/v1/company/create', {
+      headers: { 'authorization': `Bearer ${token}` },
+      body: { name: 'Firma Konsultan' }
+    });
+    assert.strictEqual(compRes.status, 201);
+    assert.strictEqual(compRes.body.name, 'Firma Konsultan');
+    assert.strictEqual(compRes.body.invite_code.length, 8);
+
+    // 3. Get Current Company
+    const currRes = await client.send('GET', '/api/v1/company/current', {
+      headers: { 'authorization': `Bearer ${token}` }
+    });
+    assert.strictEqual(currRes.status, 200);
+    assert.strictEqual(currRes.body.company.name, 'Firma Konsultan');
+    assert.strictEqual(currRes.body.members.length, 1);
+
+    // 4. Create Project
+    const projRes = await client.send('POST', '/api/v1/projects', {
+      headers: { 'authorization': `Bearer ${token}` },
+      body: { name: 'Audit Klien X', description: 'Audit laporan keuangan', target_budget: 15000000 }
+    });
+    assert.strictEqual(projRes.status, 201);
+    assert.strictEqual(projRes.body.name, 'Audit Klien X');
+    assert.strictEqual(Number(projRes.body.target_budget), 15000000);
+
+    // 5. Get Projects List
+    const listRes = await client.send('GET', '/api/v1/projects', {
+      headers: { 'authorization': `Bearer ${token}` }
+    });
+    assert.strictEqual(listRes.status, 200);
+    assert.strictEqual(listRes.body.length, 1);
+    assert.strictEqual(listRes.body[0].name, 'Audit Klien X');
+
+    // 6. Record Project Income
+    const wallets = await client.send('GET', '/api/v1/wallets', {
+      headers: { 'authorization': `Bearer ${token}` }
+    });
+    const walletId = wallets.body[0].id;
+
+    const txRes = await client.send('POST', `/api/v1/projects/${projRes.body.id}/transaction`, {
+      headers: { 'authorization': `Bearer ${token}` },
+      body: {
+        wallet_id: walletId,
+        type: 'income',
+        amount: 20000000,
+        notes: 'Pelunasan Invoice Proyek'
+      }
+    });
+    assert.strictEqual(txRes.status, 201);
+    assert.strictEqual(Number(txRes.body.project_income), 20000000);
+
+    // 7. Get Project Detail
+    const detailRes = await client.send('GET', `/api/v1/projects/${projRes.body.id}`, {
+      headers: { 'authorization': `Bearer ${token}` }
+    });
+    assert.strictEqual(detailRes.status, 200);
+    assert.strictEqual(Number(detailRes.body.current_income), 20000000);
+    assert.strictEqual(detailRes.body.transactions.length, 1);
+  });
 });

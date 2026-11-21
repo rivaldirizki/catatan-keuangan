@@ -54,6 +54,8 @@ class MockDatabase {
     this.tables = {
       users: [],
       families: [],
+      companies: [],
+      projects: [],
       wallets: [],
       categories: [],
       transactions: [],
@@ -63,6 +65,8 @@ class MockDatabase {
     this.autoIncrement = {
       users: 1,
       families: 1,
+      companies: 1,
+      projects: 1,
       wallets: 1,
       categories: 1,
       transactions: 1,

@@ -18,7 +18,7 @@ describe('Task 1: Database Scaffolding & Schema Test', () => {
     const tables = await db.query('SHOW TABLES');
     assert.ok(Array.isArray(tables));
     // Verify core tables exist in schema
-    const requiredTables = ['users', 'families', 'wallets', 'categories', 'transactions', 'savings', 'debts'];
+    const requiredTables = ['users', 'families', 'companies', 'projects', 'wallets', 'categories', 'transactions', 'savings', 'debts'];
     for (const table of requiredTables) {
       assert.ok(db.hasTable ? db.hasTable(table) : true, `Table ${table} should be defined`);
     }

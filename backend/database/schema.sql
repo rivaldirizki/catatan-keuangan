@@ -13,7 +13,16 @@ CREATE TABLE IF NOT EXISTS families (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
--- 2. Users Table
+-- 2. Companies Table
+CREATE TABLE IF NOT EXISTS companies (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(150) NOT NULL,
+  invite_code VARCHAR(16) NOT NULL UNIQUE,
+  created_by INT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- 3. Users Table
 CREATE TABLE IF NOT EXISTS users (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(100) NOT NULL,
@@ -21,25 +30,47 @@ CREATE TABLE IF NOT EXISTS users (
   password_hash VARCHAR(255) NOT NULL,
   role ENUM('user', 'admin') DEFAULT 'user',
   family_id INT NULL,
+  company_id INT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (family_id) REFERENCES families(id) ON DELETE SET NULL
+  FOREIGN KEY (family_id) REFERENCES families(id) ON DELETE SET NULL,
+  FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
--- 3. Wallets Table
+-- 4. Projects Table (Under Company)
+CREATE TABLE IF NOT EXISTS projects (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  company_id INT NOT NULL,
+  created_by INT NOT NULL,
+  name VARCHAR(150) NOT NULL,
+  description TEXT NULL,
+  target_budget BIGINT NOT NULL DEFAULT 0,
+  current_income BIGINT NOT NULL DEFAULT 0,
+  current_expense BIGINT NOT NULL DEFAULT 0,
+  status ENUM('active', 'completed', 'on_hold') DEFAULT 'active',
+  start_date DATE NULL,
+  end_date DATE NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE CASCADE,
+  FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- 5. Wallets Table
 CREATE TABLE IF NOT EXISTS wallets (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NOT NULL,
   family_id INT NULL,
+  company_id INT NULL,
   name VARCHAR(100) NOT NULL,
   balance BIGINT NOT NULL DEFAULT 0,
-  scope ENUM('personal', 'family') DEFAULT 'personal',
+  scope ENUM('personal', 'family', 'company') DEFAULT 'personal',
   is_active TINYINT(1) DEFAULT 1,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-  FOREIGN KEY (family_id) REFERENCES families(id) ON DELETE SET NULL
+  FOREIGN KEY (family_id) REFERENCES families(id) ON DELETE SET NULL,
+  FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
--- 4. Categories Table
+-- 6. Categories Table
 CREATE TABLE IF NOT EXISTS categories (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NULL,
@@ -51,7 +82,7 @@ CREATE TABLE IF NOT EXISTS categories (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
--- 5. Savings (Goals / Vault) Table
+-- 7. Savings (Goals / Vault) Table
 CREATE TABLE IF NOT EXISTS savings (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NOT NULL,
@@ -67,7 +98,7 @@ CREATE TABLE IF NOT EXISTS savings (
   FOREIGN KEY (family_id) REFERENCES families(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
--- 6. Debts (Hutang & Piutang) Table
+-- 8. Debts (Hutang & Piutang) Table
 CREATE TABLE IF NOT EXISTS debts (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NOT NULL,
@@ -85,11 +116,13 @@ CREATE TABLE IF NOT EXISTS debts (
   FOREIGN KEY (family_id) REFERENCES families(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
--- 7. Transactions Table
+-- 9. Transactions Table
 CREATE TABLE IF NOT EXISTS transactions (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NOT NULL,
   family_id INT NULL,
+  company_id INT NULL,
+  project_id INT NULL,
   wallet_id INT NOT NULL,
   category_id INT NULL,
   type ENUM('income', 'expense', 'transfer', 'saving_deposit', 'saving_withdrawal', 'debt_payment') NOT NULL,
@@ -99,10 +132,12 @@ CREATE TABLE IF NOT EXISTS transactions (
   destination_wallet_id INT NULL,
   destination_saving_id INT NULL,
   debt_id INT NULL,
-  scope ENUM('personal', 'family') DEFAULT 'personal',
+  scope ENUM('personal', 'family', 'company') DEFAULT 'personal',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   FOREIGN KEY (family_id) REFERENCES families(id) ON DELETE SET NULL,
+  FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE SET NULL,
+  FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE SET NULL,
   FOREIGN KEY (wallet_id) REFERENCES wallets(id) ON DELETE CASCADE,
   FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL,
   FOREIGN KEY (destination_wallet_id) REFERENCES wallets(id) ON DELETE SET NULL,

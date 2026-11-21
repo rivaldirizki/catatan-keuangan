@@ -1,7 +1,7 @@
 class ApiConstants {
-  // Default to localhost for Android emulator (10.0.2.2) or desktop/web (localhost)
-  static const String baseUrl = 'http://localhost:3000/api/v1';
-  static const String emulatorBaseUrl = 'http://10.0.2.2:3000/api/v1';
+  // Production Backend URL (bcknd.linc-indo.com)
+  static const String baseUrl = 'https://bcknd.linc-indo.com/api/v1';
+  static const String emulatorBaseUrl = 'https://bcknd.linc-indo.com/api/v1';
 
   // Auth
   static const String register = '/auth/register';

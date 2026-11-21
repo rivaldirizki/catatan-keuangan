@@ -159,7 +159,7 @@ export const TransactionService = {
   },
 
   async getTransactions(userId, familyId = null, familyView = false, filters = {}) {
-    let sql = 'SELECT t.*, u.name as user_name FROM transactions t LEFT JOIN users u ON t.user_id = u.id WHERE ';
+    let sql = 'SELECT t.*, u.name as user_name, c.name as category_name, c.color as category_color, c.icon as category_icon FROM transactions t LEFT JOIN users u ON t.user_id = u.id LEFT JOIN categories c ON t.category_id = c.id WHERE ';
     const params = [];
 
     if (familyView && familyId) {
@@ -197,7 +197,7 @@ export const TransactionService = {
 
   async getMemberSummary(familyId, targetUserId) {
     const transactions = await db.query(
-      'SELECT t.*, u.name as user_name FROM transactions t LEFT JOIN users u ON t.user_id = u.id WHERE t.user_id = ? AND (t.family_id = ? OR t.scope = "family" OR t.user_id = ?) ORDER BY t.transaction_date DESC, t.id DESC',
+      'SELECT t.*, u.name as user_name, c.name as category_name, c.color as category_color, c.icon as category_icon FROM transactions t LEFT JOIN users u ON t.user_id = u.id LEFT JOIN categories c ON t.category_id = c.id WHERE t.user_id = ? AND (t.family_id = ? OR t.scope = "family" OR t.user_id = ?) ORDER BY t.transaction_date DESC, t.id DESC',
       [targetUserId, familyId, targetUserId]
     );
     let totalIncome = 0;

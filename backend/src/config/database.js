@@ -85,6 +85,24 @@ class MockDatabase {
       savings: 1,
       debts: 1
     };
+    this.seedDefaultCategories();
+  }
+
+  seedDefaultCategories() {
+    this.tables.categories = [
+      { id: 1, user_id: null, name: 'Gaji', type: 'income', color: '#10B981', icon: 'briefcase' },
+      { id: 2, user_id: null, name: 'Investasi & Usaha', type: 'income', color: '#059669', icon: 'trending-up' },
+      { id: 3, user_id: null, name: 'Bonus & Hadiah', type: 'income', color: '#3B82F6', icon: 'gift' },
+      { id: 4, user_id: null, name: 'Makanan & Minuman', type: 'expense', color: '#EF4444', icon: 'utensils' },
+      { id: 5, user_id: null, name: 'Transportasi', type: 'expense', color: '#F59E0B', icon: 'car' },
+      { id: 6, user_id: null, name: 'Tagihan & Utilitas', type: 'expense', color: '#6366F1', icon: 'receipt' },
+      { id: 7, user_id: null, name: 'Belanja Kebutuhan', type: 'expense', color: '#EC4899', icon: 'shopping-bag' },
+      { id: 8, user_id: null, name: 'Kesehatan', type: 'expense', color: '#14B8A6', icon: 'heart-pulse' },
+      { id: 9, user_id: null, name: 'Pendidikan', type: 'expense', color: '#8B5CF6', icon: 'graduation-cap' },
+      { id: 10, user_id: null, name: 'Hiburan', type: 'expense', color: '#F97316', icon: 'gamepad-2' },
+      { id: 11, user_id: null, name: 'Lain-lain', type: 'expense', color: '#64748B', icon: 'tag' }
+    ];
+    this.autoIncrement.categories = 12;
   }
 
   hasTable(tableName) {
@@ -96,6 +114,7 @@ class MockDatabase {
       this.tables[key] = [];
       this.autoIncrement[key] = 1;
     }
+    this.seedDefaultCategories();
   }
 
   async query(sql, params = []) {

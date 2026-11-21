@@ -4,6 +4,9 @@ class TransactionModel {
   final int? familyId;
   final int walletId;
   final int? categoryId;
+  final String? categoryName;
+  final String? categoryColor;
+  final String? categoryIcon;
   final String type; // 'income', 'expense', 'transfer', 'saving_deposit', 'debt_payment'
   final int amount;
   final String transactionDate;
@@ -23,6 +26,9 @@ class TransactionModel {
     this.familyId,
     required this.walletId,
     this.categoryId,
+    this.categoryName,
+    this.categoryColor,
+    this.categoryIcon,
     required this.type,
     required this.amount,
     required this.transactionDate,
@@ -44,6 +50,9 @@ class TransactionModel {
       familyId: json['family_id'] != null ? json['family_id'] as int : null,
       walletId: json['wallet_id'] as int,
       categoryId: json['category_id'] != null ? json['category_id'] as int : null,
+      categoryName: json['category_name'] as String?,
+      categoryColor: json['category_color'] as String?,
+      categoryIcon: json['category_icon'] as String?,
       type: json['type'] as String,
       amount: int.tryParse(json['amount'].toString()) ?? 0,
       transactionDate: json['transaction_date'].toString().split('T')[0],
@@ -66,6 +75,9 @@ class TransactionModel {
       'family_id': familyId,
       'wallet_id': walletId,
       'category_id': categoryId,
+      'category_name': categoryName,
+      'category_color': categoryColor,
+      'category_icon': categoryIcon,
       'type': type,
       'amount': amount,
       'transaction_date': transactionDate,

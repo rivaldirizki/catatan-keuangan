@@ -35,6 +35,9 @@ class ApiConstants {
   static const String transactionExpense = '/transactions/expense';
   static const String transactionTransfer = '/transactions/transfer';
 
+  // Categories
+  static const String categories = '/categories';
+
   // Savings Vault
   static const String savings = '/savings';
   static const String savingsGoals = '/savings/goals';

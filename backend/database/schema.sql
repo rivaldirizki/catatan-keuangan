@@ -165,9 +165,13 @@ ON DUPLICATE KEY UPDATE name = VALUES(name);
 INSERT INTO categories (id, user_id, name, type, color, icon) VALUES
 (1, NULL, 'Gaji', 'income', '#10B981', 'briefcase'),
 (2, NULL, 'Investasi & Usaha', 'income', '#059669', 'trending-up'),
-(3, NULL, 'Makanan & Minuman', 'expense', '#EF4444', 'utensils'),
-(4, NULL, 'Transportasi', 'expense', '#F59E0B', 'car'),
-(5, NULL, 'Tagihan & Utilitas', 'expense', '#6366F1', 'receipt'),
-(6, NULL, 'Belanja Kebutuhan', 'expense', '#EC4899', 'shopping-bag'),
-(7, NULL, 'Kesehatan', 'expense', '#14B8A6', 'heart-pulse')
-ON DUPLICATE KEY UPDATE name = VALUES(name);
+(3, NULL, 'Bonus & Hadiah', 'income', '#3B82F6', 'gift'),
+(4, NULL, 'Makanan & Minuman', 'expense', '#EF4444', 'utensils'),
+(5, NULL, 'Transportasi', 'expense', '#F59E0B', 'car'),
+(6, NULL, 'Tagihan & Utilitas', 'expense', '#6366F1', 'receipt'),
+(7, NULL, 'Belanja Kebutuhan', 'expense', '#EC4899', 'shopping-bag'),
+(8, NULL, 'Kesehatan', 'expense', '#14B8A6', 'heart-pulse'),
+(9, NULL, 'Pendidikan', 'expense', '#8B5CF6', 'graduation-cap'),
+(10, NULL, 'Hiburan', 'expense', '#F97316', 'gamepad-2'),
+(11, NULL, 'Lain-lain', 'expense', '#64748B', 'tag')
+ON DUPLICATE KEY UPDATE name = VALUES(name), type = VALUES(type), color = VALUES(color), icon = VALUES(icon);

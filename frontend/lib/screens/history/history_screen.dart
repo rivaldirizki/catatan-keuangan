@@ -255,6 +255,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           ? 'Perusahaan'
                           : (tx.scope == 'family' ? 'Keluarga' : 'Pribadi'),
                     ),
+                    if (tx.categoryName != null) ...[
+                      const Divider(height: 1, indent: 16, endIndent: 16, color: AppTheme.iosDivider),
+                      _buildDetailRow('Kategori', tx.categoryName!),
+                    ],
                     if (tx.projectName != null && tx.projectName!.isNotEmpty) ...[
                       const Divider(height: 1, indent: 16, endIndent: 16, color: AppTheme.iosDivider),
                       _buildDetailRow('Proyek Usaha', tx.projectName!),
@@ -382,12 +386,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
             .firstWhere((w) => w.id == tx.walletId, orElse: () => finance.wallets.first)
             .name
             .toLowerCase();
+        final categoryName = (tx.categoryName ?? '').toLowerCase();
 
         final matches = notes.contains(query) ||
             amountStr.contains(query) ||
             typeStr.contains(query) ||
             walletName.contains(query) ||
-            userName.contains(query);
+            userName.contains(query) ||
+            categoryName.contains(query);
 
         if (!matches) return false;
       }
@@ -893,6 +899,28 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                                           ),
                                                         ),
                                                       ),
+                                                      if (tx.categoryName != null) ...[
+                                                        const SizedBox(width: 6),
+                                                        Flexible(
+                                                          child: Container(
+                                                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                                            decoration: BoxDecoration(
+                                                              color: const Color(0xFF10B981).withValues(alpha: 0.12),
+                                                              borderRadius: BorderRadius.circular(4),
+                                                            ),
+                                                            child: Text(
+                                                              tx.categoryName!,
+                                                              maxLines: 1,
+                                                              overflow: TextOverflow.ellipsis,
+                                                              style: const TextStyle(
+                                                                fontSize: 10,
+                                                                fontWeight: FontWeight.w600,
+                                                                color: Color(0xFF10B981),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ],
                                                       if (finance.isFamilyView && tx.userName != null) ...[
                                                         const SizedBox(width: 6),
                                                         Flexible(

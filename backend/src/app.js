@@ -307,6 +307,24 @@ app.post('/api/v1/wallets', authenticateJWT, async (req, res) => {
   }
 });
 
+// ======================= CATEGORIES ROUTES =======================
+app.get('/api/v1/categories', authenticateJWT, async (req, res) => {
+  try {
+    const type = req.query.type;
+    let sql = 'SELECT id, user_id, name, type, color, icon FROM categories WHERE (user_id IS NULL OR user_id = ?)';
+    const params = [req.user.id];
+    if (type) {
+      sql += ' AND type = ?';
+      params.push(type);
+    }
+    sql += ' ORDER BY id ASC';
+    const categories = await db.query(sql, params);
+    res.json(categories || []);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ======================= TRANSACTIONS ROUTES =======================
 app.get('/api/v1/transactions', authenticateJWT, async (req, res) => {
   try {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../core/network/api_client.dart';
 import '../core/constants/api_constants.dart';
+import '../models/category_model.dart';
 import '../models/wallet_model.dart';
 import '../models/transaction_model.dart';
 import '../models/saving_model.dart';
@@ -24,6 +25,7 @@ class FinanceProvider extends ChangeNotifier {
   int _pendingSyncCount = 0;
   String _currentUserId = 'default';
 
+  List<CategoryModel> _categories = [];
   List<WalletModel> _wallets = [];
   List<TransactionModel> _transactions = [];
   List<SavingModel> _savings = [];
@@ -33,12 +35,30 @@ class FinanceProvider extends ChangeNotifier {
   FamilyModel? _currentFamily;
   List<ProjectModel> _projects = [];
 
+  static final List<CategoryModel> defaultCategories = [
+    const CategoryModel(id: 1, name: 'Makanan & Minuman', type: 'expense', color: '#EF4444', icon: 'utensils'),
+    const CategoryModel(id: 2, name: 'Transportasi', type: 'expense', color: '#F97316', icon: 'car'),
+    const CategoryModel(id: 3, name: 'Tagihan & Utilitas', type: 'expense', color: '#EAB308', icon: 'receipt'),
+    const CategoryModel(id: 4, name: 'Belanja & Kebutuhan', type: 'expense', color: '#EC4899', icon: 'shopping-bag'),
+    const CategoryModel(id: 5, name: 'Kesehatan & Medis', type: 'expense', color: '#14B8A6', icon: 'heart-pulse'),
+    const CategoryModel(id: 6, name: 'Pendidikan', type: 'expense', color: '#3B82F6', icon: 'graduation-cap'),
+    const CategoryModel(id: 7, name: 'Hiburan & Gaya Hidup', type: 'expense', color: '#8B5CF6', icon: 'gamepad-2'),
+    const CategoryModel(id: 8, name: 'Lain-lain', type: 'expense', color: '#6B7280', icon: 'tag'),
+    const CategoryModel(id: 9, name: 'Gaji Pokok', type: 'income', color: '#10B981', icon: 'briefcase'),
+    const CategoryModel(id: 10, name: 'Investasi & Dividen', type: 'income', color: '#06B6D4', icon: 'trending-up'),
+    const CategoryModel(id: 11, name: 'Bonus & THR', type: 'income', color: '#F59E0B', icon: 'gift'),
+    const CategoryModel(id: 12, name: 'Pendapatan Usaha', type: 'income', color: '#6366F1', icon: 'store'),
+    const CategoryModel(id: 13, name: 'Lain-lain', type: 'income', color: '#6B7280', icon: 'tag'),
+  ];
+
   int _totalBalance = 0;
   int _totalIncome = 0;
   int _totalExpense = 0;
   int _netCashflow = 0;
 
-  FinanceProvider({required this.apiClient});
+  FinanceProvider({required this.apiClient}) {
+    _categories = List.from(defaultCategories);
+  }
 
   AppViewMode get currentMode => _currentMode;
   bool get isFamilyView => _currentMode == AppViewMode.family;
@@ -51,6 +71,10 @@ class FinanceProvider extends ChangeNotifier {
   bool get isSyncing => _isSyncing;
   int get pendingSyncCount => _pendingSyncCount;
   String get currentUserId => _currentUserId;
+
+  List<CategoryModel> get categories => _categories;
+  List<CategoryModel> get expenseCategories => _categories.where((c) => c.type == 'expense').toList();
+  List<CategoryModel> get incomeCategories => _categories.where((c) => c.type == 'income').toList();
 
   void setCurrentUserId(String userId) {
     _currentUserId = userId;
@@ -100,6 +124,20 @@ class FinanceProvider extends ChangeNotifier {
     fetchDashboard();
   }
 
+  Future<void> fetchCategories() async {
+    try {
+      final res = await apiClient.get(ApiConstants.categories);
+      if (res is List && res.isNotEmpty) {
+        _categories = res.map((c) => CategoryModel.fromJson(c as Map<String, dynamic>)).toList();
+        notifyListeners();
+      }
+    } catch (_) {
+      if (_categories.isEmpty) {
+        _categories = List.from(defaultCategories);
+      }
+    }
+  }
+
   Future<void> fetchDashboard() async {
     _isLoading = true;
     _errorMessage = null;
@@ -111,6 +149,14 @@ class FinanceProvider extends ChangeNotifier {
         'companyView': isCompanyView ? 'true' : 'false',
         'viewMode': _currentMode.name,
       };
+
+      // 0. Categories
+      try {
+        final catData = await apiClient.get(ApiConstants.categories);
+        if (catData is List && catData.isNotEmpty) {
+          _categories = catData.map((c) => CategoryModel.fromJson(c as Map<String, dynamic>)).toList();
+        }
+      } catch (_) {}
 
       // 1. Wallets
       final walletsData = await apiClient.get(ApiConstants.wallets, queryParams: queryParams);
@@ -192,6 +238,7 @@ class FinanceProvider extends ChangeNotifier {
 
       // Save complete snapshot to local storage
       await OfflineSyncService.cacheDashboard(_currentUserId, {
+        'categories': _categories.map((c) => c.toJson()).toList(),
         'wallets': walletsData,
         'summary': summaryData,
         'transactions': txData,
@@ -224,6 +271,9 @@ class FinanceProvider extends ChangeNotifier {
   }
 
   void _applyCachedData(Map<String, dynamic> cached) {
+    if (cached['categories'] is List && (cached['categories'] as List).isNotEmpty) {
+      _categories = (cached['categories'] as List).map((c) => CategoryModel.fromJson(c as Map<String, dynamic>)).toList();
+    }
     if (cached['wallets'] is List) {
       _wallets = (cached['wallets'] as List).map((w) => WalletModel.fromJson(w as Map<String, dynamic>)).toList();
     }
@@ -341,10 +391,18 @@ class FinanceProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> addIncome({required int walletId, required int amount, required String date, String notes = '', bool isFamily = false}) async {
+  Future<bool> addIncome({
+    required int walletId,
+    required int amount,
+    required String date,
+    String notes = '',
+    bool isFamily = false,
+    int? categoryId,
+  }) async {
     final idempotencyKey = OfflineSyncService.generateIdempotencyKey();
     final body = {
       'wallet_id': walletId,
+      'category_id': categoryId,
       'amount': amount,
       'date': date,
       'notes': notes,
@@ -384,11 +442,21 @@ class FinanceProvider extends ChangeNotifier {
     _totalIncome += amount;
     _netCashflow = _totalIncome - _totalExpense;
 
+    CategoryModel? cat;
+    if (categoryId != null) {
+      final matches = _categories.where((c) => c.id == categoryId);
+      if (matches.isNotEmpty) cat = matches.first;
+    }
+
     final optTx = TransactionModel(
       id: DateTime.now().millisecondsSinceEpoch,
       userId: int.tryParse(_currentUserId) ?? 1,
       familyId: isFamily ? _currentFamily?.id : null,
       walletId: walletId,
+      categoryId: categoryId,
+      categoryName: cat?.name,
+      categoryColor: cat?.color,
+      categoryIcon: cat?.icon,
       type: 'income',
       amount: amount,
       transactionDate: date,
@@ -403,10 +471,18 @@ class FinanceProvider extends ChangeNotifier {
     return true;
   }
 
-  Future<bool> addExpense({required int walletId, required int amount, required String date, String notes = '', bool isFamily = false}) async {
+  Future<bool> addExpense({
+    required int walletId,
+    required int amount,
+    required String date,
+    String notes = '',
+    bool isFamily = false,
+    int? categoryId,
+  }) async {
     final idempotencyKey = OfflineSyncService.generateIdempotencyKey();
     final body = {
       'wallet_id': walletId,
+      'category_id': categoryId,
       'amount': amount,
       'date': date,
       'notes': notes,
@@ -446,11 +522,21 @@ class FinanceProvider extends ChangeNotifier {
     _totalExpense += amount;
     _netCashflow = _totalIncome - _totalExpense;
 
+    CategoryModel? cat;
+    if (categoryId != null) {
+      final matches = _categories.where((c) => c.id == categoryId);
+      if (matches.isNotEmpty) cat = matches.first;
+    }
+
     final optTx = TransactionModel(
       id: DateTime.now().millisecondsSinceEpoch,
       userId: int.tryParse(_currentUserId) ?? 1,
       familyId: isFamily ? _currentFamily?.id : null,
       walletId: walletId,
+      categoryId: categoryId,
+      categoryName: cat?.name,
+      categoryColor: cat?.color,
+      categoryIcon: cat?.icon,
       type: 'expense',
       amount: amount,
       transactionDate: date,

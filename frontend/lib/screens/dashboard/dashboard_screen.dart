@@ -6,6 +6,8 @@ import '../../providers/auth_provider.dart';
 import '../../providers/finance_provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/constants/api_constants.dart';
+import '../../models/category_model.dart';
+import '../../models/transaction_model.dart';
 import '../../models/saving_model.dart';
 import '../../models/project_model.dart';
 import '../../widgets/family_switcher.dart';
@@ -97,6 +99,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     String type = 'expense';
     bool isFamily = isFamilyPreselected || finance.isFamilyView;
     int? selectedWalletId = finance.wallets.isNotEmpty ? finance.wallets.first.id : null;
+    int? selectedCategoryId = finance.expenseCategories.isNotEmpty
+        ? finance.expenseCategories.first.id
+        : (finance.categories.isNotEmpty ? finance.categories.first.id : null);
 
     showModalBottomSheet(
       context: context,
@@ -105,6 +110,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
       builder: (ctx) {
         return StatefulBuilder(
           builder: (modalCtx, setModalState) {
+            final currentCategories = type == 'expense' ? finance.expenseCategories : finance.incomeCategories;
+            if (selectedCategoryId != null && !currentCategories.any((c) => c.id == selectedCategoryId)) {
+              selectedCategoryId = currentCategories.isNotEmpty ? currentCategories.first.id : null;
+            }
+            final accentColor = isFamily ? const Color(0xFFEE4D2D) : const Color(0xFF118EEA);
+
             return Container(
               decoration: const BoxDecoration(
                 color: Colors.white,
@@ -188,7 +199,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           child: GestureDetector(
                             onTap: () {
                               HapticFeedback.lightImpact();
-                              setModalState(() => type = 'expense');
+                              setModalState(() {
+                                type = 'expense';
+                                if (finance.expenseCategories.isNotEmpty) {
+                                  selectedCategoryId = finance.expenseCategories.first.id;
+                                }
+                              });
                             },
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 200),
@@ -232,7 +248,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           child: GestureDetector(
                             onTap: () {
                               HapticFeedback.lightImpact();
-                              setModalState(() => type = 'income');
+                              setModalState(() {
+                                type = 'income';
+                                if (finance.incomeCategories.isNotEmpty) {
+                                  selectedCategoryId = finance.incomeCategories.first.id;
+                                }
+                              });
                             },
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 200),
@@ -295,6 +316,80 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   const SizedBox(height: 12),
 
+                  // Category Selector
+                  if (currentCategories.isNotEmpty) ...[
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Pilih Kategori',
+                              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
+                            ),
+                            if (selectedCategoryId != null)
+                              Text(
+                                currentCategories.firstWhere((c) => c.id == selectedCategoryId, orElse: () => currentCategories.first).name,
+                                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: accentColor),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          height: 42,
+                          child: ListView.separated(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: currentCategories.length,
+                            separatorBuilder: (_, __) => const SizedBox(width: 8),
+                            itemBuilder: (ctx, idx) {
+                              final cat = currentCategories[idx];
+                              final isSelected = cat.id == selectedCategoryId;
+                              return GestureDetector(
+                                onTap: () {
+                                  HapticFeedback.selectionClick();
+                                  setModalState(() => selectedCategoryId = cat.id);
+                                },
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 180),
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: isSelected ? accentColor : const Color(0xFFF2F2F7),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: isSelected ? accentColor : Colors.transparent,
+                                      width: 1.2,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        cat.iconData,
+                                        size: 15,
+                                        color: isSelected ? Colors.white : cat.colorValue,
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        cat.name,
+                                        style: TextStyle(
+                                          fontSize: 12.5,
+                                          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                                          color: isSelected ? Colors.white : AppTheme.textPrimary,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+
                   // Nominal input
                   TextField(
                     controller: amountController,
@@ -348,6 +443,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           date: date,
                           notes: notesController.text,
                           isFamily: isFamily,
+                          categoryId: selectedCategoryId,
                         );
                       } else {
                         await finance.addIncome(
@@ -356,6 +452,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           date: date,
                           notes: notesController.text,
                           isFamily: isFamily,
+                          categoryId: selectedCategoryId,
                         );
                       }
                     },
@@ -2194,6 +2291,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
               const SizedBox(height: 18),
             ],
 
+            // Analisis Pengeluaran per Kategori
+            _buildCategoryExpenseAnalysis(finance.transactions, isFamily: false),
+
             // Transaksi Terbaru
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -2899,6 +2999,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             const SizedBox(height: 24),
 
+            // Analisis Pengeluaran per Kategori Keluarga
+            _buildCategoryExpenseAnalysis(displayedTransactions, isFamily: true),
+
             // 5. FITUR UTAMA 3: AKTIVITAS KEUANGAN BERSAMA
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -3314,6 +3417,180 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  Color _parseHexColor(String hex) {
+    try {
+      final clean = hex.replaceAll('#', '');
+      return Color(int.parse('FF$clean', radix: 16));
+    } catch (_) {
+      return const Color(0xFF10B981);
+    }
+  }
+
+  // ======================= HELPER: ANALISIS PENGELUARAN PER KATEGORI =======================
+  Widget _buildCategoryExpenseAnalysis(List<TransactionModel> transactions, {bool isFamily = false}) {
+    final expenseTxs = transactions.where((t) => t.type == 'expense').toList();
+    if (expenseTxs.isEmpty) return const SizedBox.shrink();
+
+    final Map<String, int> catAmounts = {};
+    final Map<String, Color> catColors = {};
+    final Map<String, IconData> catIcons = {};
+    int totalExpense = 0;
+
+    for (final tx in expenseTxs) {
+      final name = tx.categoryName ?? 'Lain-lain';
+      final color = tx.categoryColor != null ? _parseHexColor(tx.categoryColor!) : const Color(0xFFEF4444);
+      final icon = tx.categoryIcon != null
+          ? CategoryModel(id: 0, name: name, type: 'expense', color: '', icon: tx.categoryIcon!).iconData
+          : Icons.category_rounded;
+
+      catAmounts[name] = (catAmounts[name] ?? 0) + tx.amount;
+      catColors[name] = color;
+      catIcons[name] = icon;
+      totalExpense += tx.amount;
+    }
+
+    if (totalExpense <= 0) return const SizedBox.shrink();
+
+    final sortedEntries = catAmounts.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+
+    final accentColor = isFamily ? const Color(0xFFEE4D2D) : const Color(0xFF118EEA);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 18),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isFamily ? const Color(0xFFEDE9FE) : AppTheme.iosDivider,
+          width: 0.8,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: accentColor.withValues(alpha: 0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Icons.donut_large_rounded, size: 16, color: accentColor),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    isFamily ? 'Analisis Pengeluaran Keluarga' : 'Analisis Pengeluaran per Kategori',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textPrimary,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                ],
+              ),
+              Text(
+                _formatRupiah(totalExpense),
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.expenseRed,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+
+          // Multi-color segmented bar
+          ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: SizedBox(
+              height: 8,
+              child: Row(
+                children: sortedEntries.map((e) {
+                  final pct = (e.value / totalExpense).clamp(0.01, 1.0);
+                  return Expanded(
+                    flex: (pct * 100).round().clamp(1, 100),
+                    child: Container(
+                      color: catColors[e.key] ?? AppTheme.expenseRed,
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+          const SizedBox(height: 14),
+
+          // Category items
+          Column(
+            children: sortedEntries.take(4).map((e) {
+              final pct = ((e.value / totalExpense) * 100).toStringAsFixed(1);
+              final col = catColors[e.key] ?? AppTheme.expenseRed;
+              final icon = catIcons[e.key] ?? Icons.category_rounded;
+
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        color: col.withValues(alpha: 0.14),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Icon(icon, size: 13, color: col),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        e.key,
+                        style: const TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      '$pct%  ',
+                      style: const TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
+                    Text(
+                      _formatRupiah(e.value),
+                      style: const TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
   // ======================= HELPER: LIST TRANSAKSI =======================
   Widget _buildTransactionList(List transactions, {bool isFamilyMode = false}) {
     if (transactions.isEmpty) {
@@ -3404,6 +3681,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               tx.transactionDate,
                               style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
                             ),
+                            if (tx.categoryName != null) ...[
+                              const Text(' • ', style: TextStyle(color: AppTheme.textSecondary)),
+                              Flexible(
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                                  decoration: BoxDecoration(
+                                    color: (tx.categoryColor != null
+                                            ? _parseHexColor(tx.categoryColor!)
+                                            : const Color(0xFF10B981))
+                                        .withValues(alpha: 0.12),
+                                    borderRadius: BorderRadius.circular(5),
+                                  ),
+                                  child: Text(
+                                    tx.categoryName!,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w700,
+                                      color: tx.categoryColor != null
+                                          ? _parseHexColor(tx.categoryColor!)
+                                          : const Color(0xFF10B981),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                             if (isFamilyMode && tx.userName != null) ...[
                               const Text(' • ', style: TextStyle(color: AppTheme.textSecondary)),
                               Flexible(

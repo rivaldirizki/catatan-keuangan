@@ -1188,7 +1188,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ? (hasFamily
                 ? 'ID: ${finance.currentFamily?.inviteCode ?? "..."} • ${finance.familyMembers.length} Anggota'
                 : 'Mulai Ruang Keuangan Bersama')
-            : 'Tampilan Finansial Pribadi');
+            : 'Uangku • Finansial Pribadi');
 
     final headerSubtitleColor = isCompany
         ? const Color(0xFF1E3A8A)
@@ -1332,6 +1332,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBrandFooter() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 14, bottom: 28),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset(
+              'assets/images/linc_logo.png',
+              height: 22,
+              fit: BoxFit.contain,
+              errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Sistem by Linc 2026',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                letterSpacing: 0.4,
+                color: AppTheme.textSecondary.withValues(alpha: 0.65),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -1825,7 +1854,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             const SizedBox(height: 8),
 
             _buildTransactionList(finance.transactions),
-            const SizedBox(height: 24),
+            const SizedBox(height: 12),
+            _buildBrandFooter(),
           ],
         ),
       ),
@@ -2545,7 +2575,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             const SizedBox(height: 10),
 
             _buildTransactionList(displayedTransactions, isFamilyMode: true),
-            const SizedBox(height: 32),
+            const SizedBox(height: 12),
+            _buildBrandFooter(),
           ],
         ),
       ),
@@ -4118,7 +4149,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   );
                 },
               ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 12),
+            _buildBrandFooter(),
           ],
         ),
       ),

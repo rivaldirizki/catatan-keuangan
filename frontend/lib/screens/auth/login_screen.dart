@@ -66,31 +66,37 @@ class _LoginScreenState extends State<LoginScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const SizedBox(height: 16),
-                  // Apple-Style App Monogram
+                  // Apple-Style LINC Company Logo Card
                   Center(
                     child: Container(
-                      width: 68,
-                      height: 68,
+                      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF2C2C2E), Color(0xFF1C1C1E)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(18),
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.12),
+                            color: const Color(0xFF0038FF).withValues(alpha: 0.08),
                             blurRadius: 20,
-                            offset: const Offset(0, 8),
+                            offset: const Offset(0, 6),
+                          ),
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.03),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
                           ),
                         ],
                       ),
-                      child: const Center(
-                        child: Icon(
-                          Icons.account_balance_wallet_rounded,
-                          size: 32,
-                          color: Colors.white,
+                      child: Image.asset(
+                        'assets/images/linc_logo.png',
+                        width: 180,
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) => const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.business_rounded, color: Color(0xFF0038FF), size: 24),
+                            SizedBox(width: 8),
+                            Text('LiNC', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF0038FF))),
+                          ],
                         ),
                       ),
                     ),
@@ -99,18 +105,18 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   // Header Titles
                   const Text(
-                    'Catatan Keuangan',
+                    'Uangku',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
+                      fontSize: 26,
+                      fontWeight: FontWeight.w800,
                       letterSpacing: -0.5,
                       color: AppTheme.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 6),
                   const Text(
-                    'Kelola anggaran pribadi & keluarga secara rapi dan elegan',
+                    'Sistem Manajemen Finansial Pribadi, Keluarga & Bisnis',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 13,
@@ -261,7 +267,20 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 28),
+
+                  // Bottom Small Brand Attribution
+                  Text(
+                    'Sistem by Linc 2026',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 0.4,
+                      color: AppTheme.textSecondary.withValues(alpha: 0.7),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
                 ],
               ),
             ),

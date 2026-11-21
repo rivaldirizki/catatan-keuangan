@@ -4,7 +4,7 @@ import 'core/theme/app_theme.dart';
 import 'core/network/api_client.dart';
 import 'providers/auth_provider.dart';
 import 'providers/finance_provider.dart';
-import 'screens/auth/login_screen.dart';
+import 'screens/splash/splash_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,12 +25,12 @@ class FinanceApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => FinanceProvider(apiClient: client)),
       ],
       child: MaterialApp(
-        title: 'Catatan Keuangan & Keluarga',
+        title: 'Uangku',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
         themeMode: ThemeMode.light,
-        home: const LoginScreen(),
+        home: const SplashScreen(),
       ),
     );
   }

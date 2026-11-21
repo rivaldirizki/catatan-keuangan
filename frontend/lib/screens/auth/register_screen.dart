@@ -99,19 +99,56 @@ class _RegisterScreenState extends State<RegisterScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  // LINC Company Logo Card
+                  Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF0038FF).withValues(alpha: 0.08),
+                            blurRadius: 18,
+                            offset: const Offset(0, 5),
+                          ),
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.03),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Image.asset(
+                        'assets/images/linc_logo.png',
+                        width: 150,
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) => const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.business_rounded, color: Color(0xFF0038FF), size: 20),
+                            SizedBox(width: 6),
+                            Text('LiNC', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF0038FF))),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+
                   const Text(
-                    'Mulai Mencatat Keuangan',
+                    'Daftar Akun Uangku',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 21,
-                      fontWeight: FontWeight.w700,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
                       letterSpacing: -0.4,
                       color: AppTheme.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 6),
                   const Text(
-                    'Data keuangan pribadi Anda tersimpan aman dan terenkripsi.',
+                    'Kelola finansial pribadi, keluarga & perusahaan secara terpadu',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 13,
@@ -276,7 +313,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 28),
+
+                  // Bottom Small Brand Attribution
+                  Text(
+                    'Sistem by Linc 2026',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 0.4,
+                      color: AppTheme.textSecondary.withValues(alpha: 0.7),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
                 ],
               ),
             ),

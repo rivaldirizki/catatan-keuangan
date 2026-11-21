@@ -1,0 +1,86 @@
+import { describe, it, beforeEach } from 'node:test';
+import assert from 'node:assert';
+import { db } from '../src/config/database.js';
+import { AuthService } from '../src/services/auth.service.js';
+import { CompanyService } from '../src/services/company.service.js';
+import { ProjectService } from '../src/services/project.service.js';
+import { WalletService } from '../src/services/wallet.service.js';
+
+describe('Task 3: ProjectService (TDD)', () => {
+  beforeEach(() => {
+    db.mock.reset();
+  });
+
+  it('should create a project under company with budget', async () => {
+    const ceo = await AuthService.register('CEO', 'ceo@biz.com', 'secret123');
+    const comp = await CompanyService.createCompany(ceo.user.id, 'Agensi Digital');
+
+    const project = await ProjectService.createProject(comp.id, ceo.user.id, {
+      name: 'Pembuatan Website Klien A',
+      description: 'Proyek pengembangan web portal e-commerce',
+      target_budget: 25000000
+    });
+
+    assert.ok(project.id);
+    assert.strictEqual(project.company_id, comp.id);
+    assert.strictEqual(Number(project.target_budget), 25000000);
+    assert.strictEqual(Number(project.current_income), 0);
+    assert.strictEqual(Number(project.current_expense), 0);
+  });
+
+  it('should record project income and expense, updating project balances atomically', async () => {
+    const ceo = await AuthService.register('CEO', 'ceo2@biz.com', 'secret123');
+    const comp = await CompanyService.createCompany(ceo.user.id, 'Tech Studio');
+    const wallet = await WalletService.createWallet(ceo.user.id, 'Rekening Operasional', 10000000);
+
+    const proj = await ProjectService.createProject(comp.id, ceo.user.id, {
+      name: 'Mobile App Project',
+      target_budget: 50000000
+    });
+
+    // 1. Catat Pemasukan Klien (Termin 1: Rp 30.000.000)
+    await ProjectService.recordTransaction(ceo.user.id, comp.id, proj.id, {
+      wallet_id: wallet.id,
+      type: 'income',
+      amount: 30000000,
+      notes: 'Pembayaran DP Termin 1'
+    });
+
+    // 2. Catat Pengeluaran Proyek (Sewa Server & Desain: Rp 5.000.000)
+    await ProjectService.recordTransaction(ceo.user.id, comp.id, proj.id, {
+      wallet_id: wallet.id,
+      type: 'expense',
+      amount: 5000000,
+      notes: 'Pembelian domain dan server cloud'
+    });
+
+    const updatedProj = await ProjectService.getProjectById(comp.id, proj.id);
+    assert.strictEqual(Number(updatedProj.current_income), 30000000);
+    assert.strictEqual(Number(updatedProj.current_expense), 5000000);
+    assert.strictEqual(Number(updatedProj.net_profit), 25000000);
+
+    // Dompet rekening juga bertambah bersih +25.000.000 (10jt + 30jt - 5jt = 35jt)
+    const updatedWallet = await WalletService.getWalletById(wallet.id);
+    assert.strictEqual(Number(updatedWallet.balance), 35000000);
+  });
+
+  it('should reject recording expense when wallet balance is insufficient', async () => {
+    const ceo = await AuthService.register('CEO', 'ceo3@biz.com', 'secret123');
+    const comp = await CompanyService.createCompany(ceo.user.id, 'Software House');
+    const wallet = await WalletService.createWallet(ceo.user.id, 'Kas Kecil', 500000);
+
+    const proj = await ProjectService.createProject(comp.id, ceo.user.id, {
+      name: 'Sistem ERP',
+      target_budget: 100000000
+    });
+
+    await assert.rejects(async () => {
+      await ProjectService.recordTransaction(ceo.user.id, comp.id, proj.id, {
+        wallet_id: wallet.id,
+        type: 'expense',
+        amount: 2000000,
+        notes: 'Biaya lisensi melebihi saldo kas'
+      });
+    }, /saldo dompet tidak mencukupi|insufficient/i);
+  });
+});

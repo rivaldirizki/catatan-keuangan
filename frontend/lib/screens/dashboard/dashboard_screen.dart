@@ -1359,7 +1359,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 '$totalFamilies Kel • $totalCompanies PT',
                 '$totalProjects Proyek Terdata',
                 Icons.domain_rounded,
-                const Color(0xFF1E3A8A),
+                const Color(0xFF1C1C1E),
               ),
             ),
           ],
@@ -1484,19 +1484,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final hasFamily = auth.currentUser?.familyId != null;
     final hasCompany = auth.currentUser?.companyId != null;
 
-    final bgColor = isCompany
-        ? const Color(0xFFF1F5F9)
-        : (isFamily ? const Color(0xFFF6F5FC) : AppTheme.iosBg);
-    final appBarBg = isCompany
-        ? const Color(0xFFF1F5F9)
-        : (isFamily ? const Color(0xFFF6F5FC) : Colors.white);
+    final modeScheme = AppTheme.getModeScheme(finance.currentMode);
+    final bgColor = modeScheme.scaffoldBg;
+    final appBarBg = modeScheme.appBarBg;
 
-    final avatarBg = isCompany
-        ? const Color(0xFF1E3A8A).withValues(alpha: 0.12)
-        : (isFamily ? AppTheme.familyPurple.withValues(alpha: 0.15) : AppTheme.iosBlue.withValues(alpha: 0.15));
-    final avatarColor = isCompany
-        ? const Color(0xFF1E3A8A)
-        : (isFamily ? AppTheme.familyPurple : AppTheme.iosBlue);
+    final avatarBg = modeScheme.primary.withValues(alpha: 0.14);
+    final avatarColor = modeScheme.primary;
     final avatarIcon = isCompany
         ? Icons.business_rounded
         : (isFamily ? Icons.family_restroom_rounded : Icons.person_rounded);
@@ -1517,9 +1510,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 : 'Mulai Ruang Keuangan Bersama')
             : 'Dompet Linc • Finansial Pribadi');
 
-    final headerSubtitleColor = isCompany
-        ? const Color(0xFF1E3A8A)
-        : (isFamily ? AppTheme.familyPurple : AppTheme.textSecondary);
+    final headerSubtitleColor = modeScheme.primary;
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -1850,9 +1841,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   // ======================= VIEW 1: PERSONAL DASHBOARD =======================
   Widget _buildPersonalDashboardView(FinanceProvider finance, AuthProvider auth) {
+    final modeScheme = AppTheme.getModeScheme(AppViewMode.personal);
     return RefreshIndicator(
       onRefresh: () => finance.fetchDashboard(),
-      color: AppTheme.iosBlue,
+      color: modeScheme.primary,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -1860,21 +1852,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildDashboardDebtReminderBanner(finance, 'personal'),
-            // Apple Titanium Hero Card (Carbon Black)
+            // DANA Vibrant Cyan-Blue Hero Card
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF1C1C1E), Color(0xFF2C2C2E)],
+                gradient: LinearGradient(
+                  colors: modeScheme.gradientColors,
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.14),
-                    blurRadius: 16,
+                    color: modeScheme.heroCardShadow,
+                    blurRadius: 18,
                     offset: const Offset(0, 6),
                   ),
                 ],
@@ -2256,9 +2248,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ? finance.transactions
         : finance.transactions.where((t) => t.userId == _selectedMemberFilterId).toList();
 
+    final modeScheme = AppTheme.getModeScheme(AppViewMode.family);
     return RefreshIndicator(
       onRefresh: () => finance.fetchDashboard(),
-      color: AppTheme.familyPurple,
+      color: modeScheme.primary,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -2266,21 +2259,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildDashboardDebtReminderBanner(finance, 'family'),
-            // 1. ROYAL VIOLET FAMILY HERO CARD
+            // ShopeePay Sunset-Orange Family Hero Card
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF261047), Color(0xFF3B1E6D)],
+                gradient: LinearGradient(
+                  colors: modeScheme.gradientColors,
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF261047).withValues(alpha: 0.3),
-                    blurRadius: 16,
+                    color: modeScheme.heroCardShadow,
+                    blurRadius: 18,
                     offset: const Offset(0, 6),
                   ),
                 ],
@@ -2972,19 +2965,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Onboarding Hero Card
+          // Onboarding Hero Card (ShopeePay Sunset Orange)
           Container(
             padding: const EdgeInsets.all(26),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF2E1065), Color(0xFF4C1D95)],
+                colors: [Color(0xFFEE4D2D), Color(0xFFFF6633)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(28),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF4C1D95).withValues(alpha: 0.3),
+                  color: const Color(0xFFEE4D2D).withValues(alpha: 0.3),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -3456,8 +3449,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildNavItem(int index, IconData icon, String label, VoidCallback onTap, {bool isFamilyView = false, bool isCompanyView = false}) {
     final isSelected = _currentTab == index;
     final activeColor = isCompanyView
-        ? const Color(0xFF1E3A8A)
-        : (isFamilyView ? AppTheme.familyPurple : AppTheme.iosBlue);
+        ? const Color(0xFF1C1C1E)
+        : (isFamilyView ? const Color(0xFFEE4D2D) : const Color(0xFF118EEA));
 
     return Expanded(
       child: GestureDetector(
@@ -3501,19 +3494,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Onboarding Hero Card
+          // Onboarding Hero Card (Obsidian Executive Titanium)
           Container(
             padding: const EdgeInsets.all(26),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF0F172A), Color(0xFF1E3A8A)],
+                colors: [Color(0xFF1C1C1E), Color(0xFF2C2C2E)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(28),
+              border: Border.all(color: const Color(0xFF38383A), width: 1.0),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF1E3A8A).withValues(alpha: 0.3),
+                  color: Colors.black.withValues(alpha: 0.25),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -3565,7 +3559,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             child: Column(
               children: [
-                _buildFeatureRow(Icons.folder_special_rounded, 'Multi-Proyek Terpisah', 'Kelola anggaran dan pantau realisasi pemasukan serta pengeluaran per proyek.', const Color(0xFF1E3A8A)),
+                _buildFeatureRow(Icons.folder_special_rounded, 'Multi-Proyek Terpisah', 'Kelola anggaran dan pantau realisasi pemasukan serta pengeluaran per proyek.', const Color(0xFF1C1C1E)),
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 12),
                   child: Divider(height: 1, indent: 40, color: Color(0xFFF1F5F9)),
@@ -3620,7 +3614,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: _onboardingCompanyTab == 0 ? FontWeight.w700 : FontWeight.w500,
-                          color: _onboardingCompanyTab == 0 ? const Color(0xFF1E3A8A) : AppTheme.textSecondary,
+                          color: _onboardingCompanyTab == 0 ? const Color(0xFF1C1C1E) : AppTheme.textSecondary,
                         ),
                       ),
                     ),
@@ -3656,7 +3650,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: _onboardingCompanyTab == 1 ? FontWeight.w700 : FontWeight.w500,
-                          color: _onboardingCompanyTab == 1 ? const Color(0xFF1E3A8A) : AppTheme.textSecondary,
+                          color: _onboardingCompanyTab == 1 ? const Color(0xFF1C1C1E) : AppTheme.textSecondary,
                         ),
                       ),
                     ),
@@ -3698,7 +3692,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 textCapitalization: TextCapitalization.words,
                 decoration: const InputDecoration(
                   hintText: 'Nama Perusahaan (contoh: PT Solusi Jaya)',
-                  prefixIcon: Icon(Icons.business_outlined, color: Color(0xFF1E3A8A)),
+                  prefixIcon: Icon(Icons.business_outlined, color: Color(0xFF1C1C1E)),
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 ),
@@ -3733,7 +3727,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       }
                     },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1E3A8A),
+                backgroundColor: const Color(0xFF1C1C1E),
                 foregroundColor: Colors.white,
                 minimumSize: const Size(double.infinity, 50),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -3755,7 +3749,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 2),
                 decoration: const InputDecoration(
                   hintText: '8 Karakter Kode ID Perusahaan',
-                  prefixIcon: Icon(Icons.vpn_key_rounded, color: Color(0xFF1E3A8A)),
+                  prefixIcon: Icon(Icons.vpn_key_rounded, color: Color(0xFF1C1C1E)),
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 ),
@@ -3789,7 +3783,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       }
                     },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1E3A8A),
+                backgroundColor: const Color(0xFF1C1C1E),
                 foregroundColor: Colors.white,
                 minimumSize: const Size(double.infinity, 50),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -3816,12 +3810,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final totalExpense = projects.fold<int>(0, (sum, p) => sum + p.currentExpense);
     final netProfit = totalIncome - totalExpense;
 
+    final modeScheme = AppTheme.getModeScheme(AppViewMode.company);
     return RefreshIndicator(
       onRefresh: () async {
         await finance.fetchDashboard();
         await auth.getCurrentCompany();
       },
-      color: const Color(0xFF1E3A8A),
+      color: modeScheme.primary,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -3829,22 +3824,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildDashboardDebtReminderBanner(finance, 'company'),
-            // 1. SAPPHIRE HERO CARD
+            // Obsidian Titanium Carbon Hero Card (Executive Dark)
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF0F172A), Color(0xFF1E3A8A)],
+                gradient: LinearGradient(
+                  colors: modeScheme.gradientColors,
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(22),
+                border: Border.all(color: const Color(0xFF38383A), width: 1.0),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF1E3A8A).withValues(alpha: 0.35),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
+                    color: Colors.black.withValues(alpha: 0.25),
+                    blurRadius: 18,
+                    offset: const Offset(0, 6),
                   ),
                 ],
               ),
@@ -3956,11 +3952,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                             child: const Column(
                               children: [
-                                Icon(Icons.add_task_rounded, size: 16, color: Color(0xFF1E3A8A)),
+                                Icon(Icons.add_task_rounded, size: 16, color: Color(0xFF1C1C1E)),
                                 SizedBox(height: 3),
                                 Text(
                                   '+ Proyek Baru',
-                                  style: TextStyle(color: Color(0xFF1E3A8A), fontSize: 10.5, fontWeight: FontWeight.w700),
+                                  style: TextStyle(color: Color(0xFF1C1C1E), fontSize: 10.5, fontWeight: FontWeight.w700),
                                 ),
                               ],
                             ),
@@ -4045,10 +4041,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             Container(
                               padding: const EdgeInsets.all(4),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF1E3A8A).withValues(alpha: 0.1),
+                                color: const Color(0xFF1C1C1E).withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(6),
                               ),
-                              child: const Icon(Icons.flag_rounded, size: 13, color: Color(0xFF1E3A8A)),
+                              child: const Icon(Icons.flag_rounded, size: 13, color: Color(0xFF1C1C1E)),
                             ),
                             const SizedBox(width: 6),
                             const Expanded(
@@ -4236,7 +4232,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Expanded(
                   child: Row(
                     children: [
-                      const Icon(Icons.folder_copy_rounded, size: 18, color: Color(0xFF1E3A8A)),
+                      const Icon(Icons.folder_copy_rounded, size: 18, color: Color(0xFF1C1C1E)),
                       const SizedBox(width: 6),
                       Flexible(
                         child: Text(
@@ -4259,16 +4255,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4.5),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1E3A8A).withValues(alpha: 0.1),
+                      color: const Color(0xFF1C1C1E).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Row(
                       children: [
-                        Icon(Icons.add_rounded, size: 13, color: Color(0xFF1E3A8A)),
+                        Icon(Icons.add_rounded, size: 13, color: Color(0xFF1C1C1E)),
                         SizedBox(width: 3),
                         Text(
                           'Proyek Baru',
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF1E3A8A)),
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF1C1C1E)),
                         ),
                       ],
                     ),
@@ -4292,10 +4288,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1E3A8A).withValues(alpha: 0.1),
+                        color: const Color(0xFF1C1C1E).withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.folder_open_rounded, color: Color(0xFF1E3A8A), size: 30),
+                      child: const Icon(Icons.folder_open_rounded, color: Color(0xFF1C1C1E), size: 30),
                     ),
                     const SizedBox(height: 12),
                     const Text(
@@ -4314,7 +4310,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       icon: const Icon(Icons.add_rounded, size: 15),
                       label: const Text('Buat Proyek Pertama', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700)),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF1E3A8A),
+                        backgroundColor: const Color(0xFF1C1C1E),
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -4333,7 +4329,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   final project = projects[idx];
                   final isPositiveProfit = project.netProfit >= 0;
 
-                  Color statusColor = const Color(0xFF1E3A8A);
+                  Color statusColor = const Color(0xFF1C1C1E);
                   String statusLabel = 'Aktif';
                   if (project.status == 'completed') {
                     statusColor = AppTheme.incomeGreen;
@@ -4420,7 +4416,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w700,
-                                  color: project.budgetProgress > 100 ? AppTheme.expenseRed : const Color(0xFF1E3A8A),
+                                  color: project.budgetProgress > 100 ? AppTheme.expenseRed : const Color(0xFF1C1C1E),
                                 ),
                               ),
                             ],
@@ -4433,7 +4429,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               minHeight: 6,
                               backgroundColor: const Color(0xFFF1F5F9),
                               valueColor: AlwaysStoppedAnimation<Color>(
-                                project.budgetProgress > 100 ? AppTheme.expenseRed : const Color(0xFF1E3A8A),
+                                project.budgetProgress > 100 ? AppTheme.expenseRed : const Color(0xFF1C1C1E),
                               ),
                             ),
                           ),
@@ -4502,8 +4498,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 icon: const Icon(Icons.post_add_rounded, size: 14),
                                 label: const Text('Catat Kas', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600)),
                                 style: OutlinedButton.styleFrom(
-                                  foregroundColor: const Color(0xFF1E3A8A),
-                                  side: const BorderSide(color: Color(0xFF1E3A8A), width: 0.8),
+                                  foregroundColor: const Color(0xFF1C1C1E),
+                                  side: const BorderSide(color: Color(0xFF1C1C1E), width: 0.8),
                                   minimumSize: const Size(0, 34),
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
                                 ),
@@ -4516,7 +4512,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 icon: const Icon(Icons.receipt_long_rounded, size: 14),
                                 label: const Text('Detail & Mutasi', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600)),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF1E3A8A),
+                                  backgroundColor: const Color(0xFF1C1C1E),
                                   foregroundColor: Colors.white,
                                   elevation: 0,
                                   minimumSize: const Size(0, 34),
@@ -4627,7 +4623,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     decoration: const InputDecoration(
                       hintText: 'Nama Proyek (contoh: Website E-Commerce)',
                       hintStyle: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
-                      prefixIcon: Icon(Icons.folder_outlined, size: 18, color: Color(0xFF1E3A8A)),
+                      prefixIcon: Icon(Icons.folder_outlined, size: 18, color: Color(0xFF1C1C1E)),
                       border: InputBorder.none,
                       contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                     ),
@@ -4649,7 +4645,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     decoration: const InputDecoration(
                       hintText: 'Target Anggaran / Budget (Rp, contoh: 25000000)',
                       hintStyle: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
-                      prefixIcon: Icon(Icons.attach_money_rounded, size: 18, color: Color(0xFF1E3A8A)),
+                      prefixIcon: Icon(Icons.attach_money_rounded, size: 18, color: Color(0xFF1C1C1E)),
                       border: InputBorder.none,
                       contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                     ),
@@ -4671,7 +4667,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     decoration: const InputDecoration(
                       hintText: 'Deskripsi proyek atau nama klien (opsional)',
                       hintStyle: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
-                      prefixIcon: Icon(Icons.notes_rounded, size: 18, color: Color(0xFF1E3A8A)),
+                      prefixIcon: Icon(Icons.notes_rounded, size: 18, color: Color(0xFF1C1C1E)),
                       border: InputBorder.none,
                       contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                     ),
@@ -4710,7 +4706,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             messenger.showSnackBar(
                               SnackBar(
                                 content: Text('Proyek "$name" berhasil dibuat!'),
-                                backgroundColor: const Color(0xFF1E3A8A),
+                                backgroundColor: const Color(0xFF1C1C1E),
                                 behavior: SnackBarBehavior.floating,
                               ),
                             );
@@ -4722,7 +4718,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           }
                         },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1E3A8A),
+                    backgroundColor: const Color(0xFF1C1C1E),
                     foregroundColor: Colors.white,
                     minimumSize: const Size(double.infinity, 46),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -5067,7 +5063,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             messenger.showSnackBar(
                               SnackBar(
                                 content: Text('Kas proyek berhasil dicatat: ${_formatRupiah(amount)}'),
-                                backgroundColor: isIncome ? AppTheme.incomeGreen : const Color(0xFF1E3A8A),
+                                backgroundColor: isIncome ? AppTheme.incomeGreen : const Color(0xFF1C1C1E),
                                 behavior: SnackBarBehavior.floating,
                               ),
                             );
@@ -5079,7 +5075,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           }
                         },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: isIncome ? AppTheme.incomeGreen : const Color(0xFF1E3A8A),
+                    backgroundColor: isIncome ? AppTheme.incomeGreen : const Color(0xFF1C1C1E),
                     foregroundColor: Colors.white,
                     minimumSize: const Size(double.infinity, 46),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -5286,7 +5282,7 @@ class _ProjectDetailBottomSheetState extends State<_ProjectDetailBottomSheet> {
             const Center(
               child: Padding(
                 padding: EdgeInsets.all(24),
-                child: CircularProgressIndicator(color: Color(0xFF1E3A8A)),
+                child: CircularProgressIndicator(color: Color(0xFF1C1C1E)),
               ),
             )
           else if (transactions.isEmpty)
@@ -5393,7 +5389,7 @@ class _ProjectDetailBottomSheetState extends State<_ProjectDetailBottomSheet> {
 
   Widget _buildStatusChip(String statusCode, String label, String currentStatus) {
     final isSelected = currentStatus == statusCode;
-    Color color = const Color(0xFF1E3A8A);
+    Color color = const Color(0xFF1C1C1E);
     if (statusCode == 'completed') color = AppTheme.incomeGreen;
     if (statusCode == 'on_hold') color = const Color(0xFFF59E0B);
 

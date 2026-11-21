@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../providers/finance_provider.dart';
 
 /// AppTheme - Apple iOS 18 Design Experience (UI/UX Pro Max)
 /// - Ultra-clean, simple, compact and elegant iOS aesthetic
@@ -22,12 +23,15 @@ class AppTheme {
   static const Color textSecondary = Color(0xFF8E8E93);
   static const Color textTertiary = Color(0xFFC7C7CC);
 
-  // Apple Semantic Accents
-  static const Color iosBlue = Color(0xFF007AFF);
+  // Mode Semantic Accents (DANA, ShopeePay, Obsidian)
+  static const Color danaBlue = Color(0xFF118EEA); // Mode Pribadi: DANA Cyan Blue
+  static const Color iosBlue = Color(0xFF118EEA); // Primary personal accent
+  static const Color shopeeOrange = Color(0xFFEE4D2D); // Mode Keluarga: ShopeePay Sunset Orange
+  static const Color familyPurple = Color(0xFFEE4D2D); // Primary family accent
+  static const Color companyObsidian = Color(0xFF1C1C1E); // Mode Perusahaan: Obsidian Titanium Black
   static const Color incomeGreen = Color(0xFF34C759);
   static const Color expenseRed = Color(0xFFFF3B30);
   static const Color warningOrange = Color(0xFFFF9500);
-  static const Color familyPurple = Color(0xFF5856D6);
   static const Color savingTeal = Color(0xFF30B0C7);
 
   // Legacy mappings for backwards-compatibility
@@ -119,4 +123,118 @@ class AppTheme {
   }
 
   static ThemeData get darkTheme => lightTheme;
+
+  static ModeColorScheme getModeScheme(AppViewMode mode) {
+    switch (mode) {
+      case AppViewMode.personal:
+        return ModeColorScheme.dana();
+      case AppViewMode.family:
+        return ModeColorScheme.shopeePay();
+      case AppViewMode.company:
+        return ModeColorScheme.obsidian();
+    }
+  }
+}
+
+/// ModeColorScheme - Multi-Mode Palette Engine:
+/// - Personal: DANA Cyan Blue (#118EEA)
+/// - Family: ShopeePay Sunset Orange (#EE4D2D)
+/// - Company: Obsidian Titanium Dark (#1C1C1E)
+class ModeColorScheme {
+  final Color primary;
+  final Color primaryDark;
+  final List<Color> gradientColors;
+  final Color scaffoldBg;
+  final Color appBarBg;
+  final Color cardBg;
+  final Color cardBorder;
+  final Color pillBg;
+  final Color pillText;
+  final Color buttonBg;
+  final Color buttonText;
+  final Color navActive;
+  final Color heroCardShadow;
+  final Color heroTextColor;
+  final bool isDarkHero;
+
+  const ModeColorScheme({
+    required this.primary,
+    required this.primaryDark,
+    required this.gradientColors,
+    required this.scaffoldBg,
+    required this.appBarBg,
+    required this.cardBg,
+    required this.cardBorder,
+    required this.pillBg,
+    required this.pillText,
+    required this.buttonBg,
+    required this.buttonText,
+    required this.navActive,
+    required this.heroCardShadow,
+    required this.heroTextColor,
+    this.isDarkHero = true,
+  });
+
+  // 1. DANA Style (Personal Mode)
+  factory ModeColorScheme.dana() {
+    return const ModeColorScheme(
+      primary: Color(0xFF118EEA),
+      primaryDark: Color(0xFF0075D8),
+      gradientColors: [Color(0xFF118EEA), Color(0xFF0075D8)],
+      scaffoldBg: Color(0xFFF4F8FD),
+      appBarBg: Colors.white,
+      cardBg: Colors.white,
+      cardBorder: Color(0xFFE1EBF5),
+      pillBg: Color(0xFFEBF5FD),
+      pillText: Color(0xFF118EEA),
+      buttonBg: Color(0xFF118EEA),
+      buttonText: Colors.white,
+      navActive: Color(0xFF118EEA),
+      heroCardShadow: Color(0x3D118EEA),
+      heroTextColor: Colors.white,
+      isDarkHero: false,
+    );
+  }
+
+  // 2. ShopeePay Style (Family Mode)
+  factory ModeColorScheme.shopeePay() {
+    return const ModeColorScheme(
+      primary: Color(0xFFEE4D2D),
+      primaryDark: Color(0xFFD43819),
+      gradientColors: [Color(0xFFEE4D2D), Color(0xFFFF6633)],
+      scaffoldBg: Color(0xFFFFF8F5),
+      appBarBg: Colors.white,
+      cardBg: Colors.white,
+      cardBorder: Color(0xFFFCEAE4),
+      pillBg: Color(0xFFFFF0EC),
+      pillText: Color(0xFFEE4D2D),
+      buttonBg: Color(0xFFEE4D2D),
+      buttonText: Colors.white,
+      navActive: Color(0xFFEE4D2D),
+      heroCardShadow: Color(0x3DEE4D2D),
+      heroTextColor: Colors.white,
+      isDarkHero: false,
+    );
+  }
+
+  // 3. Obsidian Titanium Executive (Company Mode)
+  factory ModeColorScheme.obsidian() {
+    return const ModeColorScheme(
+      primary: Color(0xFF1C1C1E),
+      primaryDark: Color(0xFF121214),
+      gradientColors: [Color(0xFF1C1C1E), Color(0xFF2C2C2E)],
+      scaffoldBg: Color(0xFFF1F5F9),
+      appBarBg: Color(0xFFF1F5F9),
+      cardBg: Colors.white,
+      cardBorder: Color(0xFFE2E8F0),
+      pillBg: Color(0xFFE2E8F0),
+      pillText: Color(0xFF1C1C1E),
+      buttonBg: Color(0xFF1C1C1E),
+      buttonText: Colors.white,
+      navActive: Color(0xFF1C1C1E),
+      heroCardShadow: Color(0x33000000),
+      heroTextColor: Colors.white,
+      isDarkHero: true,
+    );
+  }
 }

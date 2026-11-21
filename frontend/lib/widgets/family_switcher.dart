@@ -78,12 +78,12 @@ class FamilySwitcher extends StatelessWidget {
               curve: Curves.easeOutCubic,
               padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
               decoration: BoxDecoration(
-                color: isPersonal ? Colors.white : Colors.transparent,
+                color: isPersonal ? const Color(0xFF118EEA) : Colors.transparent,
                 borderRadius: BorderRadius.circular(7),
                 boxShadow: isPersonal
                     ? [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.08),
+                          color: const Color(0xFF118EEA).withValues(alpha: 0.35),
                           blurRadius: 3,
                           offset: const Offset(0, 1),
                         ),
@@ -96,7 +96,7 @@ class FamilySwitcher extends StatelessWidget {
                   Icon(
                     Icons.person_rounded,
                     size: 12,
-                    color: isPersonal ? AppTheme.textPrimary : AppTheme.textSecondary,
+                    color: isPersonal ? Colors.white : AppTheme.textSecondary,
                   ),
                   const SizedBox(width: 3),
                   Text(
@@ -104,7 +104,7 @@ class FamilySwitcher extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: isPersonal ? FontWeight.w600 : FontWeight.w500,
-                      color: isPersonal ? AppTheme.textPrimary : AppTheme.textSecondary,
+                      color: isPersonal ? Colors.white : AppTheme.textSecondary,
                       letterSpacing: -0.2,
                     ),
                   ),
@@ -130,12 +130,12 @@ class FamilySwitcher extends StatelessWidget {
               curve: Curves.easeOutCubic,
               padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
               decoration: BoxDecoration(
-                color: isFamily ? Colors.white : Colors.transparent,
+                color: isFamily ? const Color(0xFFEE4D2D) : Colors.transparent,
                 borderRadius: BorderRadius.circular(7),
                 boxShadow: isFamily
                     ? [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.08),
+                          color: const Color(0xFFEE4D2D).withValues(alpha: 0.35),
                           blurRadius: 3,
                           offset: const Offset(0, 1),
                         ),
@@ -148,7 +148,7 @@ class FamilySwitcher extends StatelessWidget {
                   Icon(
                     Icons.group_rounded,
                     size: 12,
-                    color: isFamily ? AppTheme.familyPurple : AppTheme.textSecondary,
+                    color: isFamily ? Colors.white : AppTheme.textSecondary,
                   ),
                   const SizedBox(width: 3),
                   Text(
@@ -156,13 +156,13 @@ class FamilySwitcher extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: isFamily ? FontWeight.w600 : FontWeight.w500,
-                      color: isFamily ? AppTheme.familyPurple : AppTheme.textSecondary,
+                      color: isFamily ? Colors.white : AppTheme.textSecondary,
                       letterSpacing: -0.2,
                     ),
                   ),
                   if (hasFamily && isFamily) ...[
                     const SizedBox(width: 2),
-                    const Icon(Icons.info_outline_rounded, size: 10, color: AppTheme.familyPurple),
+                    const Icon(Icons.info_outline_rounded, size: 10, color: Colors.white),
                   ],
                 ],
               ),
@@ -186,12 +186,12 @@ class FamilySwitcher extends StatelessWidget {
               curve: Curves.easeOutCubic,
               padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
               decoration: BoxDecoration(
-                color: isCompany ? Colors.white : Colors.transparent,
+                color: isCompany ? const Color(0xFF1C1C1E) : Colors.transparent,
                 borderRadius: BorderRadius.circular(7),
                 boxShadow: isCompany
                     ? [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.08),
+                          color: Colors.black.withValues(alpha: 0.25),
                           blurRadius: 3,
                           offset: const Offset(0, 1),
                         ),
@@ -204,7 +204,7 @@ class FamilySwitcher extends StatelessWidget {
                   Icon(
                     Icons.business_rounded,
                     size: 12,
-                    color: isCompany ? const Color(0xFF1E3A8A) : AppTheme.textSecondary,
+                    color: isCompany ? Colors.white : AppTheme.textSecondary,
                   ),
                   const SizedBox(width: 3),
                   Text(
@@ -212,13 +212,13 @@ class FamilySwitcher extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: isCompany ? FontWeight.w600 : FontWeight.w500,
-                      color: isCompany ? const Color(0xFF1E3A8A) : AppTheme.textSecondary,
+                      color: isCompany ? Colors.white : AppTheme.textSecondary,
                       letterSpacing: -0.2,
                     ),
                   ),
                   if (hasCompany && isCompany) ...[
                     const SizedBox(width: 2),
-                    const Icon(Icons.info_outline_rounded, size: 10, color: Color(0xFF1E3A8A)),
+                    const Icon(Icons.info_outline_rounded, size: 10, color: Colors.white),
                   ],
                 ],
               ),
@@ -1048,7 +1048,7 @@ class _CompanySetupModalState extends State<_CompanySetupModal> {
               Text('Berhasil bergabung ke perusahaan dengan kode $code!'),
             ],
           ),
-          backgroundColor: const Color(0xFF1E3A8A),
+          backgroundColor: const Color(0xFF1C1C1E),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -1065,7 +1065,7 @@ class _CompanySetupModalState extends State<_CompanySetupModal> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
         title: const Row(
           children: [
-            Icon(Icons.business_rounded, color: Color(0xFF1E3A8A), size: 22),
+            Icon(Icons.business_rounded, color: Color(0xFF1C1C1E), size: 22),
             SizedBox(width: 8),
             Text('Perusahaan Dibuat!'),
           ],
@@ -1100,7 +1100,7 @@ class _CompanySetupModalState extends State<_CompanySetupModal> {
                           fontSize: 20,
                           fontWeight: FontWeight.w800,
                           letterSpacing: 2.0,
-                          color: Color(0xFF1E3A8A),
+                          color: Color(0xFF1C1C1E),
                         ),
                       ),
                     ],
@@ -1133,7 +1133,7 @@ class _CompanySetupModalState extends State<_CompanySetupModal> {
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF1E3A8A),
+              backgroundColor: const Color(0xFF1C1C1E),
               foregroundColor: Colors.white,
               minimumSize: const Size(double.infinity, 44),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(11)),
@@ -1332,7 +1332,7 @@ class _CompanySetupModalState extends State<_CompanySetupModal> {
             const Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.vpn_key_outlined, size: 14, color: Color(0xFF1E3A8A)),
+                Icon(Icons.vpn_key_outlined, size: 14, color: Color(0xFF1C1C1E)),
                 SizedBox(width: 6),
                 Expanded(
                   child: Text(
@@ -1346,7 +1346,7 @@ class _CompanySetupModalState extends State<_CompanySetupModal> {
             ElevatedButton(
               onPressed: _isLoading ? null : _handleCreateCompany,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1E3A8A),
+                backgroundColor: const Color(0xFF1C1C1E),
                 foregroundColor: Colors.white,
                 minimumSize: const Size(double.infinity, 46),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -1396,7 +1396,7 @@ class _CompanySetupModalState extends State<_CompanySetupModal> {
             ElevatedButton(
               onPressed: _isLoading ? null : _handleJoinCompany,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1E3A8A),
+                backgroundColor: const Color(0xFF1C1C1E),
                 foregroundColor: Colors.white,
                 minimumSize: const Size(double.infinity, 46),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -1500,7 +1500,7 @@ class _CompanyDetailsModalState extends State<_CompanyDetailsModal> {
             const Center(
               child: Padding(
                 padding: EdgeInsets.all(28),
-                child: CircularProgressIndicator(color: Color(0xFF1E3A8A)),
+                child: CircularProgressIndicator(color: Color(0xFF1C1C1E)),
               ),
             )
           else ...[
@@ -1508,14 +1508,14 @@ class _CompanyDetailsModalState extends State<_CompanyDetailsModal> {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF0F172A), Color(0xFF1E3A8A)],
+                  colors: [Color(0xFF0F172A), Color(0xFF1C1C1E)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF1E3A8A).withValues(alpha: 0.3),
+                    color: const Color(0xFF1C1C1E).withValues(alpha: 0.3),
                     blurRadius: 14,
                     offset: const Offset(0, 5),
                   ),
@@ -1573,7 +1573,7 @@ class _CompanyDetailsModalState extends State<_CompanyDetailsModal> {
                         label: const Text('Salin'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,
-                          foregroundColor: const Color(0xFF1E3A8A),
+                          foregroundColor: const Color(0xFF1C1C1E),
                           minimumSize: const Size(0, 32),
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -1620,10 +1620,10 @@ class _CompanyDetailsModalState extends State<_CompanyDetailsModal> {
                       children: [
                         CircleAvatar(
                           radius: 17,
-                          backgroundColor: const Color(0xFF1E3A8A).withValues(alpha: 0.12),
+                          backgroundColor: const Color(0xFF1C1C1E).withValues(alpha: 0.12),
                           child: Text(
                             name.isNotEmpty ? name[0].toUpperCase() : '?',
-                            style: const TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF1E3A8A), fontSize: 13),
+                            style: const TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF1C1C1E), fontSize: 13),
                           ),
                         ),
                         const SizedBox(width: 10),
@@ -1650,7 +1650,7 @@ class _CompanyDetailsModalState extends State<_CompanyDetailsModal> {
                           padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                           decoration: BoxDecoration(
                             color: role == 'owner' || role == 'admin'
-                                ? const Color(0xFF1E3A8A).withValues(alpha: 0.1)
+                                ? const Color(0xFF1C1C1E).withValues(alpha: 0.1)
                                 : const Color(0xFFE5E5EA),
                             borderRadius: BorderRadius.circular(6),
                           ),
@@ -1659,7 +1659,7 @@ class _CompanyDetailsModalState extends State<_CompanyDetailsModal> {
                             style: TextStyle(
                               fontSize: 10.5,
                               fontWeight: FontWeight.w600,
-                              color: role == 'owner' || role == 'admin' ? const Color(0xFF1E3A8A) : AppTheme.textSecondary,
+                              color: role == 'owner' || role == 'admin' ? const Color(0xFF1C1C1E) : AppTheme.textSecondary,
                             ),
                           ),
                         ),

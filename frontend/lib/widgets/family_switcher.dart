@@ -54,7 +54,7 @@ class FamilySwitcher extends StatelessWidget {
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               curve: Curves.easeOutCubic,
-              padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 4.5),
+              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
               decoration: BoxDecoration(
                 color: !isFamily ? Colors.white : Colors.transparent,
                 borderRadius: BorderRadius.circular(7),
@@ -69,6 +69,7 @@ class FamilySwitcher extends StatelessWidget {
                     : null,
               ),
               child: Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
                     Icons.person_rounded,
@@ -79,7 +80,7 @@ class FamilySwitcher extends StatelessWidget {
                   Text(
                     'Pribadi',
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 11.5,
                       fontWeight: !isFamily ? FontWeight.w600 : FontWeight.w500,
                       color: !isFamily ? AppTheme.textPrimary : AppTheme.textSecondary,
                       letterSpacing: -0.2,
@@ -105,7 +106,7 @@ class FamilySwitcher extends StatelessWidget {
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               curve: Curves.easeOutCubic,
-              padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 4.5),
+              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
               decoration: BoxDecoration(
                 color: isFamily ? Colors.white : Colors.transparent,
                 borderRadius: BorderRadius.circular(7),
@@ -120,6 +121,7 @@ class FamilySwitcher extends StatelessWidget {
                     : null,
               ),
               child: Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
                     Icons.group_rounded,
@@ -130,7 +132,7 @@ class FamilySwitcher extends StatelessWidget {
                   Text(
                     'Keluarga',
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 11.5,
                       fontWeight: isFamily ? FontWeight.w600 : FontWeight.w500,
                       color: isFamily ? AppTheme.familyPurple : AppTheme.textSecondary,
                       letterSpacing: -0.2,
@@ -138,7 +140,7 @@ class FamilySwitcher extends StatelessWidget {
                   ),
                   if (hasFamily && isFamily) ...[
                     const SizedBox(width: 3),
-                    const Icon(Icons.info_outline_rounded, size: 12, color: AppTheme.familyPurple),
+                    const Icon(Icons.info_outline_rounded, size: 11, color: AppTheme.familyPurple),
                   ],
                 ],
               ),

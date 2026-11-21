@@ -866,10 +866,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          'Riwayat Catatan Transaksi',
-                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                        const Expanded(
+                          child: Text(
+                            'Riwayat Catatan Transaksi',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                          ),
                         ),
+                        const SizedBox(width: 8),
                         Text(
                           '${(snapshot.data!['transactions'] as List).length} catatan',
                           style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
@@ -992,10 +997,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Informasi Ruang Keluarga',
-                    style: TextStyle(fontSize: 19, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                  const Expanded(
+                    child: Text(
+                      'Informasi Ruang Keluarga',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                    ),
                   ),
+                  const SizedBox(width: 8),
                   GestureDetector(
                     onTap: () => Navigator.pop(ctx),
                     child: Container(
@@ -1036,9 +1046,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        Text(
-                          inviteCode,
-                          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, letterSpacing: 3.0, color: Colors.white),
+                        Flexible(
+                          child: Text(
+                            inviteCode,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, letterSpacing: 3.0, color: Colors.white),
+                          ),
                         ),
                         const SizedBox(width: 12),
                         ElevatedButton.icon(
@@ -1134,21 +1148,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
               toolbarHeight: 56,
               backgroundColor: isFamily ? const Color(0xFFF6F5FC) : Colors.white,
               elevation: 0,
+              titleSpacing: 12,
               title: Row(
                 children: [
                   CircleAvatar(
-                    radius: 16,
+                    radius: 15,
                     backgroundColor: isFamily ? AppTheme.familyPurple.withValues(alpha: 0.15) : AppTheme.iosBlue.withValues(alpha: 0.15),
                     child: Icon(
                       isFamily ? Icons.family_restroom_rounded : Icons.person_rounded,
-                      size: 16,
+                      size: 15,
                       color: isFamily ? AppTheme.familyPurple : AppTheme.iosBlue,
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
                           isFamily
@@ -1157,13 +1173,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                            fontSize: 15,
+                            fontSize: 14,
                             fontWeight: FontWeight.w700,
                             color: AppTheme.textPrimary,
                             letterSpacing: -0.2,
                           ),
                         ),
-                        const SizedBox(height: 1),
                         Text(
                           isFamily
                               ? (hasFamily
@@ -1173,7 +1188,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            fontSize: 10.5,
+                            fontSize: 10,
                             color: isFamily ? AppTheme.familyPurple : AppTheme.textSecondary,
                             fontWeight: isFamily ? FontWeight.w600 : FontWeight.w400,
                           ),
@@ -1184,9 +1199,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ],
               ),
               actions: [
-                const FamilySwitcher(),
-                const SizedBox(width: 4),
+                const FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: FamilySwitcher(),
+                ),
                 IconButton(
+                  padding: const EdgeInsets.all(6),
+                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                   icon: const Icon(Icons.logout_rounded, size: 18, color: AppTheme.textSecondary),
                   onPressed: () {
                     HapticFeedback.lightImpact();
@@ -1913,21 +1932,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Row(
-                  children: [
-                    Icon(Icons.savings_rounded, size: 20, color: AppTheme.familyPurple),
-                    SizedBox(width: 6),
-                    Text(
-                      'Celengan Bersama',
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
-                        color: AppTheme.textPrimary,
-                        letterSpacing: -0.3,
+                const Expanded(
+                  child: Row(
+                    children: [
+                      Icon(Icons.savings_rounded, size: 20, color: AppTheme.familyPurple),
+                      SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          'Celengan Bersama',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 16.5,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.textPrimary,
+                            letterSpacing: -0.3,
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
+                const SizedBox(width: 8),
                 GestureDetector(
                   onTap: _showCreateFamilySavingModal,
                   child: Container(
@@ -2132,26 +2158,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Catatan Keuangan Anggota',
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
-                        color: AppTheme.textPrimary,
-                        letterSpacing: -0.3,
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Catatan Keuangan Anggota',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 16.5,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.textPrimary,
+                          letterSpacing: -0.3,
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 2),
-                    Text(
-                      'Ketuk anggota untuk inspeksi catatan & saldo akhirnya',
-                      style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
-                    ),
-                  ],
+                      SizedBox(height: 2),
+                      Text(
+                        'Ketuk anggota untuk inspeksi catatan & saldo akhirnya',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                      ),
+                    ],
+                  ),
                 ),
-                if (_selectedMemberFilterId != null)
+                if (_selectedMemberFilterId != null) ...[
+                  const SizedBox(width: 8),
                   GestureDetector(
                     onTap: () => setState(() => _selectedMemberFilterId = null),
                     child: Container(
@@ -2298,33 +2331,41 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    const Text(
-                      'Aktivitas Keuangan Keluarga',
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
-                        color: AppTheme.textPrimary,
-                        letterSpacing: -0.3,
+                Expanded(
+                  child: Row(
+                    children: [
+                      const Flexible(
+                        child: Text(
+                          'Aktivitas Keuangan Keluarga',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 16.5,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.textPrimary,
+                            letterSpacing: -0.3,
+                          ),
+                        ),
                       ),
-                    ),
-                    if (_selectedMemberFilterId != null) ...[
-                      const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(color: const Color(0xFFEDE9FE), borderRadius: BorderRadius.circular(6)),
-                        child: const Text('Filter Aktif', style: TextStyle(fontSize: 10, color: AppTheme.familyPurple, fontWeight: FontWeight.bold)),
-                      ),
+                      if (_selectedMemberFilterId != null) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(color: const Color(0xFFEDE9FE), borderRadius: BorderRadius.circular(6)),
+                          child: const Text('Filter Aktif', style: TextStyle(fontSize: 10, color: AppTheme.familyPurple, fontWeight: FontWeight.bold)),
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
+                const SizedBox(width: 8),
                 GestureDetector(
                   onTap: () {
                     HapticFeedback.lightImpact();
                     setState(() => _currentTab = 1);
                   },
                   child: const Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Text('Riwayat', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.familyPurple)),
                       SizedBox(width: 2),
@@ -2836,32 +2877,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final isSelected = _currentTab == index;
     final activeColor = isFamilyView ? AppTheme.familyPurple : AppTheme.iosBlue;
 
-    return GestureDetector(
-      onTap: () {
-        HapticFeedback.lightImpact();
-        onTap();
-      },
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: 23,
-              color: isSelected ? activeColor : AppTheme.textSecondary,
-            ),
-            const SizedBox(height: 3),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          HapticFeedback.lightImpact();
+          onTap();
+        },
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: 21,
                 color: isSelected ? activeColor : AppTheme.textSecondary,
               ),
-            ),
-          ],
+              const SizedBox(height: 3),
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 10.5,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                  color: isSelected ? activeColor : AppTheme.textSecondary,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

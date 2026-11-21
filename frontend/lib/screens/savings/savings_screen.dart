@@ -760,9 +760,14 @@ class SavingsScreen extends StatelessWidget {
                                         ),
                                       ),
                                       const SizedBox(width: 5),
-                                      Text(
-                                        '${c.userName}: ${_formatRupiah(c.totalContributed)} ($share%)',
-                                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
+                                      ConstrainedBox(
+                                        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.65),
+                                        child: Text(
+                                          '${c.userName}: ${_formatRupiah(c.totalContributed)} ($share%)',
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
+                                        ),
                                       ),
                                     ],
                                   ),

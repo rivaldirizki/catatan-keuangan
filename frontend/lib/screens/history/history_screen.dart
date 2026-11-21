@@ -530,9 +530,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           children: [
                             const Icon(Icons.event_available_rounded, size: 15, color: AppTheme.iosBlue),
                             const SizedBox(width: 6),
-                            Text(
-                              '${activeRange.start.day} ${_monthName(activeRange.start.month)} ${activeRange.start.year} - ${activeRange.end.day} ${_monthName(activeRange.end.month)} ${activeRange.end.year}',
-                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.iosBlue),
+                            Flexible(
+                              child: Text(
+                                '${activeRange.start.day} ${_monthName(activeRange.start.month)} ${activeRange.start.year} - ${activeRange.end.day} ${_monthName(activeRange.end.month)} ${activeRange.end.year}',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.iosBlue),
+                              ),
                             ),
                             const SizedBox(width: 8),
                             GestureDetector(

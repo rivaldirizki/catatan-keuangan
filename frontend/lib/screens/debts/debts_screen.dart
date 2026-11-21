@@ -64,19 +64,26 @@ class _DebtsScreenState extends State<DebtsScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            debt.type == 'payable' ? 'Bayar / Cicil Hutang' : 'Terima Pembayaran Piutang',
-                            style: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
-                          ),
-                          Text(
-                            'Pihak: ${debt.personName}',
-                            style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary),
-                          ),
-                        ],
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              debt.type == 'payable' ? 'Bayar / Cicil Hutang' : 'Terima Pembayaran Piutang',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                            ),
+                            Text(
+                              'Pihak: ${debt.personName}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+                            ),
+                          ],
+                        ),
                       ),
+                      const SizedBox(width: 8),
                       GestureDetector(
                         onTap: () => Navigator.pop(modalCtx),
                         child: Container(
@@ -606,22 +613,29 @@ class _DebtsScreenState extends State<DebtsScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text('Sisa Tagihan', style: TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
-                                const SizedBox(height: 2),
-                                Text(
-                                  _formatRupiah(debt.remainingAmount),
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700,
-                                    color: debt.remainingAmount == 0 ? AppTheme.incomeGreen : AppTheme.textPrimary,
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text('Sisa Tagihan', style: TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
+                                  const SizedBox(height: 2),
+                                  FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      _formatRupiah(debt.remainingAmount),
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w700,
+                                        color: debt.remainingAmount == 0 ? AppTheme.incomeGreen : AppTheme.textPrimary,
+                                      ),
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                            if (debt.remainingAmount > 0)
+                            if (debt.remainingAmount > 0) ...[
+                              const SizedBox(width: 8),
                               GestureDetector(
                                 onTap: () {
                                   HapticFeedback.lightImpact();

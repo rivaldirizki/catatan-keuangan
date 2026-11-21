@@ -61,6 +61,18 @@ export async function runMigration() {
   console.log('[Migration] Menjalankan skema tabel...');
   await connection.query(sql);
 
+  console.log('[Migration] Memastikan kolom dan relasi termutakhir ada...');
+  try {
+    await connection.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS company_id INT NULL AFTER family_id;');
+    await connection.query('ALTER TABLE wallets ADD COLUMN IF NOT EXISTS company_id INT NULL AFTER family_id;');
+    await connection.query("ALTER TABLE wallets MODIFY COLUMN scope ENUM('personal', 'family', 'company') DEFAULT 'personal';");
+    await connection.query('ALTER TABLE transactions ADD COLUMN IF NOT EXISTS company_id INT NULL AFTER family_id;');
+    await connection.query('ALTER TABLE transactions ADD COLUMN IF NOT EXISTS project_id INT NULL AFTER company_id;');
+    await connection.query("ALTER TABLE transactions MODIFY COLUMN scope ENUM('personal', 'family', 'company') DEFAULT 'personal';");
+  } catch (colErr) {
+    console.warn('[Migration Warning] Penyesuaian kolom:', colErr.message);
+  }
+
   // Seed Admin user
   const adminEmail = 'admin@gmail.com';
   const adminPass = 'alvian14';

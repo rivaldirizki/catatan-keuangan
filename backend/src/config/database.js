@@ -33,6 +33,13 @@ export async function getPool() {
         connectTimeout: isRunningTest ? 1000 : 5000
       });
       await initConn.query(`CREATE DATABASE IF NOT EXISTS \`${DB_CONFIG.database}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`);
+      await initConn.query(`USE \`${DB_CONFIG.database}\`;`);
+      try {
+        await initConn.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS company_id INT NULL AFTER family_id;`);
+        await initConn.query(`ALTER TABLE wallets ADD COLUMN IF NOT EXISTS company_id INT NULL AFTER family_id;`);
+        await initConn.query(`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS company_id INT NULL AFTER family_id;`);
+        await initConn.query(`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS project_id INT NULL AFTER company_id;`);
+      } catch (_) {}
       await initConn.end();
 
       pool = mysql.createPool(DB_CONFIG);

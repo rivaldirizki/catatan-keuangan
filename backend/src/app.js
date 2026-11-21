@@ -22,6 +22,40 @@ export const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Root endpoint for cPanel Node.js Selector availability check & landing
+app.get('/', (req, res) => {
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.status(200).send(`<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Uangku Backend API • LiNC</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #F8FAFC; color: #1E293B; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+    .card { background: white; border: 1px solid #E2E8F0; border-radius: 20px; padding: 36px; max-width: 440px; text-align: center; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); }
+    h1 { font-size: 22px; font-weight: 800; color: #0F172A; margin: 0 0 8px 0; }
+    p { color: #64748B; font-size: 14px; margin: 0 0 20px 0; }
+    .badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: #ECFDF5; color: #059669; border-radius: 99px; font-size: 12px; font-weight: 600; margin-bottom: 20px; }
+    .dot { width: 8px; height: 8px; background: #10B981; border-radius: 50%; }
+    .btn { display: inline-block; background: #4F46E5; color: white; text-decoration: none; padding: 10px 20px; border-radius: 12px; font-weight: 600; font-size: 13px; margin: 4px; }
+    .footer { font-size: 11px; color: #94A3B8; margin-top: 24px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="badge"><span class="dot"></span> Sistem Aktif (Online)</div>
+    <h1>Uangku Backend REST API</h1>
+    <p>Server backend operasional untuk platform finansial pribadi, keluarga, dan perusahaan.</p>
+    <div>
+      <a href="/admin" class="btn">Buka Admin Console</a>
+      <a href="/health" class="btn" style="background: #F1F5F9; color: #334155;">Cek Health API</a>
+    </div>
+    <div class="footer">Sistem by Linc 2026</div>
+  </div>
+</body>
+</html>`);
+});
+
 // Public health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', service: 'finance-backend', time: new Date() });

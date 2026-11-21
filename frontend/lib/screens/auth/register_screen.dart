@@ -15,13 +15,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
 
   @override
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -29,8 +32,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final name = _nameController.text.trim();
     final email = _emailController.text.trim();
     final password = _passwordController.text;
+    final confirmPassword = _confirmPasswordController.text;
 
-    if (name.isEmpty || email.isEmpty || password.isEmpty) {
+    if (name.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Harap lengkapi semua kolom'),
@@ -44,6 +48,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Kata sandi minimal 6 karakter'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    if (password != confirmPassword) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Konfirmasi kata sandi tidak cocok. Harap periksa kembali.'),
+          backgroundColor: AppTheme.expenseRed,
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -229,8 +244,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         TextField(
                           controller: _passwordController,
                           obscureText: _obscurePassword,
-                          textInputAction: TextInputAction.done,
-                          onSubmitted: (_) => _submitRegister(),
+                          textInputAction: TextInputAction.next,
                           style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w500, color: AppTheme.textPrimary),
                           decoration: InputDecoration(
                             hintText: 'Kata Sandi (min. 6 karakter)',
@@ -243,6 +257,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 color: const Color(0xFF8E8E93),
                               ),
                               onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                            ),
+                            border: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                            filled: false,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                          ),
+                        ),
+                        const Divider(height: 1, indent: 48, endIndent: 0, color: AppTheme.iosDivider),
+                        // Confirm Password Field
+                        TextField(
+                          controller: _confirmPasswordController,
+                          obscureText: _obscureConfirmPassword,
+                          textInputAction: TextInputAction.done,
+                          onSubmitted: (_) => _submitRegister(),
+                          style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w500, color: AppTheme.textPrimary),
+                          decoration: InputDecoration(
+                            hintText: 'Ulangi Kata Sandi',
+                            hintStyle: const TextStyle(color: Color(0xFF8E8E93), fontSize: 14.5, fontWeight: FontWeight.w400),
+                            prefixIcon: const Icon(Icons.lock_reset_rounded, size: 19, color: Color(0xFF8E8E93)),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscureConfirmPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                                size: 18,
+                                color: const Color(0xFF8E8E93),
+                              ),
+                              onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
                             ),
                             border: InputBorder.none,
                             enabledBorder: InputBorder.none,

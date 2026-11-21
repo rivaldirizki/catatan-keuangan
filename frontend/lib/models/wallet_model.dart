@@ -26,6 +26,24 @@ class WalletModel {
     );
   }
 
+  WalletModel copyWith({
+    int? id,
+    int? userId,
+    int? familyId,
+    String? name,
+    int? balance,
+    String? scope,
+  }) {
+    return WalletModel(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      familyId: familyId ?? this.familyId,
+      name: name ?? this.name,
+      balance: balance ?? this.balance,
+      scope: scope ?? this.scope,
+    );
+  }
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,

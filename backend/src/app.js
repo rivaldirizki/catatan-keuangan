@@ -299,9 +299,10 @@ app.get('/api/v1/transactions/summary', authenticateJWT, async (req, res) => {
 app.post('/api/v1/transactions/income', authenticateJWT, async (req, res) => {
   try {
     const { wallet_id, category_id, amount, date, notes, isFamily } = req.body;
+    const idempotencyKey = req.body.idempotency_key || req.headers['x-idempotency-key'] || null;
     const user = await AuthService.getUserById(req.user.id);
-    const result = await TransactionService.recordIncome(user.id, wallet_id, category_id, amount, date || new Date().toISOString().split('T')[0], notes, isFamily, user.family_id);
-    res.status(201).json(result);
+    const result = await TransactionService.recordIncome(user.id, wallet_id, category_id, amount, date || new Date().toISOString().split('T')[0], notes, isFamily, user.family_id, idempotencyKey);
+    res.status(result.already_processed ? 200 : 201).json(result);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -310,9 +311,10 @@ app.post('/api/v1/transactions/income', authenticateJWT, async (req, res) => {
 app.post('/api/v1/transactions/expense', authenticateJWT, async (req, res) => {
   try {
     const { wallet_id, category_id, amount, date, notes, isFamily } = req.body;
+    const idempotencyKey = req.body.idempotency_key || req.headers['x-idempotency-key'] || null;
     const user = await AuthService.getUserById(req.user.id);
-    const result = await TransactionService.recordExpense(user.id, wallet_id, category_id, amount, date || new Date().toISOString().split('T')[0], notes, isFamily, user.family_id);
-    res.status(201).json(result);
+    const result = await TransactionService.recordExpense(user.id, wallet_id, category_id, amount, date || new Date().toISOString().split('T')[0], notes, isFamily, user.family_id, idempotencyKey);
+    res.status(result.already_processed ? 200 : 201).json(result);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -321,8 +323,9 @@ app.post('/api/v1/transactions/expense', authenticateJWT, async (req, res) => {
 app.post('/api/v1/transactions/transfer', authenticateJWT, async (req, res) => {
   try {
     const { from_wallet_id, to_wallet_id, amount, date, notes } = req.body;
-    const result = await TransactionService.transfer(req.user.id, from_wallet_id, to_wallet_id, amount, date || new Date().toISOString().split('T')[0], notes);
-    res.json(result);
+    const idempotencyKey = req.body.idempotency_key || req.headers['x-idempotency-key'] || null;
+    const result = await TransactionService.transfer(req.user.id, from_wallet_id, to_wallet_id, amount, date || new Date().toISOString().split('T')[0], notes, idempotencyKey);
+    res.status(result.already_processed ? 200 : 201).json(result);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -354,8 +357,9 @@ app.post('/api/v1/savings/goals', authenticateJWT, async (req, res) => {
 app.post('/api/v1/savings/deposit', authenticateJWT, async (req, res) => {
   try {
     const { wallet_id, saving_id, amount, date, notes } = req.body;
-    const result = await SavingService.deposit(req.user.id, wallet_id, saving_id, amount, date, notes);
-    res.json(result);
+    const idempotencyKey = req.body.idempotency_key || req.headers['x-idempotency-key'] || null;
+    const result = await SavingService.deposit(req.user.id, wallet_id, saving_id, amount, date, notes, idempotencyKey);
+    res.status(result.already_processed ? 200 : 201).json(result);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -396,6 +400,7 @@ app.get('/api/v1/debts/reminders', authenticateJWT, async (req, res) => {
 app.post('/api/v1/debts', authenticateJWT, async (req, res) => {
   try {
     const { type, person_name, amount, due_date, notes, scope, installments_count } = req.body;
+    const idempotencyKey = req.body.idempotency_key || req.headers['x-idempotency-key'] || null;
     const user = await AuthService.getUserById(req.user.id);
     const targetScope = scope || 'personal';
     const famId = targetScope === 'family' ? user.family_id : null;
@@ -411,9 +416,10 @@ app.post('/api/v1/debts', authenticateJWT, async (req, res) => {
       targetScope,
       famId,
       compId,
-      installments_count || 1
+      installments_count || 1,
+      idempotencyKey
     );
-    res.status(201).json(debt);
+    res.status(debt.already_processed ? 200 : 201).json(debt);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

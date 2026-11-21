@@ -16,11 +16,39 @@ function computeDueStatus(debt, today = new Date().toISOString().split('T')[0]) 
 }
 
 export const DebtService = {
-  async createDebt(userId, type, personName, amount, dueDate, notes = '', scope = 'personal', familyId = null, companyId = null, installmentsCount = 1) {
+  async createDebt(userId, type, personName, amount, dueDate, notes = '', scope = 'personal', familyId = null, companyId = null, installmentsCount = 1, idempotencyKey = null) {
     const numAmount = Number(amount);
     if (numAmount <= 0) throw new Error('Debt amount must be greater than 0');
     if (!['payable', 'receivable'].includes(type)) {
       throw new Error("Invalid debt type: must be 'payable' or 'receivable'");
+    }
+
+    if (idempotencyKey) {
+      const existing = await db.query(
+        'SELECT * FROM debts WHERE idempotency_key = ? LIMIT 1',
+        [idempotencyKey]
+      );
+      if (existing && existing.length > 0) {
+        const d = existing[0];
+        return {
+          id: d.id,
+          user_id: d.user_id,
+          family_id: d.family_id,
+          company_id: d.company_id,
+          type: d.type,
+          person_name: d.person_name,
+          total_amount: Number(d.total_amount),
+          remaining_amount: Number(d.remaining_amount),
+          installments_count: Number(d.installments_count || 1),
+          installment_amount: Math.round(Number(d.total_amount) / Math.max(1, Number(d.installments_count || 1))),
+          due_date: d.due_date,
+          status: d.status,
+          scope: d.scope,
+          notes: d.notes,
+          already_processed: true,
+          idempotency_key: idempotencyKey
+        };
+      }
     }
 
     const numInstallments = Math.max(1, Number(installmentsCount) || 1);
@@ -29,8 +57,8 @@ export const DebtService = {
     const compId = targetScope === 'company' ? companyId : null;
 
     const insertRes = await db.query(
-      'INSERT INTO debts (user_id, family_id, company_id, type, person_name, total_amount, remaining_amount, installments_count, due_date, status, scope, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [userId, famId, compId, type, personName.trim(), numAmount, numAmount, numInstallments, dueDate, 'unpaid', targetScope, notes || '']
+      'INSERT INTO debts (user_id, family_id, company_id, type, person_name, total_amount, remaining_amount, installments_count, due_date, status, scope, notes, idempotency_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [userId, famId, compId, type, personName.trim(), numAmount, numAmount, numInstallments, dueDate, 'unpaid', targetScope, notes || '', idempotencyKey]
     );
 
     return {

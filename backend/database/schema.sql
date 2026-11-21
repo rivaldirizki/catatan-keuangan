@@ -93,6 +93,7 @@ CREATE TABLE IF NOT EXISTS savings (
   target_date DATE NULL,
   scope ENUM('personal', 'family') DEFAULT 'personal',
   status ENUM('active', 'completed') DEFAULT 'active',
+  idempotency_key VARCHAR(64) NULL UNIQUE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   FOREIGN KEY (family_id) REFERENCES families(id) ON DELETE SET NULL
@@ -113,6 +114,7 @@ CREATE TABLE IF NOT EXISTS debts (
   status ENUM('unpaid', 'partially_paid', 'paid', 'overdue') DEFAULT 'unpaid',
   scope ENUM('personal', 'family', 'company') DEFAULT 'personal',
   notes TEXT NULL,
+  idempotency_key VARCHAR(64) NULL UNIQUE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   FOREIGN KEY (family_id) REFERENCES families(id) ON DELETE SET NULL,
@@ -132,6 +134,7 @@ CREATE TABLE IF NOT EXISTS transactions (
   amount BIGINT NOT NULL,
   transaction_date DATE NOT NULL,
   notes TEXT NULL,
+  idempotency_key VARCHAR(64) NULL UNIQUE,
   destination_wallet_id INT NULL,
   destination_saving_id INT NULL,
   debt_id INT NULL,

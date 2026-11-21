@@ -2,17 +2,39 @@ import { db } from '../config/database.js';
 import { WalletService } from './wallet.service.js';
 
 export const TransactionService = {
-  async recordIncome(userId, walletId, categoryId, amount, date, notes = '', isFamily = false, familyId = null) {
+  async recordIncome(userId, walletId, categoryId, amount, date, notes = '', isFamily = false, familyId = null, idempotencyKey = null) {
     const numAmount = Number(amount);
     if (numAmount <= 0) throw new Error('Amount must be greater than 0');
     const wallet = await WalletService.getWalletById(walletId);
     if (!wallet) throw new Error('Wallet not found');
 
+    if (idempotencyKey) {
+      const existing = await db.query(
+        'SELECT * FROM transactions WHERE idempotency_key = ? LIMIT 1',
+        [idempotencyKey]
+      );
+      if (existing && existing.length > 0) {
+        const tx = existing[0];
+        const curWallet = await WalletService.getWalletById(tx.wallet_id);
+        return {
+          id: tx.id,
+          user_id: tx.user_id,
+          wallet_id: tx.wallet_id,
+          type: tx.type,
+          amount: Number(tx.amount),
+          date: tx.transaction_date,
+          new_wallet_balance: curWallet ? Number(curWallet.balance) : 0,
+          already_processed: true,
+          idempotency_key: idempotencyKey
+        };
+      }
+    }
+
     return await db.transaction(async (trx) => {
       const scope = isFamily ? 'family' : 'personal';
       const insertRes = await trx.query(
-        'INSERT INTO transactions (user_id, family_id, wallet_id, category_id, type, amount, transaction_date, notes, destination_wallet_id, destination_saving_id, debt_id, scope) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [userId, familyId, walletId, categoryId, 'income', numAmount, date, notes, null, null, null, scope]
+        'INSERT INTO transactions (user_id, family_id, wallet_id, category_id, type, amount, transaction_date, notes, destination_wallet_id, destination_saving_id, debt_id, scope, idempotency_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [userId, familyId, walletId, categoryId, 'income', numAmount, date, notes, null, null, null, scope, idempotencyKey]
       );
 
       const newBalance = Number(wallet.balance) + numAmount;
@@ -25,22 +47,45 @@ export const TransactionService = {
         type: 'income',
         amount: numAmount,
         date,
-        new_wallet_balance: newBalance
+        new_wallet_balance: newBalance,
+        idempotency_key: idempotencyKey
       };
     });
   },
 
-  async recordExpense(userId, walletId, categoryId, amount, date, notes = '', isFamily = false, familyId = null) {
+  async recordExpense(userId, walletId, categoryId, amount, date, notes = '', isFamily = false, familyId = null, idempotencyKey = null) {
     const numAmount = Number(amount);
     if (numAmount <= 0) throw new Error('Amount must be greater than 0');
     const wallet = await WalletService.getWalletById(walletId);
     if (!wallet) throw new Error('Wallet not found');
 
+    if (idempotencyKey) {
+      const existing = await db.query(
+        'SELECT * FROM transactions WHERE idempotency_key = ? LIMIT 1',
+        [idempotencyKey]
+      );
+      if (existing && existing.length > 0) {
+        const tx = existing[0];
+        const curWallet = await WalletService.getWalletById(tx.wallet_id);
+        return {
+          id: tx.id,
+          user_id: tx.user_id,
+          wallet_id: tx.wallet_id,
+          type: tx.type,
+          amount: Number(tx.amount),
+          date: tx.transaction_date,
+          new_wallet_balance: curWallet ? Number(curWallet.balance) : 0,
+          already_processed: true,
+          idempotency_key: idempotencyKey
+        };
+      }
+    }
+
     return await db.transaction(async (trx) => {
       const scope = isFamily ? 'family' : 'personal';
       const insertRes = await trx.query(
-        'INSERT INTO transactions (user_id, family_id, wallet_id, category_id, type, amount, transaction_date, notes, destination_wallet_id, destination_saving_id, debt_id, scope) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [userId, familyId, walletId, categoryId, 'expense', numAmount, date, notes, null, null, null, scope]
+        'INSERT INTO transactions (user_id, family_id, wallet_id, category_id, type, amount, transaction_date, notes, destination_wallet_id, destination_saving_id, debt_id, scope, idempotency_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [userId, familyId, walletId, categoryId, 'expense', numAmount, date, notes, null, null, null, scope, idempotencyKey]
       );
 
       const newBalance = Number(wallet.balance) - numAmount;
@@ -53,12 +98,13 @@ export const TransactionService = {
         type: 'expense',
         amount: numAmount,
         date,
-        new_wallet_balance: newBalance
+        new_wallet_balance: newBalance,
+        idempotency_key: idempotencyKey
       };
     });
   },
 
-  async transfer(userId, fromWalletId, toWalletId, amount, date, notes = '') {
+  async transfer(userId, fromWalletId, toWalletId, amount, date, notes = '', idempotencyKey = null) {
     const numAmount = Number(amount);
     if (numAmount <= 0) throw new Error('Amount must be greater than 0');
     if (Number(fromWalletId) === Number(toWalletId)) throw new Error('Source and destination wallets must be different');
@@ -71,10 +117,29 @@ export const TransactionService = {
       throw new Error('Insufficient balance in source wallet');
     }
 
+    if (idempotencyKey) {
+      const existing = await db.query(
+        'SELECT * FROM transactions WHERE idempotency_key = ? LIMIT 1',
+        [idempotencyKey]
+      );
+      if (existing && existing.length > 0) {
+        const curFrom = await WalletService.getWalletById(fromWalletId);
+        const curTo = await WalletService.getWalletById(toWalletId);
+        return {
+          id: existing[0].id,
+          success: true,
+          from_wallet_balance: curFrom ? Number(curFrom.balance) : 0,
+          to_wallet_balance: curTo ? Number(curTo.balance) : 0,
+          already_processed: true,
+          idempotency_key: idempotencyKey
+        };
+      }
+    }
+
     return await db.transaction(async (trx) => {
-      await trx.query(
-        'INSERT INTO transactions (user_id, family_id, wallet_id, category_id, type, amount, transaction_date, notes, destination_wallet_id, destination_saving_id, debt_id, scope) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [userId, null, fromWalletId, null, 'transfer', numAmount, date, notes, toWalletId, null, null, 'personal']
+      const insertRes = await trx.query(
+        'INSERT INTO transactions (user_id, family_id, wallet_id, category_id, type, amount, transaction_date, notes, destination_wallet_id, destination_saving_id, debt_id, scope, idempotency_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [userId, null, fromWalletId, null, 'transfer', numAmount, date, notes, toWalletId, null, null, 'personal', idempotencyKey]
       );
 
       const newFromBal = Number(fromWallet.balance) - numAmount;
@@ -84,9 +149,11 @@ export const TransactionService = {
       await trx.query('UPDATE wallets SET balance = ? WHERE id = ?', [newToBal, toWalletId]);
 
       return {
+        id: insertRes.insertId,
         success: true,
         from_wallet_balance: newFromBal,
-        to_wallet_balance: newToBal
+        to_wallet_balance: newToBal,
+        idempotency_key: idempotencyKey
       };
     });
   },

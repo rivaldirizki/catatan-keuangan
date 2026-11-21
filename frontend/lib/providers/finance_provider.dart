@@ -7,6 +7,8 @@ import '../models/saving_model.dart';
 import '../models/debt_model.dart';
 import '../models/family_model.dart';
 import '../models/project_model.dart';
+import '../models/offline_sync_item.dart';
+import '../services/offline_sync_service.dart';
 
 enum AppViewMode { personal, family, company }
 
@@ -16,6 +18,11 @@ class FinanceProvider extends ChangeNotifier {
   AppViewMode _currentMode = AppViewMode.personal;
   bool _isLoading = false;
   String? _errorMessage;
+
+  bool _isOffline = false;
+  bool _isSyncing = false;
+  int _pendingSyncCount = 0;
+  String _currentUserId = 'default';
 
   List<WalletModel> _wallets = [];
   List<TransactionModel> _transactions = [];
@@ -39,6 +46,33 @@ class FinanceProvider extends ChangeNotifier {
   bool get isPersonalView => _currentMode == AppViewMode.personal;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
+
+  bool get isOffline => _isOffline;
+  bool get isSyncing => _isSyncing;
+  int get pendingSyncCount => _pendingSyncCount;
+  String get currentUserId => _currentUserId;
+
+  void setCurrentUserId(String userId) {
+    _currentUserId = userId;
+    checkPendingSync();
+  }
+
+  Future<void> checkPendingSync() async {
+    final queue = await OfflineSyncService.getQueue(_currentUserId);
+    _pendingSyncCount = queue.length;
+    notifyListeners();
+  }
+
+  bool _isNetworkError(dynamic e) {
+    final str = e.toString().toLowerCase();
+    return str.contains('socketexception') ||
+        str.contains('clientexception') ||
+        str.contains('connection refused') ||
+        str.contains('failed host lookup') ||
+        str.contains('network') ||
+        str.contains('xmlhttprequest error') ||
+        str.contains('err_connection_refused');
+  }
 
   List<WalletModel> get wallets => _wallets;
   List<TransactionModel> get transactions => _transactions;
@@ -112,8 +146,9 @@ class FinanceProvider extends ChangeNotifier {
       }
 
       // 5b. Debt Reminders (due/overdue)
+      dynamic remindersData;
       try {
-        final remindersData = await apiClient.get(ApiConstants.debtReminders, queryParams: queryParams);
+        remindersData = await apiClient.get(ApiConstants.debtReminders, queryParams: queryParams);
         if (remindersData is List) {
           _debtReminders = remindersData.map((r) => DebtReminderModel.fromJson(r as Map<String, dynamic>)).toList();
         } else {
@@ -155,12 +190,61 @@ class FinanceProvider extends ChangeNotifier {
         _projects = [];
       }
 
+      // Save complete snapshot to local storage
+      await OfflineSyncService.cacheDashboard(_currentUserId, {
+        'wallets': walletsData,
+        'summary': summaryData,
+        'transactions': txData,
+        'savings': savingsData,
+        'debts': debtsData,
+        'debtReminders': remindersData,
+      });
+
+      _isOffline = false;
+      await checkPendingSync();
       _isLoading = false;
       notifyListeners();
+
+      // Trigger automatic background sync of any pending queue
+      syncPendingQueue();
     } catch (e) {
+      final cached = await OfflineSyncService.getCachedDashboard(_currentUserId);
+      if (cached != null) {
+        _applyCachedData(cached);
+        _isOffline = true;
+        _errorMessage = null;
+      } else {
+        _isOffline = true;
+        _errorMessage = e.toString().replaceAll('Exception: ', '');
+      }
       _isLoading = false;
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      await checkPendingSync();
       notifyListeners();
+    }
+  }
+
+  void _applyCachedData(Map<String, dynamic> cached) {
+    if (cached['wallets'] is List) {
+      _wallets = (cached['wallets'] as List).map((w) => WalletModel.fromJson(w as Map<String, dynamic>)).toList();
+    }
+    if (cached['summary'] is Map<String, dynamic>) {
+      final summaryData = cached['summary'] as Map<String, dynamic>;
+      _totalBalance = int.tryParse(summaryData['total_balance'].toString()) ?? 0;
+      _totalIncome = int.tryParse(summaryData['total_income'].toString()) ?? 0;
+      _totalExpense = int.tryParse(summaryData['total_expense'].toString()) ?? 0;
+      _netCashflow = int.tryParse(summaryData['net_cashflow'].toString()) ?? 0;
+    }
+    if (cached['transactions'] is List) {
+      _transactions = (cached['transactions'] as List).map((t) => TransactionModel.fromJson(t as Map<String, dynamic>)).toList();
+    }
+    if (cached['savings'] is List) {
+      _savings = (cached['savings'] as List).map((s) => SavingModel.fromJson(s as Map<String, dynamic>)).toList();
+    }
+    if (cached['debts'] is List) {
+      _debts = (cached['debts'] as List).map((d) => DebtModel.fromJson(d as Map<String, dynamic>)).toList();
+    }
+    if (cached['debtReminders'] is List) {
+      _debtReminders = (cached['debtReminders'] as List).map((r) => DebtReminderModel.fromJson(r as Map<String, dynamic>)).toList();
     }
   }
 
@@ -258,56 +342,184 @@ class FinanceProvider extends ChangeNotifier {
   }
 
   Future<bool> addIncome({required int walletId, required int amount, required String date, String notes = '', bool isFamily = false}) async {
-    try {
-      await apiClient.post(ApiConstants.transactionIncome, body: {
-        'wallet_id': walletId,
-        'amount': amount,
-        'date': date,
-        'notes': notes,
-        'isFamily': isFamily,
-      });
-      await fetchDashboard();
-      return true;
-    } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
-      notifyListeners();
-      return false;
+    final idempotencyKey = OfflineSyncService.generateIdempotencyKey();
+    final body = {
+      'wallet_id': walletId,
+      'amount': amount,
+      'date': date,
+      'notes': notes,
+      'isFamily': isFamily,
+      'idempotency_key': idempotencyKey,
+    };
+
+    if (!_isOffline) {
+      try {
+        await apiClient.post(ApiConstants.transactionIncome, body: body);
+        await fetchDashboard();
+        return true;
+      } catch (e) {
+        if (!_isNetworkError(e)) {
+          _errorMessage = e.toString().replaceAll('Exception: ', '');
+          notifyListeners();
+          return false;
+        }
+      }
     }
+
+    // Offline optimistic handling
+    final item = OfflineSyncItem(
+      id: 'tx_${DateTime.now().millisecondsSinceEpoch}',
+      endpoint: ApiConstants.transactionIncome,
+      method: 'POST',
+      body: body,
+      idempotencyKey: idempotencyKey,
+      timestamp: DateTime.now(),
+      description: 'Pemasukan Rp $amount',
+    );
+    await OfflineSyncService.enqueue(_currentUserId, item);
+
+    // Optimistic UI updates
+    _wallets = _wallets.map((w) => w.id == walletId ? w.copyWith(balance: w.balance + amount) : w).toList();
+    _totalBalance += amount;
+    _totalIncome += amount;
+    _netCashflow = _totalIncome - _totalExpense;
+
+    final optTx = TransactionModel(
+      id: DateTime.now().millisecondsSinceEpoch,
+      userId: int.tryParse(_currentUserId) ?? 1,
+      familyId: isFamily ? _currentFamily?.id : null,
+      walletId: walletId,
+      type: 'income',
+      amount: amount,
+      transactionDate: date,
+      notes: notes.isNotEmpty ? '$notes (Offline)' : '(Offline)',
+      scope: isFamily ? 'family' : 'personal',
+    );
+    _transactions = [optTx, ..._transactions];
+
+    _isOffline = true;
+    await checkPendingSync();
+    notifyListeners();
+    return true;
   }
 
   Future<bool> addExpense({required int walletId, required int amount, required String date, String notes = '', bool isFamily = false}) async {
-    try {
-      await apiClient.post(ApiConstants.transactionExpense, body: {
-        'wallet_id': walletId,
-        'amount': amount,
-        'date': date,
-        'notes': notes,
-        'isFamily': isFamily,
-      });
-      await fetchDashboard();
-      return true;
-    } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
-      notifyListeners();
-      return false;
+    final idempotencyKey = OfflineSyncService.generateIdempotencyKey();
+    final body = {
+      'wallet_id': walletId,
+      'amount': amount,
+      'date': date,
+      'notes': notes,
+      'isFamily': isFamily,
+      'idempotency_key': idempotencyKey,
+    };
+
+    if (!_isOffline) {
+      try {
+        await apiClient.post(ApiConstants.transactionExpense, body: body);
+        await fetchDashboard();
+        return true;
+      } catch (e) {
+        if (!_isNetworkError(e)) {
+          _errorMessage = e.toString().replaceAll('Exception: ', '');
+          notifyListeners();
+          return false;
+        }
+      }
     }
+
+    // Offline optimistic handling
+    final item = OfflineSyncItem(
+      id: 'tx_${DateTime.now().millisecondsSinceEpoch}',
+      endpoint: ApiConstants.transactionExpense,
+      method: 'POST',
+      body: body,
+      idempotencyKey: idempotencyKey,
+      timestamp: DateTime.now(),
+      description: 'Pengeluaran Rp $amount',
+    );
+    await OfflineSyncService.enqueue(_currentUserId, item);
+
+    // Optimistic UI updates
+    _wallets = _wallets.map((w) => w.id == walletId ? w.copyWith(balance: w.balance - amount) : w).toList();
+    _totalBalance -= amount;
+    _totalExpense += amount;
+    _netCashflow = _totalIncome - _totalExpense;
+
+    final optTx = TransactionModel(
+      id: DateTime.now().millisecondsSinceEpoch,
+      userId: int.tryParse(_currentUserId) ?? 1,
+      familyId: isFamily ? _currentFamily?.id : null,
+      walletId: walletId,
+      type: 'expense',
+      amount: amount,
+      transactionDate: date,
+      notes: notes.isNotEmpty ? '$notes (Offline)' : '(Offline)',
+      scope: isFamily ? 'family' : 'personal',
+    );
+    _transactions = [optTx, ..._transactions];
+
+    _isOffline = true;
+    await checkPendingSync();
+    notifyListeners();
+    return true;
   }
 
   Future<bool> depositToSaving({required int walletId, required int savingId, required int amount, String notes = ''}) async {
-    try {
-      await apiClient.post(ApiConstants.savingsDeposit, body: {
-        'wallet_id': walletId,
-        'saving_id': savingId,
-        'amount': amount,
-        'notes': notes,
-      });
-      await fetchDashboard();
-      return true;
-    } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
-      notifyListeners();
-      return false;
+    final idempotencyKey = OfflineSyncService.generateIdempotencyKey();
+    final body = {
+      'wallet_id': walletId,
+      'saving_id': savingId,
+      'amount': amount,
+      'notes': notes,
+      'idempotency_key': idempotencyKey,
+    };
+
+    if (!_isOffline) {
+      try {
+        await apiClient.post(ApiConstants.savingsDeposit, body: body);
+        await fetchDashboard();
+        return true;
+      } catch (e) {
+        if (!_isNetworkError(e)) {
+          _errorMessage = e.toString().replaceAll('Exception: ', '');
+          notifyListeners();
+          return false;
+        }
+      }
     }
+
+    // Offline optimistic handling
+    final item = OfflineSyncItem(
+      id: 'sav_${DateTime.now().millisecondsSinceEpoch}',
+      endpoint: ApiConstants.savingsDeposit,
+      method: 'POST',
+      body: body,
+      idempotencyKey: idempotencyKey,
+      timestamp: DateTime.now(),
+      description: 'Nabung Rp $amount',
+    );
+    await OfflineSyncService.enqueue(_currentUserId, item);
+
+    _wallets = _wallets.map((w) => w.id == walletId ? w.copyWith(balance: w.balance - amount) : w).toList();
+    _savings = _savings.map((s) => s.id == savingId ? SavingModel(
+      id: s.id,
+      userId: s.userId,
+      familyId: s.familyId,
+      goalName: s.goalName,
+      targetAmount: s.targetAmount,
+      currentAmount: s.currentAmount + amount,
+      targetDate: s.targetDate,
+      scope: s.scope,
+      status: (s.currentAmount + amount) >= s.targetAmount ? 'completed' : 'active',
+      progressPercentage: s.targetAmount > 0 ? (((s.currentAmount + amount) / s.targetAmount) * 100).round() : 0,
+      contributors: s.contributors,
+    ) : s).toList();
+
+    _isOffline = true;
+    await checkPendingSync();
+    notifyListeners();
+    return true;
   }
 
   Future<bool> createSavingGoal({
@@ -341,23 +553,113 @@ class FinanceProvider extends ChangeNotifier {
     String scope = 'personal',
     int installmentsCount = 1,
   }) async {
-    try {
-      await apiClient.post(ApiConstants.debts, body: {
-        'type': type,
-        'person_name': personName,
-        'amount': amount,
-        'due_date': dueDate,
-        'notes': notes,
-        'scope': scope,
-        'installments_count': installmentsCount,
-      });
-      await fetchDashboard();
-      return true;
-    } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
-      notifyListeners();
-      return false;
+    final idempotencyKey = OfflineSyncService.generateIdempotencyKey();
+    final body = {
+      'type': type,
+      'person_name': personName,
+      'amount': amount,
+      'due_date': dueDate,
+      'notes': notes,
+      'scope': scope,
+      'installments_count': installmentsCount,
+      'idempotency_key': idempotencyKey,
+    };
+
+    if (!_isOffline) {
+      try {
+        await apiClient.post(ApiConstants.debts, body: body);
+        await fetchDashboard();
+        return true;
+      } catch (e) {
+        if (!_isNetworkError(e)) {
+          _errorMessage = e.toString().replaceAll('Exception: ', '');
+          notifyListeners();
+          return false;
+        }
+      }
     }
+
+    // Offline optimistic handling
+    final item = OfflineSyncItem(
+      id: 'debt_${DateTime.now().millisecondsSinceEpoch}',
+      endpoint: ApiConstants.debts,
+      method: 'POST',
+      body: body,
+      idempotencyKey: idempotencyKey,
+      timestamp: DateTime.now(),
+      description: 'Hutang/Piutang $personName Rp $amount',
+    );
+    await OfflineSyncService.enqueue(_currentUserId, item);
+
+    final optDebt = DebtModel(
+      id: DateTime.now().millisecondsSinceEpoch,
+      userId: int.tryParse(_currentUserId) ?? 1,
+      type: type,
+      personName: personName,
+      totalAmount: amount,
+      remainingAmount: amount,
+      installmentsCount: installmentsCount,
+      dueDate: dueDate,
+      status: 'unpaid',
+      computedStatus: 'unpaid',
+      scope: scope,
+      notes: notes.isNotEmpty ? '$notes (Offline)' : '(Offline)',
+    );
+    _debts = [optDebt, ..._debts];
+
+    _isOffline = true;
+    await checkPendingSync();
+    notifyListeners();
+    return true;
+  }
+
+  Future<int> syncPendingQueue() async {
+    if (_isSyncing) return 0;
+    _isSyncing = true;
+    notifyListeners();
+
+    int syncedCount = 0;
+    try {
+      final queue = await OfflineSyncService.getQueue(_currentUserId);
+      if (queue.isEmpty) {
+        _pendingSyncCount = 0;
+        _isSyncing = false;
+        notifyListeners();
+        return 0;
+      }
+
+      for (final item in queue) {
+        try {
+          if (item.method == 'POST') {
+            await apiClient.post(item.endpoint, body: item.body);
+          } else if (item.method == 'PATCH') {
+            await apiClient.patch(item.endpoint, body: item.body);
+          }
+          await OfflineSyncService.remove(_currentUserId, item.id);
+          syncedCount++;
+        } catch (itemErr) {
+          if (_isNetworkError(itemErr)) {
+            // Still offline, halt replay
+            break;
+          } else {
+            // Already processed or invalid, remove to prevent queue blockage
+            await OfflineSyncService.remove(_currentUserId, item.id);
+            syncedCount++;
+          }
+        }
+      }
+
+      final remaining = await OfflineSyncService.getQueue(_currentUserId);
+      _pendingSyncCount = remaining.length;
+      if (syncedCount > 0) {
+        _isOffline = false;
+        await fetchDashboard();
+      }
+    } catch (_) {}
+
+    _isSyncing = false;
+    notifyListeners();
+    return syncedCount;
   }
 
   Future<bool> payDebt({required int debtId, required int walletId, required int amount, String notes = ''}) async {

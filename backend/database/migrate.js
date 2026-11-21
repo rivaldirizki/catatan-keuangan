@@ -72,6 +72,9 @@ export async function runMigration() {
     await connection.query('ALTER TABLE debts ADD COLUMN IF NOT EXISTS company_id INT NULL AFTER family_id;');
     await connection.query('ALTER TABLE debts ADD COLUMN IF NOT EXISTS installments_count INT NOT NULL DEFAULT 1 AFTER remaining_amount;');
     await connection.query("ALTER TABLE debts MODIFY COLUMN scope ENUM('personal', 'family', 'company') DEFAULT 'personal';");
+    await connection.query('ALTER TABLE transactions ADD COLUMN IF NOT EXISTS idempotency_key VARCHAR(64) NULL UNIQUE AFTER notes;');
+    await connection.query('ALTER TABLE debts ADD COLUMN IF NOT EXISTS idempotency_key VARCHAR(64) NULL UNIQUE AFTER notes;');
+    await connection.query('ALTER TABLE savings ADD COLUMN IF NOT EXISTS idempotency_key VARCHAR(64) NULL UNIQUE AFTER status;');
   } catch (colErr) {
     console.warn('[Migration Warning] Penyesuaian kolom:', colErr.message);
   }

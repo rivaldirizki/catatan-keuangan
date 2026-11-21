@@ -44,8 +44,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<FinanceProvider>().fetchDashboard();
       final auth = context.read<AuthProvider>();
+      final finance = context.read<FinanceProvider>();
+      if (auth.currentUser != null) {
+        finance.setCurrentUserId(auth.currentUser!.id.toString());
+      }
+      finance.fetchDashboard();
       if (auth.currentUser?.companyId != null) {
         auth.getCurrentCompany();
       }
@@ -1148,6 +1152,69 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  Future<void> _showLogoutDialog(BuildContext context, AuthProvider auth) async {
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+        title: const Row(
+          children: [
+            Icon(Icons.logout_rounded, color: AppTheme.expenseRed, size: 22),
+            SizedBox(width: 8),
+            Text(
+              'Konfirmasi Keluar',
+              style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+            ),
+          ],
+        ),
+        content: const Text(
+          'Apakah Anda yakin ingin keluar dari akun Uangku Anda?',
+          style: TextStyle(fontSize: 13.5, color: AppTheme.textSecondary, height: 1.4),
+        ),
+        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text(
+              'Tidak',
+              style: TextStyle(color: AppTheme.textSecondary, fontWeight: FontWeight.w600, fontSize: 13.5),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.expenseRed,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text(
+              'Ya, Keluar',
+              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldLogout == true && context.mounted) {
+      HapticFeedback.mediumImpact();
+      auth.logout();
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        (route) => false,
+      );
+    }
+  }
+
   void _showAdminPortalModal(BuildContext context) {
     final finance = context.read<FinanceProvider>();
 
@@ -1529,24 +1596,66 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   icon: const Icon(Icons.logout_rounded, size: 18, color: AppTheme.textSecondary),
                   onPressed: () {
                     HapticFeedback.lightImpact();
-                    auth.logout();
-                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+                    _showLogoutDialog(context, auth);
                   },
                 ),
                 const SizedBox(width: 8),
               ],
             )
           : null,
-      body: IndexedStack(
-        index: _currentTab,
+      body: Column(
         children: [
-          _buildSummaryView(finance, auth),
-          HistoryScreen(
-            isEmbedded: true,
-            onAddTransactionPressed: () => _showAddTransactionModal(isFamilyPreselected: finance.isFamilyView),
+          if (finance.isOffline)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFFBEB),
+                border: Border(bottom: BorderSide(color: Colors.amber.shade200, width: 0.8)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.cloud_off_rounded, size: 15, color: Color(0xFFD97706)),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      finance.pendingSyncCount > 0
+                          ? 'Mode Offline • ${finance.pendingSyncCount} transaksi tertunda (otomatis sinkron saat online)'
+                          : 'Mode Offline • Menampilkan data lokal tersimpan',
+                      style: const TextStyle(fontSize: 11.5, color: Color(0xFF92400E), fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                  if (finance.isSyncing)
+                    const SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFFD97706)),
+                    )
+                  else
+                    InkWell(
+                      onTap: () => finance.syncPendingQueue(),
+                      child: const Text(
+                        'Coba Sambung',
+                        style: TextStyle(fontSize: 11.5, color: Color(0xFFB45309), fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          Expanded(
+            child: IndexedStack(
+              index: _currentTab,
+              children: [
+                _buildSummaryView(finance, auth),
+                HistoryScreen(
+                  isEmbedded: true,
+                  onAddTransactionPressed: () => _showAddTransactionModal(isFamilyPreselected: finance.isFamilyView),
+                ),
+                const SavingsScreen(isEmbedded: true),
+                const DebtsScreen(isEmbedded: true),
+              ],
+            ),
           ),
-          const SavingsScreen(isEmbedded: true),
-          const DebtsScreen(isEmbedded: true),
         ],
       ),
       bottomNavigationBar: Container(

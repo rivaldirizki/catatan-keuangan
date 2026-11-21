@@ -90,9 +90,30 @@ export const SavingService = {
     return result;
   },
 
-  async deposit(userId, walletId, savingId, amount, date = new Date().toISOString().split('T')[0], notes = '') {
+  async deposit(userId, walletId, savingId, amount, date = new Date().toISOString().split('T')[0], notes = '', idempotencyKey = null) {
     const numAmount = Number(amount);
     if (numAmount <= 0) throw new Error('Deposit amount must be greater than 0');
+
+    if (idempotencyKey) {
+      const existing = await db.query(
+        'SELECT * FROM transactions WHERE idempotency_key = ? LIMIT 1',
+        [idempotencyKey]
+      );
+      if (existing && existing.length > 0) {
+        const goal = await this.getGoalById(savingId);
+        const wallet = await WalletService.getWalletById(walletId);
+        return {
+          success: true,
+          wallet_id: walletId,
+          new_wallet_balance: wallet ? Number(wallet.balance) : 0,
+          saving_id: savingId,
+          new_saving_amount: goal ? Number(goal.current_amount) : 0,
+          status: goal ? goal.status : 'active',
+          already_processed: true,
+          idempotency_key: idempotencyKey
+        };
+      }
+    }
 
     const wallet = await WalletService.getWalletById(walletId);
     if (!wallet) throw new Error('Wallet not found');
@@ -113,8 +134,8 @@ export const SavingService = {
       await trx.query('UPDATE savings SET current_amount = ?, status = ? WHERE id = ?', [newSavingAmount, newStatus, savingId]);
 
       await trx.query(
-        'INSERT INTO transactions (user_id, family_id, wallet_id, category_id, type, amount, transaction_date, notes, destination_wallet_id, destination_saving_id, debt_id, scope) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [userId, goal.family_id, walletId, null, 'saving_deposit', numAmount, date, notes || `Setor tabungan: ${goal.goal_name}`, null, savingId, null, goal.scope]
+        'INSERT INTO transactions (user_id, family_id, wallet_id, category_id, type, amount, transaction_date, notes, destination_wallet_id, destination_saving_id, debt_id, scope, idempotency_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [userId, goal.family_id, walletId, null, 'saving_deposit', numAmount, date, notes || `Setor tabungan: ${goal.goal_name}`, null, savingId, null, goal.scope, idempotencyKey]
       );
 
       return {
@@ -123,7 +144,8 @@ export const SavingService = {
         new_wallet_balance: newWalletBal,
         saving_id: savingId,
         new_saving_amount: newSavingAmount,
-        status: newStatus
+        status: newStatus,
+        idempotency_key: idempotencyKey
       };
     });
   },

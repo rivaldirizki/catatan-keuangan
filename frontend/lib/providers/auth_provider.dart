@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import '../core/network/api_client.dart';
 import '../core/constants/api_constants.dart';
 import '../models/user_model.dart';
+import '../models/company_model.dart';
 
 class AuthProvider extends ChangeNotifier {
   final ApiClient apiClient;
 
   UserModel? _currentUser;
+  CompanyModel? _currentCompany;
+  List<Map<String, dynamic>> _companyMembers = [];
   String? _token;
   bool _isLoading = false;
   String? _errorMessage;
@@ -14,6 +17,8 @@ class AuthProvider extends ChangeNotifier {
   AuthProvider({required this.apiClient});
 
   UserModel? get currentUser => _currentUser;
+  CompanyModel? get currentCompany => _currentCompany;
+  List<Map<String, dynamic>> get companyMembers => _companyMembers;
   String? get token => _token;
   bool get isAuthenticated => _token != null && _currentUser != null;
   bool get isLoading => _isLoading;
@@ -139,8 +144,73 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  Future<Map<String, dynamic>?> createCompany(String name) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final res = await apiClient.post(ApiConstants.companyCreate, body: {
+        'name': name.trim(),
+      });
+      await refreshUser();
+      await getCurrentCompany();
+      _isLoading = false;
+      notifyListeners();
+      return res as Map<String, dynamic>;
+    } catch (e) {
+      _isLoading = false;
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      notifyListeners();
+      return null;
+    }
+  }
+
+  Future<bool> joinCompany(String inviteCode) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await apiClient.post(ApiConstants.companyJoin, body: {
+        'invite_code': inviteCode.trim().toUpperCase(),
+      });
+      await refreshUser();
+      await getCurrentCompany();
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _isLoading = false;
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<Map<String, dynamic>?> getCurrentCompany() async {
+    try {
+      final res = await apiClient.get(ApiConstants.companyCurrent);
+      if (res is Map<String, dynamic>) {
+        if (res['company'] != null && res['company'] is Map<String, dynamic>) {
+          _currentCompany = CompanyModel.fromJson(res['company'] as Map<String, dynamic>);
+        }
+        if (res['members'] is List) {
+          _companyMembers = (res['members'] as List).cast<Map<String, dynamic>>();
+        }
+        notifyListeners();
+        return res;
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
   void logout() {
     _currentUser = null;
+    _currentCompany = null;
+    _companyMembers = [];
     _token = null;
     apiClient.setToken(null);
     notifyListeners();

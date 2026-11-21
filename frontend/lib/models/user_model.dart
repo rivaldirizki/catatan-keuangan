@@ -4,6 +4,7 @@ class UserModel {
   final String email;
   final String role;
   final int? familyId;
+  final int? companyId;
 
   const UserModel({
     required this.id,
@@ -11,6 +12,7 @@ class UserModel {
     required this.email,
     required this.role,
     this.familyId,
+    this.companyId,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -20,6 +22,7 @@ class UserModel {
       email: json['email'] as String,
       role: (json['role'] as String?) ?? 'user',
       familyId: json['family_id'] != null ? json['family_id'] as int : null,
+      companyId: json['company_id'] != null ? json['company_id'] as int : null,
     );
   }
 
@@ -30,6 +33,7 @@ class UserModel {
       'email': email,
       'role': role,
       'family_id': familyId,
+      'company_id': companyId,
     };
   }
 }

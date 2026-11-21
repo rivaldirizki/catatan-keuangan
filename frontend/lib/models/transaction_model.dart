@@ -11,6 +11,9 @@ class TransactionModel {
   final int? destinationWalletId;
   final int? destinationSavingId;
   final int? debtId;
+  final int? companyId;
+  final int? projectId;
+  final String? projectName;
   final String scope;
   final String? userName;
 
@@ -27,6 +30,9 @@ class TransactionModel {
     this.destinationWalletId,
     this.destinationSavingId,
     this.debtId,
+    this.companyId,
+    this.projectId,
+    this.projectName,
     required this.scope,
     this.userName,
   });
@@ -45,6 +51,9 @@ class TransactionModel {
       destinationWalletId: json['destination_wallet_id'] != null ? json['destination_wallet_id'] as int : null,
       destinationSavingId: json['destination_saving_id'] != null ? json['destination_saving_id'] as int : null,
       debtId: json['debt_id'] != null ? json['debt_id'] as int : null,
+      companyId: json['company_id'] != null ? json['company_id'] as int : null,
+      projectId: json['project_id'] != null ? json['project_id'] as int : null,
+      projectName: json['project_name'] as String?,
       scope: (json['scope'] as String?) ?? 'personal',
       userName: json['user_name'] as String?,
     );
@@ -64,6 +73,9 @@ class TransactionModel {
       'destination_wallet_id': destinationWalletId,
       'destination_saving_id': destinationSavingId,
       'debt_id': debtId,
+      'company_id': companyId,
+      'project_id': projectId,
+      'project_name': projectName,
       'scope': scope,
       'user_name': userName,
     };

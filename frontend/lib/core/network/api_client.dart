@@ -40,6 +40,16 @@ class ApiClient {
     return _handleResponse(response);
   }
 
+  Future<dynamic> patch(String endpoint, {Map<String, dynamic>? body}) async {
+    final uri = Uri.parse('$baseUrl$endpoint');
+    final response = await http.patch(
+      uri,
+      headers: _headers(),
+      body: body != null ? jsonEncode(body) : null,
+    );
+    return _handleResponse(response);
+  }
+
   dynamic _handleResponse(http.Response response) {
     final dynamic data = response.body.isNotEmpty ? jsonDecode(response.body) : null;
     if (response.statusCode >= 200 && response.statusCode < 300) {

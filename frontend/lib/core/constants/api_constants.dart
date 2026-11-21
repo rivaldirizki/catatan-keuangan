@@ -15,6 +15,18 @@ class ApiConstants {
   static const String familyCurrent = '/family/current';
   static String familyMemberSummary(int id) => '/family/members/$id/summary';
 
+  // Company
+  static const String companyCreate = '/company/create';
+  static const String companyJoin = '/company/join';
+  static const String companyMembers = '/company/members';
+  static const String companyCurrent = '/company/current';
+
+  // Projects
+  static const String projects = '/projects';
+  static String projectDetail(int id) => '/projects/$id';
+  static String projectTransaction(int id) => '/projects/$id/transaction';
+  static String projectStatus(int id) => '/projects/$id/status';
+
   // Wallets & Transactions
   static const String wallets = '/wallets';
   static const String transactions = '/transactions';

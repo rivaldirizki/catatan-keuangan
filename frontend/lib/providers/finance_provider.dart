@@ -6,11 +6,14 @@ import '../models/transaction_model.dart';
 import '../models/saving_model.dart';
 import '../models/debt_model.dart';
 import '../models/family_model.dart';
+import '../models/project_model.dart';
+
+enum AppViewMode { personal, family, company }
 
 class FinanceProvider extends ChangeNotifier {
   final ApiClient apiClient;
 
-  bool _isFamilyView = false;
+  AppViewMode _currentMode = AppViewMode.personal;
   bool _isLoading = false;
   String? _errorMessage;
 
@@ -20,6 +23,7 @@ class FinanceProvider extends ChangeNotifier {
   List<DebtModel> _debts = [];
   List<Map<String, dynamic>> _familyMembers = [];
   FamilyModel? _currentFamily;
+  List<ProjectModel> _projects = [];
 
   int _totalBalance = 0;
   int _totalIncome = 0;
@@ -28,7 +32,10 @@ class FinanceProvider extends ChangeNotifier {
 
   FinanceProvider({required this.apiClient});
 
-  bool get isFamilyView => _isFamilyView;
+  AppViewMode get currentMode => _currentMode;
+  bool get isFamilyView => _currentMode == AppViewMode.family;
+  bool get isCompanyView => _currentMode == AppViewMode.company;
+  bool get isPersonalView => _currentMode == AppViewMode.personal;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
@@ -38,14 +45,21 @@ class FinanceProvider extends ChangeNotifier {
   List<DebtModel> get debts => _debts;
   List<Map<String, dynamic>> get familyMembers => _familyMembers;
   FamilyModel? get currentFamily => _currentFamily;
+  List<ProjectModel> get projects => _projects;
 
   int get totalBalance => _totalBalance;
   int get totalIncome => _totalIncome;
   int get totalExpense => _totalExpense;
   int get netCashflow => _netCashflow;
 
+  void setViewMode(AppViewMode mode) {
+    _currentMode = mode;
+    notifyListeners();
+    fetchDashboard();
+  }
+
   void toggleFamilyView(bool value) {
-    _isFamilyView = value;
+    _currentMode = value ? AppViewMode.family : AppViewMode.personal;
     notifyListeners();
     fetchDashboard();
   }
@@ -56,7 +70,7 @@ class FinanceProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final queryParams = {'familyView': _isFamilyView ? 'true' : 'false'};
+      final queryParams = {'familyView': isFamilyView ? 'true' : 'false'};
 
       // 1. Wallets
       final walletsData = await apiClient.get(ApiConstants.wallets, queryParams: queryParams);
@@ -92,7 +106,7 @@ class FinanceProvider extends ChangeNotifier {
       }
 
       // 6. Family members and family info if family view
-      if (_isFamilyView) {
+      if (isFamilyView) {
         try {
           final famData = await apiClient.get(ApiConstants.familyCurrent);
           if (famData is Map<String, dynamic>) {
@@ -116,12 +130,112 @@ class FinanceProvider extends ChangeNotifier {
         _currentFamily = null;
       }
 
+      // 7. Projects if company view
+      if (isCompanyView) {
+        await fetchProjectsInternal();
+      } else {
+        _projects = [];
+      }
+
       _isLoading = false;
       notifyListeners();
     } catch (e) {
       _isLoading = false;
       _errorMessage = e.toString().replaceAll('Exception: ', '');
       notifyListeners();
+    }
+  }
+
+  Future<void> fetchProjectsInternal() async {
+    try {
+      final res = await apiClient.get(ApiConstants.projects);
+      if (res is List) {
+        _projects = res.map((p) => ProjectModel.fromJson(p as Map<String, dynamic>)).toList();
+      }
+    } catch (_) {
+      _projects = [];
+    }
+  }
+
+  Future<void> fetchProjects() async {
+    await fetchProjectsInternal();
+    notifyListeners();
+  }
+
+  Future<bool> createProject({
+    required String name,
+    String? description,
+    int targetBudget = 0,
+    String? startDate,
+    String? endDate,
+  }) async {
+    try {
+      await apiClient.post(ApiConstants.projects, body: {
+        'name': name.trim(),
+        'description': description?.trim(),
+        'target_budget': targetBudget,
+        'start_date': startDate,
+        'end_date': endDate,
+      });
+      await fetchProjects();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> recordProjectTransaction({
+    required int projectId,
+    required int walletId,
+    int? categoryId,
+    required String type,
+    required int amount,
+    String? notes,
+  }) async {
+    try {
+      await apiClient.post(ApiConstants.projectTransaction(projectId), body: {
+        'wallet_id': walletId,
+        'category_id': categoryId,
+        'type': type,
+        'amount': amount,
+        'notes': notes,
+      });
+      await fetchDashboard();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<Map<String, dynamic>?> getProjectDetails(int projectId) async {
+    try {
+      final res = await apiClient.get(ApiConstants.projectDetail(projectId));
+      if (res is Map<String, dynamic>) {
+        return res;
+      }
+      return null;
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      notifyListeners();
+      return null;
+    }
+  }
+
+  Future<bool> updateProjectStatus(int projectId, String status) async {
+    try {
+      await apiClient.patch(ApiConstants.projectStatus(projectId), body: {
+        'status': status,
+      });
+      await fetchProjects();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      notifyListeners();
+      return false;
     }
   }
 

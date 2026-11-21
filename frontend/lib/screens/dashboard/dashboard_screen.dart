@@ -6,6 +6,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/finance_provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/saving_model.dart';
+import '../../models/project_model.dart';
 import '../../widgets/family_switcher.dart';
 import '../history/history_screen.dart';
 import '../savings/savings_screen.dart';
@@ -24,18 +25,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
   bool _isBalanceVisible = true;
   int? _selectedMemberFilterId; // null = semua anggota
 
-  // Onboarding controllers
+  // Family Onboarding controllers
   int _onboardingTab = 0; // 0: Buat Keluarga, 1: Masuk Keluarga
   final _onboardingNameController = TextEditingController();
   final _onboardingCodeController = TextEditingController();
   bool _isOnboardingLoading = false;
   String? _onboardingError;
 
+  // Company Onboarding controllers
+  int _onboardingCompanyTab = 0; // 0: Buat, 1: Masuk
+  final _onboardingCompanyNameController = TextEditingController();
+  final _onboardingCompanyCodeController = TextEditingController();
+  bool _isOnboardingCompanyLoading = false;
+  String? _onboardingCompanyError;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<FinanceProvider>().fetchDashboard();
+      final auth = context.read<AuthProvider>();
+      if (auth.currentUser?.companyId != null) {
+        auth.getCurrentCompany();
+      }
     });
   }
 
@@ -43,6 +55,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void dispose() {
     _onboardingNameController.dispose();
     _onboardingCodeController.dispose();
+    _onboardingCompanyNameController.dispose();
+    _onboardingCompanyCodeController.dispose();
     super.dispose();
   }
 
@@ -1139,25 +1153,64 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final auth = context.watch<AuthProvider>();
     final finance = context.watch<FinanceProvider>();
     final isFamily = finance.isFamilyView;
+    final isCompany = finance.isCompanyView;
     final hasFamily = auth.currentUser?.familyId != null;
+    final hasCompany = auth.currentUser?.companyId != null;
+
+    final bgColor = isCompany
+        ? const Color(0xFFF1F5F9)
+        : (isFamily ? const Color(0xFFF6F5FC) : AppTheme.iosBg);
+    final appBarBg = isCompany
+        ? const Color(0xFFF1F5F9)
+        : (isFamily ? const Color(0xFFF6F5FC) : Colors.white);
+
+    final avatarBg = isCompany
+        ? const Color(0xFF1E3A8A).withValues(alpha: 0.12)
+        : (isFamily ? AppTheme.familyPurple.withValues(alpha: 0.15) : AppTheme.iosBlue.withValues(alpha: 0.15));
+    final avatarColor = isCompany
+        ? const Color(0xFF1E3A8A)
+        : (isFamily ? AppTheme.familyPurple : AppTheme.iosBlue);
+    final avatarIcon = isCompany
+        ? Icons.business_rounded
+        : (isFamily ? Icons.family_restroom_rounded : Icons.person_rounded);
+
+    final headerTitle = isCompany
+        ? (auth.currentCompany?.name ?? (hasCompany ? 'Ruang Perusahaan' : 'Finansial Perusahaan'))
+        : (isFamily
+            ? (finance.currentFamily?.name ?? (hasFamily ? 'Ruang Keluarga' : 'Finansial Keluarga'))
+            : 'Halo, ${auth.currentUser?.name ?? "Pengguna"}');
+
+    final headerSubtitle = isCompany
+        ? (hasCompany
+            ? 'ID: ${auth.currentCompany?.inviteCode ?? "..."} • ${finance.projects.length} Proyek'
+            : 'Kelola Kas & Anggaran Proyek Tim')
+        : (isFamily
+            ? (hasFamily
+                ? 'ID: ${finance.currentFamily?.inviteCode ?? "..."} • ${finance.familyMembers.length} Anggota'
+                : 'Mulai Ruang Keuangan Bersama')
+            : 'Tampilan Finansial Pribadi');
+
+    final headerSubtitleColor = isCompany
+        ? const Color(0xFF1E3A8A)
+        : (isFamily ? AppTheme.familyPurple : AppTheme.textSecondary);
 
     return Scaffold(
-      backgroundColor: isFamily ? const Color(0xFFF6F5FC) : AppTheme.iosBg,
+      backgroundColor: bgColor,
       appBar: _currentTab == 0
           ? AppBar(
               toolbarHeight: 56,
-              backgroundColor: isFamily ? const Color(0xFFF6F5FC) : Colors.white,
+              backgroundColor: appBarBg,
               elevation: 0,
               titleSpacing: 12,
               title: Row(
                 children: [
                   CircleAvatar(
                     radius: 15,
-                    backgroundColor: isFamily ? AppTheme.familyPurple.withValues(alpha: 0.15) : AppTheme.iosBlue.withValues(alpha: 0.15),
+                    backgroundColor: avatarBg,
                     child: Icon(
-                      isFamily ? Icons.family_restroom_rounded : Icons.person_rounded,
+                      avatarIcon,
                       size: 15,
-                      color: isFamily ? AppTheme.familyPurple : AppTheme.iosBlue,
+                      color: avatarColor,
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -1167,9 +1220,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          isFamily
-                              ? (finance.currentFamily?.name ?? (hasFamily ? 'Ruang Keluarga' : 'Finansial Keluarga'))
-                              : 'Halo, ${auth.currentUser?.name ?? "Pengguna"}',
+                          headerTitle,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
@@ -1180,17 +1231,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ),
                         ),
                         Text(
-                          isFamily
-                              ? (hasFamily
-                                  ? 'ID: ${finance.currentFamily?.inviteCode ?? "..."} • ${finance.familyMembers.length} Anggota'
-                                  : 'Mulai Ruang Keuangan Bersama')
-                              : 'Tampilan Finansial Pribadi',
+                          headerSubtitle,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             fontSize: 10,
-                            color: isFamily ? AppTheme.familyPurple : AppTheme.textSecondary,
-                            fontWeight: isFamily ? FontWeight.w600 : FontWeight.w400,
+                            color: headerSubtitleColor,
+                            fontWeight: (isFamily || isCompany) ? FontWeight.w600 : FontWeight.w400,
                           ),
                         ),
                       ],
@@ -1240,18 +1287,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildNavItem(0, isFamily ? Icons.family_restroom_rounded : Icons.account_balance_wallet_rounded, isFamily ? 'Keluarga' : 'Ringkasan', () {
+                _buildNavItem(0, isCompany ? Icons.business_rounded : (isFamily ? Icons.family_restroom_rounded : Icons.account_balance_wallet_rounded), isCompany ? 'Perusahaan' : (isFamily ? 'Keluarga' : 'Ringkasan'), () {
                   setState(() => _currentTab = 0);
-                }, isFamilyView: isFamily),
+                }, isFamilyView: isFamily, isCompanyView: isCompany),
                 _buildNavItem(1, Icons.receipt_long_rounded, 'Riwayat', () {
                   setState(() => _currentTab = 1);
-                }, isFamilyView: isFamily),
-                _buildNavItem(2, Icons.savings_rounded, isFamily ? 'Celengan' : 'Celengan', () {
+                }, isFamilyView: isFamily, isCompanyView: isCompany),
+                _buildNavItem(2, Icons.savings_rounded, 'Celengan', () {
                   setState(() => _currentTab = 2);
-                }, isFamilyView: isFamily),
+                }, isFamilyView: isFamily, isCompanyView: isCompany),
                 _buildNavItem(3, Icons.event_note_rounded, 'Hutang', () {
                   setState(() => _currentTab = 3);
-                }, isFamilyView: isFamily),
+                }, isFamilyView: isFamily, isCompanyView: isCompany),
               ],
             ),
           ),
@@ -1261,16 +1308,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildSummaryView(FinanceProvider finance, AuthProvider auth) {
-    if (!finance.isFamilyView) {
-      return _buildPersonalDashboardView(finance, auth);
+    if (finance.isCompanyView) {
+      final hasCompany = auth.currentUser?.companyId != null;
+      if (!hasCompany) {
+        return _buildCompanyOnboardingView(finance, auth);
+      }
+      return _buildCompanyDashboardView(finance, auth);
     }
 
-    final hasFamily = auth.currentUser?.familyId != null;
-    if (!hasFamily) {
-      return _buildFamilyOnboardingView(finance, auth);
+    if (finance.isFamilyView) {
+      final hasFamily = auth.currentUser?.familyId != null;
+      if (!hasFamily) {
+        return _buildFamilyOnboardingView(finance, auth);
+      }
+      return _buildFamilyDashboardView(finance, auth);
     }
 
-    return _buildFamilyDashboardView(finance, auth);
+    return _buildPersonalDashboardView(finance, auth);
   }
 
   // ======================= VIEW 1: PERSONAL DASHBOARD =======================
@@ -2199,6 +2253,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ),
                   ),
+                ],
               ],
             ),
             const SizedBox(height: 12),
@@ -2873,9 +2928,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   // ======================= HELPER: NAV ITEM =======================
-  Widget _buildNavItem(int index, IconData icon, String label, VoidCallback onTap, {bool isFamilyView = false}) {
+  Widget _buildNavItem(int index, IconData icon, String label, VoidCallback onTap, {bool isFamilyView = false, bool isCompanyView = false}) {
     final isSelected = _currentTab == index;
-    final activeColor = isFamilyView ? AppTheme.familyPurple : AppTheme.iosBlue;
+    final activeColor = isCompanyView
+        ? const Color(0xFF1E3A8A)
+        : (isFamilyView ? AppTheme.familyPurple : AppTheme.iosBlue);
 
     return Expanded(
       child: GestureDetector(
@@ -2906,6 +2963,1927 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ======================= VIEW 4: ONBOARDING RUANG PERUSAHAAN =======================
+  Widget _buildCompanyOnboardingView(FinanceProvider finance, AuthProvider auth) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Onboarding Hero Card
+          Container(
+            padding: const EdgeInsets.all(26),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF0F172A), Color(0xFF1E3A8A)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(28),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF1E3A8A).withValues(alpha: 0.3),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.16),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.business_center_rounded, size: 48, color: Colors.white),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Ruang Perusahaan & Proyek',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    letterSpacing: -0.4,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Kelola anggaran proyek, kolaborasi kas masuk dan keluar secara transparan bersama seluruh tim.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.white.withValues(alpha: 0.8),
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // 3 Nilai Fitur
+          Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Column(
+              children: [
+                _buildFeatureRow(Icons.folder_special_rounded, 'Multi-Proyek Terpisah', 'Kelola anggaran dan pantau realisasi pemasukan serta pengeluaran per proyek.', const Color(0xFF1E3A8A)),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                  child: Divider(height: 1, indent: 40, color: Color(0xFFF1F5F9)),
+                ),
+                _buildFeatureRow(Icons.account_balance_wallet_rounded, 'Kas Terintegrasi', 'Catat pembayaran termin klien dan belanja kebutuhan proyek langsung dari rekening terpilih.', AppTheme.incomeGreen),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                  child: Divider(height: 1, indent: 40, color: Color(0xFFF1F5F9)),
+                ),
+                _buildFeatureRow(Icons.groups_rounded, 'Kolaborasi Anggota Tim', 'Setiap anggota tim yang bergabung dapat mencatat dan melihat histori mutasi proyek.', AppTheme.iosBlue),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Segmented Switcher Buat vs Gabung
+          Container(
+            padding: const EdgeInsets.all(3),
+            decoration: BoxDecoration(
+              color: const Color(0xFFE2E8F0),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      setState(() {
+                        _onboardingCompanyTab = 0;
+                        _onboardingCompanyError = null;
+                      });
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      decoration: BoxDecoration(
+                        color: _onboardingCompanyTab == 0 ? Colors.white : Colors.transparent,
+                        borderRadius: BorderRadius.circular(11),
+                        boxShadow: _onboardingCompanyTab == 0
+                            ? [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.08),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 1.5),
+                                )
+                              ]
+                            : null,
+                      ),
+                      child: Text(
+                        'Buat Perusahaan Baru',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: _onboardingCompanyTab == 0 ? FontWeight.w700 : FontWeight.w500,
+                          color: _onboardingCompanyTab == 0 ? const Color(0xFF1E3A8A) : AppTheme.textSecondary,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      setState(() {
+                        _onboardingCompanyTab = 1;
+                        _onboardingCompanyError = null;
+                      });
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      decoration: BoxDecoration(
+                        color: _onboardingCompanyTab == 1 ? Colors.white : Colors.transparent,
+                        borderRadius: BorderRadius.circular(11),
+                        boxShadow: _onboardingCompanyTab == 1
+                            ? [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.08),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 1.5),
+                                )
+                              ]
+                            : null,
+                      ),
+                      child: Text(
+                        'Masuk dengan Kode ID',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: _onboardingCompanyTab == 1 ? FontWeight.w700 : FontWeight.w500,
+                          color: _onboardingCompanyTab == 1 ? const Color(0xFF1E3A8A) : AppTheme.textSecondary,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          if (_onboardingCompanyError != null)
+            Container(
+              padding: const EdgeInsets.all(12),
+              margin: const EdgeInsets.only(bottom: 14),
+              decoration: BoxDecoration(
+                color: AppTheme.expenseRed.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.info_outline_rounded, color: AppTheme.expenseRed, size: 18),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(_onboardingCompanyError!, style: const TextStyle(color: AppTheme.expenseRed, fontSize: 13)),
+                  ),
+                ],
+              ),
+            ),
+
+          if (_onboardingCompanyTab == 0) ...[
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: TextField(
+                controller: _onboardingCompanyNameController,
+                textCapitalization: TextCapitalization.words,
+                decoration: const InputDecoration(
+                  hintText: 'Nama Perusahaan (contoh: PT Solusi Jaya)',
+                  prefixIcon: Icon(Icons.business_outlined, color: Color(0xFF1E3A8A)),
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _isOnboardingCompanyLoading
+                  ? null
+                  : () async {
+                      final name = _onboardingCompanyNameController.text.trim();
+                      if (name.isEmpty) {
+                        setState(() => _onboardingCompanyError = 'Harap isi nama perusahaan');
+                        return;
+                      }
+
+                      setState(() {
+                        _isOnboardingCompanyLoading = true;
+                        _onboardingCompanyError = null;
+                      });
+
+                      final result = await auth.createCompany(name);
+                      if (result != null && mounted) {
+                        await finance.fetchDashboard();
+                        setState(() => _isOnboardingCompanyLoading = false);
+                        _copyToClipboard(result['invite_code'].toString(), 'Perusahaan dibuat! Kode Tim: ${result['invite_code']}');
+                      } else if (mounted) {
+                        setState(() {
+                          _isOnboardingCompanyLoading = false;
+                          _onboardingCompanyError = auth.errorMessage ?? 'Gagal membuat perusahaan';
+                        });
+                      }
+                    },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF1E3A8A),
+                foregroundColor: Colors.white,
+                minimumSize: const Size(double.infinity, 50),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              ),
+              child: _isOnboardingCompanyLoading
+                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                  : const Text('Buat Ruang Perusahaan', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+            ),
+          ] else ...[
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: TextField(
+                controller: _onboardingCompanyCodeController,
+                textCapitalization: TextCapitalization.characters,
+                style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 2),
+                decoration: const InputDecoration(
+                  hintText: '8 Karakter Kode ID Perusahaan',
+                  prefixIcon: Icon(Icons.vpn_key_rounded, color: Color(0xFF1E3A8A)),
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _isOnboardingCompanyLoading
+                  ? null
+                  : () async {
+                      final code = _onboardingCompanyCodeController.text.trim().toUpperCase();
+                      if (code.isEmpty) {
+                        setState(() => _onboardingCompanyError = 'Harap isi kode ID');
+                        return;
+                      }
+
+                      setState(() {
+                        _isOnboardingCompanyLoading = true;
+                        _onboardingCompanyError = null;
+                      });
+
+                      final success = await auth.joinCompany(code);
+                      if (success && mounted) {
+                        await finance.fetchDashboard();
+                        setState(() => _isOnboardingCompanyLoading = false);
+                      } else if (mounted) {
+                        setState(() {
+                          _isOnboardingCompanyLoading = false;
+                          _onboardingCompanyError = auth.errorMessage ?? 'Kode ID tidak valid';
+                        });
+                      }
+                    },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF1E3A8A),
+                foregroundColor: Colors.white,
+                minimumSize: const Size(double.infinity, 50),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              ),
+              child: _isOnboardingCompanyLoading
+                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                  : const Text('Gabung ke Perusahaan', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+            ),
+          ],
+          const SizedBox(height: 32),
+        ],
+      ),
+    );
+  }
+
+  // ======================= VIEW 5: PERUSAHAAN & PROYEK DASHBOARD =======================
+  Widget _buildCompanyDashboardView(FinanceProvider finance, AuthProvider auth) {
+    final company = auth.currentCompany;
+    final inviteCode = company?.inviteCode ?? '--------';
+    final projects = finance.projects;
+
+    final totalBudget = projects.fold<int>(0, (sum, p) => sum + p.targetBudget);
+    final totalIncome = projects.fold<int>(0, (sum, p) => sum + p.currentIncome);
+    final totalExpense = projects.fold<int>(0, (sum, p) => sum + p.currentExpense);
+    final netProfit = totalIncome - totalExpense;
+
+    return RefreshIndicator(
+      onRefresh: () async {
+        await finance.fetchDashboard();
+        await auth.getCurrentCompany();
+      },
+      color: const Color(0xFF1E3A8A),
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 1. SAPPHIRE HERO CARD
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF0F172A), Color(0xFF1E3A8A)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(22),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF1E3A8A).withValues(alpha: 0.35),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.16),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Row(
+                          children: [
+                            Icon(Icons.business_rounded, size: 12, color: Colors.white),
+                            SizedBox(width: 4),
+                            Text(
+                              'RUANG PERUSAHAAN',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.8,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.14),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          '${auth.companyMembers.isNotEmpty ? auth.companyMembers.length : 1} Anggota',
+                          style: const TextStyle(fontSize: 10.5, color: Colors.white, fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+
+                  Text(
+                    company?.name ?? 'Perusahaan Saya',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.4,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+
+                  // Invite Code Pill
+                  Row(
+                    children: [
+                      const Text(
+                        'KODE TIM: ',
+                        style: TextStyle(fontSize: 10.5, color: Colors.white70, fontWeight: FontWeight.w600),
+                      ),
+                      Text(
+                        inviteCode,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.5,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      GestureDetector(
+                        onTap: () => _copyToClipboard(inviteCode, 'Kode tim $inviteCode disalin!'),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Row(
+                            children: [
+                              Icon(Icons.copy_rounded, size: 11, color: Colors.white),
+                              SizedBox(width: 3),
+                              Text('Salin', style: TextStyle(fontSize: 9.5, color: Colors.white, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Quick Action Buttons
+                  Row(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => _showCreateProjectModal(context),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 9),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Column(
+                              children: [
+                                Icon(Icons.add_task_rounded, size: 16, color: Color(0xFF1E3A8A)),
+                                SizedBox(height: 3),
+                                Text(
+                                  '+ Proyek Baru',
+                                  style: TextStyle(color: Color(0xFF1E3A8A), fontSize: 10.5, fontWeight: FontWeight.w700),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => _showRecordProjectCashflowModal(context),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 9),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.16),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Column(
+                              children: [
+                                Icon(Icons.post_add_rounded, size: 16, color: Colors.white),
+                                SizedBox(height: 3),
+                                Text(
+                                  'Catat Kas Proyek',
+                                  style: TextStyle(color: Colors.white, fontSize: 10.5, fontWeight: FontWeight.w600),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => _copyToClipboard(inviteCode, 'Kode tim $inviteCode disalin!'),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 9),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.16),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Column(
+                              children: [
+                                Icon(Icons.person_add_alt_1_rounded, size: 16, color: Colors.white),
+                                SizedBox(height: 3),
+                                Text(
+                                  'Undang Tim',
+                                  style: TextStyle(color: Colors.white, fontSize: 10.5, fontWeight: FontWeight.w600),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 18),
+
+            // 2. RINGKASAN METRIK FINANSIAL PROYEK
+            const Text(
+              'Ringkasan Proyek Perusahaan',
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppTheme.textPrimary, letterSpacing: -0.3),
+            ),
+            const SizedBox(height: 10),
+
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.all(13),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF1E3A8A).withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: const Icon(Icons.flag_rounded, size: 13, color: Color(0xFF1E3A8A)),
+                            ),
+                            const SizedBox(width: 6),
+                            const Expanded(
+                              child: Text(
+                                'Target Anggaran',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(fontSize: 10.5, color: AppTheme.textSecondary, fontWeight: FontWeight.w600),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            _formatRupiah(totalBudget),
+                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppTheme.textPrimary),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.all(13),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: netProfit >= 0 ? AppTheme.incomeGreen.withValues(alpha: 0.12) : AppTheme.expenseRed.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Icon(
+                                netProfit >= 0 ? Icons.trending_up_rounded : Icons.trending_down_rounded,
+                                size: 13,
+                                color: netProfit >= 0 ? AppTheme.incomeGreen : AppTheme.expenseRed,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            const Expanded(
+                              child: Text(
+                                'Laba / Margin',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(fontSize: 10.5, color: AppTheme.textSecondary, fontWeight: FontWeight.w600),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            '${netProfit >= 0 ? "+" : ""}${_formatRupiah(netProfit)}',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
+                              color: netProfit >= 0 ? AppTheme.incomeGreen : AppTheme.expenseRed,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.all(13),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: AppTheme.incomeGreen.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: const Icon(Icons.arrow_downward_rounded, size: 13, color: AppTheme.incomeGreen),
+                            ),
+                            const SizedBox(width: 6),
+                            const Expanded(
+                              child: Text(
+                                'Kas Masuk Proyek',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(fontSize: 10.5, color: AppTheme.textSecondary, fontWeight: FontWeight.w600),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            '+ ${_formatRupiah(totalIncome)}',
+                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppTheme.incomeGreen),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.all(13),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: AppTheme.expenseRed.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: const Icon(Icons.arrow_upward_rounded, size: 13, color: AppTheme.expenseRed),
+                            ),
+                            const SizedBox(width: 6),
+                            const Expanded(
+                              child: Text(
+                                'Biaya Proyek',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(fontSize: 10.5, color: AppTheme.textSecondary, fontWeight: FontWeight.w600),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            '- ${_formatRupiah(totalExpense)}',
+                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppTheme.expenseRed),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+
+            // 3. DAFTAR PROYEK PERUSAHAAN
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Row(
+                    children: [
+                      const Icon(Icons.folder_copy_rounded, size: 18, color: Color(0xFF1E3A8A)),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          'Daftar Proyek (${projects.length})',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 15.5,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.textPrimary,
+                            letterSpacing: -0.3,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () => _showCreateProjectModal(context),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4.5),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1E3A8A).withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.add_rounded, size: 13, color: Color(0xFF1E3A8A)),
+                        SizedBox(width: 3),
+                        Text(
+                          'Proyek Baru',
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF1E3A8A)),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+
+            if (projects.isEmpty)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1E3A8A).withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.folder_open_rounded, color: Color(0xFF1E3A8A), size: 30),
+                    ),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Belum Ada Proyek',
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Buat proyek pertama Anda untuk mulai mencatat arus kas, pemasukan dari klien, dan pengeluaran operasional.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 11.5, color: AppTheme.textSecondary, height: 1.35),
+                    ),
+                    const SizedBox(height: 14),
+                    ElevatedButton.icon(
+                      onPressed: () => _showCreateProjectModal(context),
+                      icon: const Icon(Icons.add_rounded, size: 15),
+                      label: const Text('Buat Proyek Pertama', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF1E3A8A),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
+              ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: projects.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                itemBuilder: (context, idx) {
+                  final project = projects[idx];
+                  final isPositiveProfit = project.netProfit >= 0;
+
+                  Color statusColor = const Color(0xFF1E3A8A);
+                  String statusLabel = 'Aktif';
+                  if (project.status == 'completed') {
+                    statusColor = AppTheme.incomeGreen;
+                    statusLabel = 'Selesai';
+                  } else if (project.status == 'on_hold') {
+                    statusColor = const Color(0xFFF59E0B);
+                    statusLabel = 'Ditunda';
+                  }
+
+                  return Container(
+                    padding: const EdgeInsets.all(15),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.03),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Card Header
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                project.name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppTheme.textPrimary,
+                                  letterSpacing: -0.2,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                              decoration: BoxDecoration(
+                                color: statusColor.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                statusLabel,
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  color: statusColor,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (project.description?.isNotEmpty == true) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            project.description!,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 11.5, color: AppTheme.textSecondary, height: 1.3),
+                          ),
+                        ],
+                        const SizedBox(height: 12),
+
+                        // Progress Bar Target Anggaran
+                        if (project.targetBudget > 0) ...[
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Anggaran: ${_formatRupiah(project.targetBudget)}',
+                                style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary, fontWeight: FontWeight.w600),
+                              ),
+                              Text(
+                                '${project.budgetProgress}% Terpakai',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: project.budgetProgress > 100 ? AppTheme.expenseRed : const Color(0xFF1E3A8A),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 5),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(5),
+                            child: LinearProgressIndicator(
+                              value: (project.budgetProgress / 100).clamp(0.0, 1.0),
+                              minHeight: 6,
+                              backgroundColor: const Color(0xFFF1F5F9),
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                project.budgetProgress > 100 ? AppTheme.expenseRed : const Color(0xFF1E3A8A),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                        ],
+
+                        // Income / Expense / Profit Row
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF8FAFC),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: const Color(0xFFE2E8F0), width: 0.8),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text('Masuk', style: TextStyle(fontSize: 9.5, color: AppTheme.textSecondary, fontWeight: FontWeight.w600)),
+                                  const SizedBox(height: 1),
+                                  Text(
+                                    '+${_formatRupiah(project.currentIncome)}',
+                                    style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppTheme.incomeGreen),
+                                  ),
+                                ],
+                              ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  const Text('Biaya', style: TextStyle(fontSize: 9.5, color: AppTheme.textSecondary, fontWeight: FontWeight.w600)),
+                                  const SizedBox(height: 1),
+                                  Text(
+                                    '-${_formatRupiah(project.currentExpense)}',
+                                    style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppTheme.expenseRed),
+                                  ),
+                                ],
+                              ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  const Text('Laba Bersih', style: TextStyle(fontSize: 9.5, color: AppTheme.textSecondary, fontWeight: FontWeight.w600)),
+                                  const SizedBox(height: 1),
+                                  Text(
+                                    '${isPositiveProfit ? "+" : ""}${_formatRupiah(project.netProfit)}',
+                                    style: TextStyle(
+                                      fontSize: 11.5,
+                                      fontWeight: FontWeight.w800,
+                                      color: isPositiveProfit ? AppTheme.incomeGreen : AppTheme.expenseRed,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Actions Row
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                onPressed: () => _showRecordProjectCashflowModal(context, preselectedProject: project),
+                                icon: const Icon(Icons.post_add_rounded, size: 14),
+                                label: const Text('Catat Kas', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600)),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: const Color(0xFF1E3A8A),
+                                  side: const BorderSide(color: Color(0xFF1E3A8A), width: 0.8),
+                                  minimumSize: const Size(0, 34),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                onPressed: () => _showProjectDetailModal(context, project),
+                                icon: const Icon(Icons.receipt_long_rounded, size: 14),
+                                label: const Text('Detail & Mutasi', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600)),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF1E3A8A),
+                                  foregroundColor: Colors.white,
+                                  elevation: 0,
+                                  minimumSize: const Size(0, 34),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            const SizedBox(height: 32),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ======================= MODAL: BUAT PROYEK =======================
+  void _showCreateProjectModal(BuildContext context) {
+    final nameCtrl = TextEditingController();
+    final descCtrl = TextEditingController();
+    final budgetCtrl = TextEditingController();
+    bool isSaving = false;
+    String? errorText;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setModalState) {
+          return Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
+              left: 20,
+              right: 20,
+              top: 12,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Center(
+                  child: Container(
+                    width: 36,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 18),
+                    decoration: BoxDecoration(color: const Color(0xFFD1D1D6), borderRadius: BorderRadius.circular(2.5)),
+                  ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Buat Proyek Baru',
+                      style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: AppTheme.textPrimary, letterSpacing: -0.3),
+                    ),
+                    GestureDetector(
+                      onTap: () => Navigator.pop(ctx),
+                      child: Container(
+                        padding: const EdgeInsets.all(5),
+                        decoration: const BoxDecoration(color: Color(0xFFF2F2F7), shape: BoxShape.circle),
+                        child: const Icon(Icons.close_rounded, size: 16, color: AppTheme.textSecondary),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Daftarkan proyek baru untuk melacak pemasukan dan pengeluaran secara mandiri.',
+                  style: TextStyle(fontSize: 12, color: AppTheme.textSecondary, height: 1.35),
+                ),
+                const SizedBox(height: 16),
+
+                if (errorText != null) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      color: AppTheme.expenseRed.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: AppTheme.expenseRed.withValues(alpha: 0.25), width: 0.8),
+                    ),
+                    child: Text(errorText!, style: const TextStyle(color: AppTheme.expenseRed, fontSize: 12, fontWeight: FontWeight.w500)),
+                  ),
+                ],
+
+                // Input Nama Proyek
+                Container(
+                  decoration: BoxDecoration(
+                    color: AppTheme.iosBg,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppTheme.iosDivider, width: 0.8),
+                  ),
+                  child: TextField(
+                    controller: nameCtrl,
+                    textCapitalization: TextCapitalization.words,
+                    style: const TextStyle(fontSize: 13.5),
+                    decoration: const InputDecoration(
+                      hintText: 'Nama Proyek (contoh: Website E-Commerce)',
+                      hintStyle: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                      prefixIcon: Icon(Icons.folder_outlined, size: 18, color: Color(0xFF1E3A8A)),
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+
+                // Input Target Anggaran
+                Container(
+                  decoration: BoxDecoration(
+                    color: AppTheme.iosBg,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppTheme.iosDivider, width: 0.8),
+                  ),
+                  child: TextField(
+                    controller: budgetCtrl,
+                    keyboardType: TextInputType.number,
+                    style: const TextStyle(fontSize: 13.5),
+                    decoration: const InputDecoration(
+                      hintText: 'Target Anggaran / Budget (Rp, contoh: 25000000)',
+                      hintStyle: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                      prefixIcon: Icon(Icons.attach_money_rounded, size: 18, color: Color(0xFF1E3A8A)),
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+
+                // Input Deskripsi
+                Container(
+                  decoration: BoxDecoration(
+                    color: AppTheme.iosBg,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppTheme.iosDivider, width: 0.8),
+                  ),
+                  child: TextField(
+                    controller: descCtrl,
+                    maxLines: 2,
+                    style: const TextStyle(fontSize: 13.5),
+                    decoration: const InputDecoration(
+                      hintText: 'Deskripsi proyek atau nama klien (opsional)',
+                      hintStyle: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                      prefixIcon: Icon(Icons.notes_rounded, size: 18, color: Color(0xFF1E3A8A)),
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                ElevatedButton(
+                  onPressed: isSaving
+                      ? null
+                      : () async {
+                          final name = nameCtrl.text.trim();
+                          if (name.isEmpty) {
+                            setModalState(() => errorText = 'Nama proyek tidak boleh kosong');
+                            return;
+                          }
+                          final budget = int.tryParse(budgetCtrl.text.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+
+                          setModalState(() {
+                            isSaving = true;
+                            errorText = null;
+                          });
+
+                          final messenger = ScaffoldMessenger.of(context);
+                          final finance = context.read<FinanceProvider>();
+                          final success = await finance.createProject(
+                            name: name,
+                            description: descCtrl.text.trim().isNotEmpty ? descCtrl.text.trim() : null,
+                            targetBudget: budget,
+                          );
+
+                          if (success && mounted) {
+                            if (ctx.mounted) {
+                              Navigator.pop(ctx);
+                            }
+                            messenger.showSnackBar(
+                              SnackBar(
+                                content: Text('Proyek "$name" berhasil dibuat!'),
+                                backgroundColor: const Color(0xFF1E3A8A),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          } else if (mounted) {
+                            setModalState(() {
+                              isSaving = false;
+                              errorText = finance.errorMessage ?? 'Gagal membuat proyek';
+                            });
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1E3A8A),
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(double.infinity, 46),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: isSaving
+                      ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                      : const Text('Simpan Proyek', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  // ======================= MODAL: CATAT KAS PROYEK =======================
+  void _showRecordProjectCashflowModal(BuildContext context, {ProjectModel? preselectedProject}) {
+    final finance = context.read<FinanceProvider>();
+    if (finance.projects.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Buat proyek terlebih dahulu sebelum mencatat kas proyek.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      _showCreateProjectModal(context);
+      return;
+    }
+
+    int selectedProjectId = preselectedProject?.id ?? finance.projects.first.id;
+    int selectedWalletId = finance.wallets.isNotEmpty ? finance.wallets.first.id : 1;
+    String selectedType = 'income'; // 'income' or 'expense'
+    final amountCtrl = TextEditingController();
+    final notesCtrl = TextEditingController();
+    bool isSaving = false;
+    String? errorText;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setModalState) {
+          final isIncome = selectedType == 'income';
+
+          return Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
+              left: 20,
+              right: 20,
+              top: 12,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Center(
+                  child: Container(
+                    width: 36,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 18),
+                    decoration: BoxDecoration(color: const Color(0xFFD1D1D6), borderRadius: BorderRadius.circular(2.5)),
+                  ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Catat Kas Proyek',
+                      style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: AppTheme.textPrimary, letterSpacing: -0.3),
+                    ),
+                    GestureDetector(
+                      onTap: () => Navigator.pop(ctx),
+                      child: Container(
+                        padding: const EdgeInsets.all(5),
+                        decoration: const BoxDecoration(color: Color(0xFFF2F2F7), shape: BoxShape.circle),
+                        child: const Icon(Icons.close_rounded, size: 16, color: AppTheme.textSecondary),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Catat pemasukan atau pengeluaran operasional yang terhubung langsung ke proyek & dompet kas.',
+                  style: TextStyle(fontSize: 12, color: AppTheme.textSecondary, height: 1.35),
+                ),
+                const SizedBox(height: 16),
+
+                // Tipe Kas Switcher: Pemasukan vs Pengeluaran
+                Container(
+                  padding: const EdgeInsets.all(2.5),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE5E5EA),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            HapticFeedback.selectionClick();
+                            setModalState(() => selectedType = 'income');
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 7),
+                            decoration: BoxDecoration(
+                              color: isIncome ? Colors.white : Colors.transparent,
+                              borderRadius: BorderRadius.circular(8),
+                              boxShadow: isIncome
+                                  ? [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(alpha: 0.08),
+                                        blurRadius: 3,
+                                        offset: const Offset(0, 1),
+                                      ),
+                                    ]
+                                  : null,
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.arrow_downward_rounded, size: 14, color: isIncome ? AppTheme.incomeGreen : AppTheme.textSecondary),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Pemasukan (Termin/DP)',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: isIncome ? FontWeight.w700 : FontWeight.w500,
+                                    color: isIncome ? AppTheme.incomeGreen : AppTheme.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            HapticFeedback.selectionClick();
+                            setModalState(() => selectedType = 'expense');
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 7),
+                            decoration: BoxDecoration(
+                              color: !isIncome ? Colors.white : Colors.transparent,
+                              borderRadius: BorderRadius.circular(8),
+                              boxShadow: !isIncome
+                                  ? [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(alpha: 0.08),
+                                        blurRadius: 3,
+                                        offset: const Offset(0, 1),
+                                      ),
+                                    ]
+                                  : null,
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.arrow_upward_rounded, size: 14, color: !isIncome ? AppTheme.expenseRed : AppTheme.textSecondary),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Pengeluaran (Biaya)',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: !isIncome ? FontWeight.w700 : FontWeight.w500,
+                                    color: !isIncome ? AppTheme.expenseRed : AppTheme.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 14),
+
+                if (errorText != null) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      color: AppTheme.expenseRed.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: AppTheme.expenseRed.withValues(alpha: 0.25), width: 0.8),
+                    ),
+                    child: Text(errorText!, style: const TextStyle(color: AppTheme.expenseRed, fontSize: 12, fontWeight: FontWeight.w500)),
+                  ),
+                ],
+
+                // Dropdown Pilih Proyek
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  decoration: BoxDecoration(
+                    color: AppTheme.iosBg,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppTheme.iosDivider, width: 0.8),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<int>(
+                      value: selectedProjectId,
+                      isExpanded: true,
+                      icon: const Icon(Icons.arrow_drop_down_rounded, color: AppTheme.textSecondary),
+                      items: finance.projects.map((p) {
+                        return DropdownMenuItem<int>(
+                          value: p.id,
+                          child: Text(
+                            'Proyek: ${p.name}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (val) {
+                        if (val != null) {
+                          setModalState(() => selectedProjectId = val);
+                        }
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+
+                // Dropdown Pilih Dompet Rekening
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  decoration: BoxDecoration(
+                    color: AppTheme.iosBg,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppTheme.iosDivider, width: 0.8),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<int>(
+                      value: selectedWalletId,
+                      isExpanded: true,
+                      icon: const Icon(Icons.arrow_drop_down_rounded, color: AppTheme.textSecondary),
+                      items: finance.wallets.map((w) {
+                        return DropdownMenuItem<int>(
+                          value: w.id,
+                          child: Text(
+                            'Rekening: ${w.name} (${_formatRupiah(w.balance)})',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 13, color: AppTheme.textPrimary),
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (val) {
+                        if (val != null) {
+                          setModalState(() => selectedWalletId = val);
+                        }
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+
+                // Input Nominal
+                Container(
+                  decoration: BoxDecoration(
+                    color: AppTheme.iosBg,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppTheme.iosDivider, width: 0.8),
+                  ),
+                  child: TextField(
+                    controller: amountCtrl,
+                    keyboardType: TextInputType.number,
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                    decoration: InputDecoration(
+                      hintText: 'Nominal Transaksi (Rp)',
+                      hintStyle: const TextStyle(color: AppTheme.textSecondary, fontSize: 13, fontWeight: FontWeight.normal),
+                      prefixIcon: Icon(
+                        isIncome ? Icons.add_circle_outline_rounded : Icons.remove_circle_outline_rounded,
+                        size: 18,
+                        color: isIncome ? AppTheme.incomeGreen : AppTheme.expenseRed,
+                      ),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+
+                // Input Catatan
+                Container(
+                  decoration: BoxDecoration(
+                    color: AppTheme.iosBg,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppTheme.iosDivider, width: 0.8),
+                  ),
+                  child: TextField(
+                    controller: notesCtrl,
+                    style: const TextStyle(fontSize: 13.5),
+                    decoration: const InputDecoration(
+                      hintText: 'Catatan (contoh: DP Termin 1 / Beli domain & server)',
+                      hintStyle: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                      prefixIcon: Icon(Icons.edit_note_rounded, size: 18, color: AppTheme.textSecondary),
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                ElevatedButton(
+                  onPressed: isSaving
+                      ? null
+                      : () async {
+                          final amount = int.tryParse(amountCtrl.text.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+                          if (amount <= 0) {
+                            setModalState(() => errorText = 'Nominal harus lebih dari 0');
+                            return;
+                          }
+
+                          setModalState(() {
+                            isSaving = true;
+                            errorText = null;
+                          });
+
+                          final messenger = ScaffoldMessenger.of(context);
+                          final success = await finance.recordProjectTransaction(
+                            projectId: selectedProjectId,
+                            walletId: selectedWalletId,
+                            type: selectedType,
+                            amount: amount,
+                            notes: notesCtrl.text.trim().isNotEmpty ? notesCtrl.text.trim() : null,
+                          );
+
+                          if (success && mounted) {
+                            if (ctx.mounted) {
+                              Navigator.pop(ctx);
+                            }
+                            messenger.showSnackBar(
+                              SnackBar(
+                                content: Text('Kas proyek berhasil dicatat: ${_formatRupiah(amount)}'),
+                                backgroundColor: isIncome ? AppTheme.incomeGreen : const Color(0xFF1E3A8A),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          } else if (mounted) {
+                            setModalState(() {
+                              isSaving = false;
+                              errorText = finance.errorMessage ?? 'Gagal mencatat kas proyek';
+                            });
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: isIncome ? AppTheme.incomeGreen : const Color(0xFF1E3A8A),
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(double.infinity, 46),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: isSaving
+                      ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                      : Text(
+                          isIncome ? 'Catat Pemasukan Proyek' : 'Catat Pengeluaran Proyek',
+                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                        ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  // ======================= MODAL: DETAIL & MUTASI PROYEK =======================
+  void _showProjectDetailModal(BuildContext context, ProjectModel project) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => _ProjectDetailBottomSheet(project: project),
+    );
+  }
+}
+
+/// Bottom Sheet Detail & Mutasi Kas Proyek
+class _ProjectDetailBottomSheet extends StatefulWidget {
+  final ProjectModel project;
+  const _ProjectDetailBottomSheet({required this.project});
+
+  @override
+  State<_ProjectDetailBottomSheet> createState() => _ProjectDetailBottomSheetState();
+}
+
+class _ProjectDetailBottomSheetState extends State<_ProjectDetailBottomSheet> {
+  Map<String, dynamic>? _projectDetails;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchDetails();
+  }
+
+  Future<void> _fetchDetails() async {
+    final finance = context.read<FinanceProvider>();
+    final data = await finance.getProjectDetails(widget.project.id);
+    if (mounted) {
+      setState(() {
+        _projectDetails = data;
+        _isLoading = false;
+      });
+    }
+  }
+
+  String _formatRupiah(int val) {
+    final currency = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+    return currency.format(val);
+  }
+
+  Future<void> _changeStatus(String newStatus) async {
+    final finance = context.read<FinanceProvider>();
+    final success = await finance.updateProjectStatus(widget.project.id, newStatus);
+    if (success && mounted) {
+      _fetchDetails();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final proj = _projectDetails?['project'] as Map<String, dynamic>?;
+    final transactions = (_projectDetails?['transactions'] as List<dynamic>?) ?? [];
+
+    final name = proj?['name']?.toString() ?? widget.project.name;
+    final description = proj?['description']?.toString() ?? widget.project.description;
+    final status = proj?['status']?.toString() ?? widget.project.status;
+    final targetBudget = int.tryParse(proj?['target_budget']?.toString() ?? '') ?? widget.project.targetBudget;
+    final currentIncome = int.tryParse(proj?['current_income']?.toString() ?? '') ?? widget.project.currentIncome;
+    final currentExpense = int.tryParse(proj?['current_expense']?.toString() ?? '') ?? widget.project.currentExpense;
+    final netProfit = currentIncome - currentExpense;
+    final isPositiveProfit = netProfit >= 0;
+
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Center(
+            child: Container(
+              width: 36,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 18),
+              decoration: BoxDecoration(color: const Color(0xFFD1D1D6), borderRadius: BorderRadius.circular(2.5)),
+            ),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.textPrimary, letterSpacing: -0.3),
+                ),
+              ),
+              GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  padding: const EdgeInsets.all(5),
+                  decoration: const BoxDecoration(color: Color(0xFFF2F2F7), shape: BoxShape.circle),
+                  child: const Icon(Icons.close_rounded, size: 16, color: AppTheme.textSecondary),
+                ),
+              ),
+            ],
+          ),
+          if (description?.isNotEmpty == true) ...[
+            const SizedBox(height: 4),
+            Text(description!, style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary, height: 1.35)),
+          ],
+          const SizedBox(height: 14),
+
+          // Status selector chips
+          Row(
+            children: [
+              const Text('Status Proyek: ', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
+              const SizedBox(width: 6),
+              _buildStatusChip('active', 'Aktif', status),
+              const SizedBox(width: 5),
+              _buildStatusChip('completed', 'Selesai', status),
+              const SizedBox(width: 5),
+              _buildStatusChip('on_hold', 'Ditunda', status),
+            ],
+          ),
+          const SizedBox(height: 14),
+
+          // Summary Mini Cards
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Column(
+                  children: [
+                    const Text('Anggaran', style: TextStyle(fontSize: 10, color: AppTheme.textSecondary, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 2),
+                    Text(_formatRupiah(targetBudget), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+                  ],
+                ),
+                Container(width: 1, height: 24, color: const Color(0xFFE2E8F0)),
+                Column(
+                  children: [
+                    const Text('Kas Masuk', style: TextStyle(fontSize: 10, color: AppTheme.textSecondary, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 2),
+                    Text('+${_formatRupiah(currentIncome)}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.incomeGreen)),
+                  ],
+                ),
+                Container(width: 1, height: 24, color: const Color(0xFFE2E8F0)),
+                Column(
+                  children: [
+                    const Text('Biaya Keluar', style: TextStyle(fontSize: 10, color: AppTheme.textSecondary, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 2),
+                    Text('-${_formatRupiah(currentExpense)}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.expenseRed)),
+                  ],
+                ),
+                Container(width: 1, height: 24, color: const Color(0xFFE2E8F0)),
+                Column(
+                  children: [
+                    const Text('Laba Bersih', style: TextStyle(fontSize: 10, color: AppTheme.textSecondary, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 2),
+                    Text('${isPositiveProfit ? "+" : ""}${_formatRupiah(netProfit)}', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: isPositiveProfit ? AppTheme.incomeGreen : AppTheme.expenseRed)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Riwayat Mutasi Kas Proyek
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Riwayat Kas Proyek (${transactions.length})', style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+            ],
+          ),
+          const SizedBox(height: 8),
+
+          if (_isLoading)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.all(24),
+                child: CircularProgressIndicator(color: Color(0xFF1E3A8A)),
+              ),
+            )
+          else if (transactions.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: AppTheme.iosBg,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppTheme.iosDivider, width: 0.8),
+              ),
+              child: const Column(
+                children: [
+                  Icon(Icons.receipt_long_outlined, size: 28, color: AppTheme.textSecondary),
+                  SizedBox(height: 8),
+                  Text('Belum Ada Mutasi Kas', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
+                  SizedBox(height: 2),
+                  Text('Catat kas termin klien atau biaya belanja proyek.', style: TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
+                ],
+              ),
+            )
+          else
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 240),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppTheme.iosBg,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: AppTheme.iosDivider, width: 0.8),
+                ),
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: transactions.length,
+                  separatorBuilder: (_, __) => const Divider(height: 1, indent: 48, color: AppTheme.iosDivider),
+                  itemBuilder: (ctx, idx) {
+                    final tx = transactions[idx] as Map<String, dynamic>;
+                    final type = tx['type']?.toString() ?? 'expense';
+                    final isIncome = type == 'income';
+                    final color = isIncome ? AppTheme.incomeGreen : AppTheme.expenseRed;
+                    final icon = isIncome ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded;
+                    final amount = int.tryParse(tx['amount']?.toString() ?? '0') ?? 0;
+                    final date = tx['transaction_date']?.toString().split('T')[0] ?? '';
+                    final notes = tx['notes']?.toString();
+                    final userName = tx['user_name']?.toString() ?? 'Anggota Tim';
+
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: color.withValues(alpha: 0.12),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(icon, size: 13, color: color),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  notes?.isNotEmpty == true ? notes! : (isIncome ? 'Pemasukan Proyek' : 'Pengeluaran Proyek'),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
+                                ),
+                                Text(
+                                  '$date • oleh $userName',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Text(
+                            '${isIncome ? "+" : "-"} ${_formatRupiah(amount)}',
+                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: color),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          const SizedBox(height: 18),
+
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.textPrimary,
+              foregroundColor: Colors.white,
+              minimumSize: const Size(double.infinity, 44),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(11)),
+            ),
+            child: const Text('Tutup', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusChip(String statusCode, String label, String currentStatus) {
+    final isSelected = currentStatus == statusCode;
+    Color color = const Color(0xFF1E3A8A);
+    if (statusCode == 'completed') color = AppTheme.incomeGreen;
+    if (statusCode == 'on_hold') color = const Color(0xFFF59E0B);
+
+    return GestureDetector(
+      onTap: () => _changeStatus(statusCode),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        decoration: BoxDecoration(
+          color: isSelected ? color : color.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 10.5,
+            fontWeight: FontWeight.w700,
+            color: isSelected ? Colors.white : color,
           ),
         ),
       ),

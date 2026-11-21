@@ -433,6 +433,7 @@ app.post('/api/v1/debts/:id/pay', authenticateJWT, async (req, res) => {
 // ======================= ADMIN API ROUTES (FULL CRUD) =======================
 // Stats & Overview
 app.get('/admin/api/stats', authenticateJWT, requireAdmin, AdminController.getStats);
+app.get('/api/v1/admin/dashboard', authenticateJWT, requireAdmin, AdminController.getStats);
 
 // Users CRUD
 app.get('/admin/api/users', authenticateJWT, requireAdmin, AdminController.getUsers);
@@ -491,6 +492,23 @@ app.delete('/admin/api/categories/:id', authenticateJWT, requireAdmin, AdminCont
 
 // ======================= ADMIN WEB PORTAL WITH LOGIN GATE =======================
 const adminHtmlPath = path.join(__dirname, 'views', 'admin.html');
+const logoAssetPath = path.join(__dirname, 'views', 'linc_logo.png');
+const fallbackLogoPath = path.join(__dirname, '..', '..', 'frontend', 'assets', 'images', 'linc_logo.png');
+
+app.get('/assets/logo.png', (req, res) => {
+  const targetPath = fs.existsSync(logoAssetPath) ? logoAssetPath : (fs.existsSync(fallbackLogoPath) ? fallbackLogoPath : null);
+  if (targetPath) {
+    if (typeof res.sendFile === 'function') {
+      res.sendFile(targetPath);
+    } else {
+      res.setHeader('content-type', 'image/png');
+      res.send(fs.readFileSync(targetPath));
+    }
+  } else {
+    res.status(404).send('Logo not found');
+  }
+});
+
 app.get('/admin', (req, res) => {
   if (fs.existsSync(adminHtmlPath)) {
     if (typeof res.sendFile === 'function') {

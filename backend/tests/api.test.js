@@ -105,10 +105,19 @@ describe('Task 6: Express App & REST API Integration (TDD)', () => {
     assert.strictEqual(adminStatsRes.status, 200);
     assert.ok(adminStatsRes.body.total_users >= 1);
 
-    // Verify /admin HTML portal endpoint
+    // Verify /admin HTML portal endpoint & Logo asset
     const htmlRes = await client.send('GET', '/admin');
     assert.strictEqual(htmlRes.status, 200);
-    assert.ok(htmlRes.body.includes('Finance OS'));
+    assert.ok(htmlRes.body.includes('Uangku'));
+
+    const logoRes = await client.send('GET', '/assets/logo.png');
+    assert.strictEqual(logoRes.status, 200);
+
+    const appAdminDashboardRes = await client.send('GET', '/api/v1/admin/dashboard', {
+      headers: { 'authorization': `Bearer ${adminReg.body.token}` }
+    });
+    assert.strictEqual(appAdminDashboardRes.status, 200);
+    assert.ok(appAdminDashboardRes.body.total_users >= 1);
 
     // Verify extended Admin API endpoints
     const familiesRes = await client.send('GET', '/admin/api/families', {

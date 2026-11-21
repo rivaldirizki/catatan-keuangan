@@ -215,7 +215,10 @@ class SavingsScreen extends StatelessWidget {
 
     final auth = context.read<AuthProvider>();
     final hasFamily = auth.currentUser?.familyId != null;
-    String selectedScope = finance.isFamilyView && hasFamily ? 'family' : 'personal';
+    final hasCompany = auth.currentUser?.companyId != null;
+    String selectedScope = finance.isCompanyView && hasCompany
+        ? 'company'
+        : (finance.isFamilyView && hasFamily ? 'family' : 'personal');
 
     showModalBottomSheet(
       context: context,
@@ -256,55 +259,37 @@ class SavingsScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
 
-                  // Scope selector if user has family
-                  if (hasFamily) ...[
-                    Container(
-                      padding: const EdgeInsets.all(3),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFE5E5EA),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () {
-                                HapticFeedback.selectionClick();
-                                setModalState(() => selectedScope = 'personal');
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 8),
-                                decoration: BoxDecoration(
-                                  color: selectedScope == 'personal' ? Colors.white : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(9),
-                                  boxShadow: selectedScope == 'personal'
-                                      ? [
-                                          BoxShadow(
-                                            color: Colors.black.withValues(alpha: 0.08),
-                                            blurRadius: 4,
-                                            offset: const Offset(0, 1),
-                                          ),
-                                        ]
-                                      : null,
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(Icons.person_outline_rounded, size: 14, color: selectedScope == 'personal' ? AppTheme.textPrimary : AppTheme.textSecondary),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      'Pribadi',
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: selectedScope == 'personal' ? FontWeight.w600 : FontWeight.w500,
-                                        color: selectedScope == 'personal' ? AppTheme.textPrimary : AppTheme.textSecondary,
-                                      ),
-                                    ),
-                                  ],
+                  // Scope selector if user has family or company
+                  if (hasFamily || hasCompany) ...[
+                    Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              HapticFeedback.selectionClick();
+                              setModalState(() => selectedScope = 'personal');
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              decoration: BoxDecoration(
+                                color: selectedScope == 'personal' ? AppTheme.iosBlue : const Color(0xFFF2F2F7),
+                                borderRadius: BorderRadius.circular(9),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  'Pribadi',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: selectedScope == 'personal' ? FontWeight.w700 : FontWeight.w500,
+                                    color: selectedScope == 'personal' ? Colors.white : AppTheme.textSecondary,
+                                  ),
                                 ),
                               ),
                             ),
                           ),
+                        ),
+                        if (hasFamily) ...[
+                          const SizedBox(width: 8),
                           Expanded(
                             child: GestureDetector(
                               onTap: () {
@@ -314,44 +299,60 @@ class SavingsScreen extends StatelessWidget {
                               child: Container(
                                 padding: const EdgeInsets.symmetric(vertical: 8),
                                 decoration: BoxDecoration(
-                                  color: selectedScope == 'family' ? Colors.white : Colors.transparent,
+                                  color: selectedScope == 'family' ? AppTheme.familyPurple : const Color(0xFFF2F2F7),
                                   borderRadius: BorderRadius.circular(9),
-                                  boxShadow: selectedScope == 'family'
-                                      ? [
-                                          BoxShadow(
-                                            color: Colors.black.withValues(alpha: 0.08),
-                                            blurRadius: 4,
-                                            offset: const Offset(0, 1),
-                                          ),
-                                        ]
-                                      : null,
                                 ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(Icons.family_restroom_rounded, size: 14, color: selectedScope == 'family' ? AppTheme.familyPurple : AppTheme.textSecondary),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      'Bersama Keluarga',
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: selectedScope == 'family' ? FontWeight.w600 : FontWeight.w500,
-                                        color: selectedScope == 'family' ? AppTheme.familyPurple : AppTheme.textSecondary,
-                                      ),
+                                child: Center(
+                                  child: Text(
+                                    'Keluarga',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: selectedScope == 'family' ? FontWeight.w700 : FontWeight.w500,
+                                      color: selectedScope == 'family' ? Colors.white : AppTheme.textSecondary,
                                     ),
-                                  ],
+                                  ),
                                 ),
                               ),
                             ),
                           ),
                         ],
-                      ),
+                        if (hasCompany) ...[
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () {
+                                HapticFeedback.selectionClick();
+                                setModalState(() => selectedScope = 'company');
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: selectedScope == 'company' ? const Color(0xFF1E3A8A) : const Color(0xFFF2F2F7),
+                                  borderRadius: BorderRadius.circular(9),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    'Perusahaan',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: selectedScope == 'company' ? FontWeight.w700 : FontWeight.w500,
+                                      color: selectedScope == 'company' ? Colors.white : AppTheme.textSecondary,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      selectedScope == 'family'
-                          ? '🎯 Celengan bersama dapat diakses dan diisi oleh seluruh anggota keluarga hingga target tercapai.'
-                          : '🔒 Celengan pribadi hanya dapat dilihat dan diisi oleh Anda.',
+                      selectedScope == 'company'
+                          ? '💼 Dana & cadangan dialokasikan untuk operasional perusahaan.'
+                          : (selectedScope == 'family'
+                              ? '🎯 Celengan bersama dapat diakses dan diisi oleh seluruh anggota keluarga hingga target tercapai.'
+                              : '🔒 Celengan pribadi hanya dapat dilihat dan diisi oleh Anda.'),
                       style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary, height: 1.3),
                     ),
                     const SizedBox(height: 14),
@@ -420,10 +421,25 @@ class SavingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final finance = context.watch<FinanceProvider>();
+    final mode = finance.currentMode;
 
-    int totalSaved = finance.savings.fold(0, (sum, g) => sum + g.currentAmount);
-    int totalTarget = finance.savings.fold(0, (sum, g) => sum + g.targetAmount);
+    final scopedSavings = finance.savings.where((s) {
+      if (mode == AppViewMode.company) {
+        return s.scope == 'company';
+      } else if (mode == AppViewMode.family) {
+        return s.scope == 'family' || s.familyId != null || s.isFamilyShared;
+      } else {
+        return s.scope == 'personal' || (s.familyId == null && !s.isFamilyShared);
+      }
+    }).toList();
+
+    int totalSaved = scopedSavings.fold(0, (sum, g) => sum + g.currentAmount);
+    int totalTarget = scopedSavings.fold(0, (sum, g) => sum + g.targetAmount);
     double totalProgress = totalTarget > 0 ? (totalSaved / totalTarget).clamp(0.0, 1.0) : 0.0;
+
+    final screenTitle = mode == AppViewMode.company
+        ? 'Dana & Cadangan Perusahaan'
+        : (mode == AppViewMode.family ? 'Tabungan Bersama Keluarga' : 'Celengan & Target');
 
     return Scaffold(
       backgroundColor: AppTheme.iosBg,
@@ -435,7 +451,7 @@ class SavingsScreen extends StatelessWidget {
                 icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: AppTheme.textPrimary),
                 onPressed: () => Navigator.pop(context),
               ),
-        title: const Text('Celengan & Target', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, letterSpacing: -0.2)),
+        title: Text(screenTitle, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, letterSpacing: -0.2)),
         actions: [
           IconButton(
             icon: const Icon(Icons.add_circle_outline_rounded, color: AppTheme.iosBlue, size: 24),
@@ -509,7 +525,7 @@ class SavingsScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    'Dari total target ${_formatRupiah(totalTarget)} di ${finance.savings.length} celengan aktif',
+                    'Dari total target ${_formatRupiah(totalTarget)} di ${scopedSavings.length} celengan aktif',
                     style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
                   ),
                 ],
@@ -523,13 +539,13 @@ class SavingsScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text('Daftar Celengan', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, letterSpacing: -0.3)),
-                  Text('${finance.savings.length} target', style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary)),
+                  Text('${scopedSavings.length} target', style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary)),
                 ],
               ),
             ),
             const SizedBox(height: 12),
 
-            if (finance.savings.isEmpty)
+            if (scopedSavings.isEmpty)
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(36),
@@ -550,10 +566,10 @@ class SavingsScreen extends StatelessWidget {
               ListView.separated(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: finance.savings.length,
+                itemCount: scopedSavings.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 12),
                 itemBuilder: (context, index) {
-                  final goal = finance.savings[index];
+                  final goal = scopedSavings[index];
                   final progress = goal.targetAmount > 0 ? (goal.currentAmount / goal.targetAmount).clamp(0.0, 1.0) : 0.0;
                   final percentage = (progress * 100).toStringAsFixed(0);
 

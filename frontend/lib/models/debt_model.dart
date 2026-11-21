@@ -2,10 +2,12 @@ class DebtModel {
   final int id;
   final int userId;
   final int? familyId;
+  final int? companyId;
   final String type; // 'payable' (hutang) or 'receivable' (piutang)
   final String personName;
   final int totalAmount;
   final int remainingAmount;
+  final int installmentsCount;
   final String dueDate;
   final String status; // 'unpaid', 'partially_paid', 'paid', 'overdue'
   final String computedStatus;
@@ -16,10 +18,12 @@ class DebtModel {
     required this.id,
     required this.userId,
     this.familyId,
+    this.companyId,
     required this.type,
     required this.personName,
     required this.totalAmount,
     required this.remainingAmount,
+    this.installmentsCount = 1,
     required this.dueDate,
     required this.status,
     required this.computedStatus,
@@ -27,17 +31,25 @@ class DebtModel {
     this.notes,
   });
 
+  int get installmentAmount {
+    if (installmentsCount <= 1) return totalAmount;
+    return (totalAmount / installmentsCount).round();
+  }
+
   factory DebtModel.fromJson(Map<String, dynamic> json) {
     final total = int.tryParse(json['total_amount'].toString()) ?? 0;
     final remaining = int.tryParse(json['remaining_amount'].toString()) ?? 0;
+    final installments = int.tryParse(json['installments_count']?.toString() ?? '1') ?? 1;
     return DebtModel(
       id: json['id'] as int,
       userId: json['user_id'] as int,
       familyId: json['family_id'] != null ? json['family_id'] as int : null,
+      companyId: json['company_id'] != null ? json['company_id'] as int : null,
       type: json['type'] as String,
       personName: json['person_name'] as String,
       totalAmount: total,
       remainingAmount: remaining,
+      installmentsCount: installments > 0 ? installments : 1,
       dueDate: json['due_date'].toString().split('T')[0],
       status: (json['status'] as String?) ?? 'unpaid',
       computedStatus: (json['computed_status'] as String?) ?? (json['status'] as String?) ?? 'unpaid',
@@ -51,10 +63,12 @@ class DebtModel {
       'id': id,
       'user_id': userId,
       'family_id': familyId,
+      'company_id': companyId,
       'type': type,
       'person_name': personName,
       'total_amount': totalAmount,
       'remaining_amount': remainingAmount,
+      'installments_count': installmentsCount,
       'due_date': dueDate,
       'status': status,
       'computed_status': computedStatus,
@@ -64,4 +78,66 @@ class DebtModel {
   }
 
   String get dueStatus => computedStatus;
+}
+
+class DebtReminderModel {
+  final int id;
+  final int userId;
+  final int? familyId;
+  final int? companyId;
+  final String type; // 'payable' or 'receivable'
+  final String personName;
+  final int totalAmount;
+  final int remainingAmount;
+  final int installmentsCount;
+  final int installmentAmount;
+  final String dueDate;
+  final String status;
+  final String scope;
+  final String urgency; // 'high', 'medium', 'low'
+  final int daysLeft;
+  final bool isOverdue;
+  final String reminderMessage;
+
+  const DebtReminderModel({
+    required this.id,
+    required this.userId,
+    this.familyId,
+    this.companyId,
+    required this.type,
+    required this.personName,
+    required this.totalAmount,
+    required this.remainingAmount,
+    required this.installmentsCount,
+    required this.installmentAmount,
+    required this.dueDate,
+    required this.status,
+    required this.scope,
+    required this.urgency,
+    required this.daysLeft,
+    required this.isOverdue,
+    required this.reminderMessage,
+  });
+
+  factory DebtReminderModel.fromJson(Map<String, dynamic> json) {
+    return DebtReminderModel(
+      id: json['id'] as int,
+      userId: json['user_id'] as int,
+      familyId: json['family_id'] != null ? json['family_id'] as int : null,
+      companyId: json['company_id'] != null ? json['company_id'] as int : null,
+      type: (json['type'] as String?) ?? 'payable',
+      personName: (json['person_name'] as String?) ?? '',
+      totalAmount: int.tryParse(json['total_amount'].toString()) ?? 0,
+      remainingAmount: int.tryParse(json['remaining_amount'].toString()) ?? 0,
+      installmentsCount: int.tryParse(json['installments_count']?.toString() ?? '1') ?? 1,
+      installmentAmount: int.tryParse(json['installment_amount']?.toString() ?? '0') ?? 0,
+      dueDate: json['due_date'].toString().split('T')[0],
+      status: (json['status'] as String?) ?? 'unpaid',
+      scope: (json['scope'] as String?) ?? 'personal',
+      urgency: (json['urgency'] as String?) ?? 'low',
+      daysLeft: int.tryParse(json['days_left']?.toString() ?? '0') ?? 0,
+      isOverdue: json['is_overdue'] == true || json['is_overdue'] == 1,
+      reminderMessage: (json['reminder_message'] as String?) ?? '',
+    );
+  }
 }

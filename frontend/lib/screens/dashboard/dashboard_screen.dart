@@ -1287,22 +1287,132 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildNavItem(0, isCompany ? Icons.business_rounded : (isFamily ? Icons.family_restroom_rounded : Icons.account_balance_wallet_rounded), isCompany ? 'Perusahaan' : (isFamily ? 'Keluarga' : 'Ringkasan'), () {
-                  setState(() => _currentTab = 0);
-                }, isFamilyView: isFamily, isCompanyView: isCompany),
-                _buildNavItem(1, Icons.receipt_long_rounded, 'Riwayat', () {
-                  setState(() => _currentTab = 1);
-                }, isFamilyView: isFamily, isCompanyView: isCompany),
-                _buildNavItem(2, Icons.savings_rounded, 'Celengan', () {
-                  setState(() => _currentTab = 2);
-                }, isFamilyView: isFamily, isCompanyView: isCompany),
-                _buildNavItem(3, Icons.event_note_rounded, 'Hutang', () {
-                  setState(() => _currentTab = 3);
-                }, isFamilyView: isFamily, isCompanyView: isCompany),
+                _buildNavItem(
+                  0,
+                  isCompany
+                      ? Icons.business_rounded
+                      : (isFamily ? Icons.family_restroom_rounded : Icons.account_balance_wallet_rounded),
+                  isCompany ? 'Perusahaan' : (isFamily ? 'Keluarga' : 'Ringkasan'),
+                  () {
+                    setState(() => _currentTab = 0);
+                  },
+                  isFamilyView: isFamily,
+                  isCompanyView: isCompany,
+                ),
+                _buildNavItem(
+                  1,
+                  Icons.receipt_long_rounded,
+                  isCompany ? 'Mutasi Bisnis' : (isFamily ? 'Riwayat Keluarga' : 'Riwayat'),
+                  () {
+                    setState(() => _currentTab = 1);
+                  },
+                  isFamilyView: isFamily,
+                  isCompanyView: isCompany,
+                ),
+                _buildNavItem(
+                  2,
+                  isCompany ? Icons.folder_special_rounded : Icons.savings_rounded,
+                  isCompany ? 'Proyek & Kas' : (isFamily ? 'Tabungan Bersama' : 'Celengan'),
+                  () {
+                    setState(() => _currentTab = 2);
+                  },
+                  isFamilyView: isFamily,
+                  isCompanyView: isCompany,
+                ),
+                _buildNavItem(
+                  3,
+                  Icons.event_note_rounded,
+                  isCompany ? 'Hutang Usaha' : (isFamily ? 'Hutang Keluarga' : 'Hutang'),
+                  () {
+                    setState(() => _currentTab = 3);
+                  },
+                  isFamilyView: isFamily,
+                  isCompanyView: isCompany,
+                ),
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildDashboardDebtReminderBanner(FinanceProvider finance, String currentScope) {
+    final reminders = finance.debtReminders.where((r) {
+      if (currentScope == 'company') {
+        return r.scope == 'company' || r.companyId != null;
+      } else if (currentScope == 'family') {
+        return r.scope == 'family' || r.familyId != null;
+      } else {
+        return r.scope == 'personal' || (r.familyId == null && r.companyId == null);
+      }
+    }).toList();
+
+    if (reminders.isEmpty) return const SizedBox.shrink();
+
+    final hasOverdue = reminders.any((r) => r.isOverdue || r.urgency == 'high');
+    final bg = hasOverdue ? const Color(0xFFFFF1F2) : const Color(0xFFFFFBEB);
+    final border = hasOverdue ? const Color(0xFFFECDD3) : const Color(0xFFFDE68A);
+    final accent = hasOverdue ? const Color(0xFFE11D48) : const Color(0xFFD97706);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: border, width: 0.8),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(7),
+            decoration: BoxDecoration(color: accent.withValues(alpha: 0.15), shape: BoxShape.circle),
+            child: Icon(Icons.notifications_active_rounded, size: 16, color: accent),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  hasOverdue ? 'Tagihan Hutang Jatuh Tempo!' : 'Pengingat Tagihan Hutang',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: accent),
+                ),
+                const SizedBox(height: 1),
+                Text(
+                  reminders.first.reminderMessage,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: hasOverdue ? const Color(0xFF881337) : const Color(0xFF78350F),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          GestureDetector(
+            onTap: () {
+              HapticFeedback.lightImpact();
+              setState(() => _currentTab = 3);
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: accent,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Text(
+                'Cek',
+                style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1338,6 +1448,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            _buildDashboardDebtReminderBanner(finance, 'personal'),
             // Apple Titanium Hero Card (Carbon Black)
             Container(
               width: double.infinity,
@@ -1742,6 +1853,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            _buildDashboardDebtReminderBanner(finance, 'family'),
             // 1. ROYAL VIOLET FAMILY HERO CARD
             Container(
               width: double.infinity,
@@ -3303,6 +3415,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            _buildDashboardDebtReminderBanner(finance, 'company'),
             // 1. SAPPHIRE HERO CARD
             Container(
               width: double.infinity,

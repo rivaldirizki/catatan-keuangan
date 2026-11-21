@@ -60,4 +60,54 @@ describe('Task 5: DebtService (TDD)', () => {
     const found = debts.find(d => d.id === pastDebt.id);
     assert.strictEqual(found.computed_status, 'overdue');
   });
+
+  it('should support installment debts and reminders across personal, family, and company', async () => {
+    const { user: userA } = await AuthService.register('User A', 'usera@debt.com', 'pass123');
+    const { user: userB } = await AuthService.register('User B', 'userb@debt.com', 'pass123');
+
+    // 1. Create family debt with 6 installments
+    const famDebt = await DebtService.createDebt(
+      userA.id,
+      'payable',
+      'Bank Mandiri KPR',
+      12000000,
+      '2026-11-23', // 2 days from 2026-11-21
+      'Cicilan rumah keluarga',
+      'family',
+      101, // familyId
+      null,
+      6 // 6 installments
+    );
+
+    assert.strictEqual(famDebt.installments_count, 6);
+    assert.strictEqual(famDebt.installment_amount, 2000000);
+    assert.strictEqual(famDebt.scope, 'family');
+
+    // 2. Fetch debts for family
+    const familyDebts = await DebtService.getDebts(userB.id, 101, null, 'family');
+    assert.ok(familyDebts.some(d => d.id === famDebt.id));
+
+    // 3. Create company debt with 12 installments
+    const compDebt = await DebtService.createDebt(
+      userA.id,
+      'payable',
+      'Vendor Cloud Server',
+      24000000,
+      '2026-11-25',
+      'Sewa server tahunan',
+      'company',
+      null,
+      202, // companyId
+      12
+    );
+
+    assert.strictEqual(compDebt.installments_count, 12);
+    assert.strictEqual(compDebt.installment_amount, 2000000);
+
+    // 4. Fetch reminders for userB who is member of family 101 and company 202
+    const reminders = await DebtService.getDebtReminders(userB.id, 101, 202, '2026-11-21');
+    assert.ok(reminders.length >= 2);
+    assert.ok(reminders.some(r => r.debt_id === famDebt.id && r.scope === 'family'));
+    assert.ok(reminders.some(r => r.debt_id === compDebt.id && r.scope === 'company'));
+  });
 });

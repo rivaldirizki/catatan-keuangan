@@ -249,7 +249,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     const Divider(height: 1, indent: 16, endIndent: 16, color: AppTheme.iosDivider),
                     _buildDetailRow('Jenis Transaksi', _txTypeLabel(tx.type)),
                     const Divider(height: 1, indent: 16, endIndent: 16, color: AppTheme.iosDivider),
-                    _buildDetailRow('Lingkup', tx.scope == 'family' ? 'Keluarga' : 'Pribadi'),
+                    _buildDetailRow(
+                      'Lingkup',
+                      tx.scope == 'company'
+                          ? 'Perusahaan'
+                          : (tx.scope == 'family' ? 'Keluarga' : 'Pribadi'),
+                    ),
+                    if (tx.projectName != null && tx.projectName!.isNotEmpty) ...[
+                      const Divider(height: 1, indent: 16, endIndent: 16, color: AppTheme.iosDivider),
+                      _buildDetailRow('Proyek Usaha', tx.projectName!),
+                    ],
                     if (tx.userName != null) ...[
                       const Divider(height: 1, indent: 16, endIndent: 16, color: AppTheme.iosDivider),
                       _buildDetailRow('Dicatat Oleh', tx.userName!),
@@ -323,6 +332,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
     // 1. Filter Transactions
     final filtered = finance.transactions.where((tx) {
+      // Scope Filter based on active view mode
+      if (finance.isCompanyView) {
+        if (tx.scope != 'company' && tx.companyId == null) return false;
+      } else if (finance.isFamilyView) {
+        if (tx.scope != 'family' && tx.familyId == null) return false;
+      } else {
+        if (tx.scope != 'personal' && (tx.familyId != null || tx.companyId != null)) return false;
+      }
+
       // Type Filter
       if (_selectedType == 'income' && tx.type != 'income') return false;
       if (_selectedType == 'expense' &&
@@ -404,10 +422,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: AppTheme.textPrimary),
                 onPressed: () => Navigator.pop(context),
               ),
-        title: const Text(
-          'Riwayat Transaksi',
-          style: TextStyle(
-            fontSize: 18,
+        title: Text(
+          finance.isCompanyView
+              ? 'Mutasi Transaksi Bisnis'
+              : (finance.isFamilyView ? 'Riwayat Transaksi Keluarga' : 'Riwayat Transaksi Pribadi'),
+          style: const TextStyle(
+            fontSize: 16,
             fontWeight: FontWeight.w700,
             letterSpacing: -0.3,
             color: AppTheme.textPrimary,

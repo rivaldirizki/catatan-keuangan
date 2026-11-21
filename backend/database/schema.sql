@@ -103,17 +103,20 @@ CREATE TABLE IF NOT EXISTS debts (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NOT NULL,
   family_id INT NULL,
+  company_id INT NULL,
   type ENUM('payable', 'receivable') NOT NULL,
   person_name VARCHAR(150) NOT NULL,
   total_amount BIGINT NOT NULL,
   remaining_amount BIGINT NOT NULL,
+  installments_count INT NOT NULL DEFAULT 1,
   due_date DATE NOT NULL,
   status ENUM('unpaid', 'partially_paid', 'paid', 'overdue') DEFAULT 'unpaid',
-  scope ENUM('personal', 'family') DEFAULT 'personal',
+  scope ENUM('personal', 'family', 'company') DEFAULT 'personal',
   notes TEXT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-  FOREIGN KEY (family_id) REFERENCES families(id) ON DELETE SET NULL
+  FOREIGN KEY (family_id) REFERENCES families(id) ON DELETE SET NULL,
+  FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
 -- 9. Transactions Table

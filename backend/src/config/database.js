@@ -39,6 +39,11 @@ export async function getPool() {
         await initConn.query(`ALTER TABLE wallets ADD COLUMN IF NOT EXISTS company_id INT NULL AFTER family_id;`);
         await initConn.query(`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS company_id INT NULL AFTER family_id;`);
         await initConn.query(`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS project_id INT NULL AFTER company_id;`);
+        await initConn.query(`ALTER TABLE debts ADD COLUMN IF NOT EXISTS company_id INT NULL AFTER family_id;`);
+        await initConn.query(`ALTER TABLE debts ADD COLUMN IF NOT EXISTS installments_count INT NOT NULL DEFAULT 1 AFTER remaining_amount;`);
+        try {
+          await initConn.query(`ALTER TABLE debts MODIFY COLUMN scope ENUM('personal', 'family', 'company') DEFAULT 'personal';`);
+        } catch (_) {}
       } catch (_) {}
       await initConn.end();
 
@@ -140,6 +145,22 @@ class MockDatabase {
       }
       const whereClause = selectMatch[4];
       if (whereClause) {
+        if (table === 'debts') {
+          if (whereClause.includes('family_id = ?') && whereClause.includes('scope = "family"')) {
+            const famId = params[0];
+            const usrId = params[1];
+            return rows.filter(r => (String(r.family_id) === String(famId) && r.scope === 'family') || (String(r.user_id) === String(usrId) && r.scope === 'family'));
+          }
+          if (whereClause.includes('company_id = ?') && whereClause.includes('scope = "company"')) {
+            const cmpId = params[0];
+            const usrId = params[1];
+            return rows.filter(r => (String(r.company_id) === String(cmpId) && r.scope === 'company') || (String(r.user_id) === String(usrId) && r.scope === 'company'));
+          }
+          if (whereClause.includes('status != "paid"')) {
+            rows = rows.filter(r => r.status !== 'paid' && Number(r.remaining_amount) > 0);
+          }
+        }
+
         let paramIdx = 0;
         const conditions = whereClause.split(/\s+AND\s+/i);
         for (const cond of conditions) {

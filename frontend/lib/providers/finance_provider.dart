@@ -21,6 +21,7 @@ class FinanceProvider extends ChangeNotifier {
   List<TransactionModel> _transactions = [];
   List<SavingModel> _savings = [];
   List<DebtModel> _debts = [];
+  List<DebtReminderModel> _debtReminders = [];
   List<Map<String, dynamic>> _familyMembers = [];
   FamilyModel? _currentFamily;
   List<ProjectModel> _projects = [];
@@ -43,6 +44,7 @@ class FinanceProvider extends ChangeNotifier {
   List<TransactionModel> get transactions => _transactions;
   List<SavingModel> get savings => _savings;
   List<DebtModel> get debts => _debts;
+  List<DebtReminderModel> get debtReminders => _debtReminders;
   List<Map<String, dynamic>> get familyMembers => _familyMembers;
   FamilyModel? get currentFamily => _currentFamily;
   List<ProjectModel> get projects => _projects;
@@ -70,7 +72,11 @@ class FinanceProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final queryParams = {'familyView': isFamilyView ? 'true' : 'false'};
+      final queryParams = {
+        'familyView': isFamilyView ? 'true' : 'false',
+        'companyView': isCompanyView ? 'true' : 'false',
+        'viewMode': _currentMode.name,
+      };
 
       // 1. Wallets
       final walletsData = await apiClient.get(ApiConstants.wallets, queryParams: queryParams);
@@ -103,6 +109,18 @@ class FinanceProvider extends ChangeNotifier {
       final debtsData = await apiClient.get(ApiConstants.debts, queryParams: queryParams);
       if (debtsData is List) {
         _debts = debtsData.map((d) => DebtModel.fromJson(d as Map<String, dynamic>)).toList();
+      }
+
+      // 5b. Debt Reminders (due/overdue)
+      try {
+        final remindersData = await apiClient.get(ApiConstants.debtReminders, queryParams: queryParams);
+        if (remindersData is List) {
+          _debtReminders = remindersData.map((r) => DebtReminderModel.fromJson(r as Map<String, dynamic>)).toList();
+        } else {
+          _debtReminders = [];
+        }
+      } catch (_) {
+        _debtReminders = [];
       }
 
       // 6. Family members and family info if family view
@@ -321,6 +339,7 @@ class FinanceProvider extends ChangeNotifier {
     required String dueDate,
     String notes = '',
     String scope = 'personal',
+    int installmentsCount = 1,
   }) async {
     try {
       await apiClient.post(ApiConstants.debts, body: {
@@ -330,6 +349,7 @@ class FinanceProvider extends ChangeNotifier {
         'due_date': dueDate,
         'notes': notes,
         'scope': scope,
+        'installments_count': installmentsCount,
       });
       await fetchDashboard();
       return true;

@@ -375,9 +375,19 @@ app.post('/api/v1/savings/withdraw', authenticateJWT, async (req, res) => {
 app.get('/api/v1/debts', authenticateJWT, async (req, res) => {
   try {
     const user = await AuthService.getUserById(req.user.id);
-    const familyView = req.query.familyView === 'true';
-    const debts = await DebtService.getDebts(user.id, user.family_id, familyView);
+    const viewMode = req.query.viewMode || (req.query.companyView === 'true' ? 'company' : (req.query.familyView === 'true' ? 'family' : 'personal'));
+    const debts = await DebtService.getDebts(user.id, user.family_id, user.company_id, viewMode);
     res.json(debts);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/v1/debts/reminders', authenticateJWT, async (req, res) => {
+  try {
+    const user = await AuthService.getUserById(req.user.id);
+    const reminders = await DebtService.getDebtReminders(user.id, user.family_id, user.company_id);
+    res.json(reminders);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -385,9 +395,24 @@ app.get('/api/v1/debts', authenticateJWT, async (req, res) => {
 
 app.post('/api/v1/debts', authenticateJWT, async (req, res) => {
   try {
-    const { type, person_name, amount, due_date, notes, scope } = req.body;
+    const { type, person_name, amount, due_date, notes, scope, installments_count } = req.body;
     const user = await AuthService.getUserById(req.user.id);
-    const debt = await DebtService.createDebt(user.id, type, person_name, amount, due_date, notes, scope || 'personal', user.family_id);
+    const targetScope = scope || 'personal';
+    const famId = targetScope === 'family' ? user.family_id : null;
+    const compId = targetScope === 'company' ? user.company_id : null;
+
+    const debt = await DebtService.createDebt(
+      user.id,
+      type,
+      person_name,
+      amount,
+      due_date,
+      notes,
+      targetScope,
+      famId,
+      compId,
+      installments_count || 1
+    );
     res.status(201).json(debt);
   } catch (err) {
     res.status(400).json({ error: err.message });

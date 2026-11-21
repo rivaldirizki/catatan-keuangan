@@ -16,30 +16,38 @@ function computeDueStatus(debt, today = new Date().toISOString().split('T')[0]) 
 }
 
 export const DebtService = {
-  async createDebt(userId, type, personName, amount, dueDate, notes = '', scope = 'personal', familyId = null) {
+  async createDebt(userId, type, personName, amount, dueDate, notes = '', scope = 'personal', familyId = null, companyId = null, installmentsCount = 1) {
     const numAmount = Number(amount);
     if (numAmount <= 0) throw new Error('Debt amount must be greater than 0');
     if (!['payable', 'receivable'].includes(type)) {
       throw new Error("Invalid debt type: must be 'payable' or 'receivable'");
     }
 
+    const numInstallments = Math.max(1, Number(installmentsCount) || 1);
+    const targetScope = ['personal', 'family', 'company'].includes(scope) ? scope : 'personal';
+    const famId = targetScope === 'family' ? familyId : null;
+    const compId = targetScope === 'company' ? companyId : null;
+
     const insertRes = await db.query(
-      'INSERT INTO debts (user_id, family_id, type, person_name, total_amount, remaining_amount, due_date, status, scope, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [userId, familyId, type, personName.trim(), numAmount, numAmount, dueDate, 'unpaid', scope, notes]
+      'INSERT INTO debts (user_id, family_id, company_id, type, person_name, total_amount, remaining_amount, installments_count, due_date, status, scope, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [userId, famId, compId, type, personName.trim(), numAmount, numAmount, numInstallments, dueDate, 'unpaid', targetScope, notes || '']
     );
 
     return {
       id: insertRes.insertId,
       user_id: userId,
-      family_id: familyId,
+      family_id: famId,
+      company_id: compId,
       type,
       person_name: personName.trim(),
       total_amount: numAmount,
       remaining_amount: numAmount,
+      installments_count: numInstallments,
+      installment_amount: Math.round(numAmount / numInstallments),
       due_date: dueDate,
       status: 'unpaid',
-      scope,
-      notes
+      scope: targetScope,
+      notes: notes || ''
     };
   },
 
@@ -47,21 +55,38 @@ export const DebtService = {
     const rows = await db.query('SELECT * FROM debts WHERE id = ?', [debtId]);
     if (!rows || rows.length === 0) return null;
     const debt = rows[0];
+    const total = Number(debt.total_amount);
+    const count = Number(debt.installments_count || 1);
     return {
       ...debt,
-      total_amount: Number(debt.total_amount),
+      total_amount: total,
       remaining_amount: Number(debt.remaining_amount),
+      installments_count: count,
+      installment_amount: Math.round(total / count),
       computed_status: computeDueStatus(debt)
     };
   },
 
-  async getDebts(userId, familyId = null, familyView = false) {
+  async getDebts(userId, familyId = null, companyIdOrFamilyView = null, viewModeParam = null) {
+    let companyId = null;
+    let viewMode = 'personal';
+
+    if (typeof companyIdOrFamilyView === 'boolean') {
+      viewMode = companyIdOrFamilyView ? 'family' : 'personal';
+    } else {
+      companyId = companyIdOrFamilyView;
+      viewMode = viewModeParam || (familyId && viewModeParam === 'family' ? 'family' : 'personal');
+    }
+
     let sql = 'SELECT * FROM debts WHERE ';
     const params = [];
 
-    if (familyView && familyId) {
-      sql += '((family_id = ? AND scope = "family") OR user_id = ?)';
+    if (viewMode === 'family' && familyId) {
+      sql += '((family_id = ? AND scope = "family") OR (user_id = ? AND scope = "family"))';
       params.push(familyId, userId);
+    } else if (viewMode === 'company' && companyId) {
+      sql += '((company_id = ? AND scope = "company") OR (user_id = ? AND scope = "company"))';
+      params.push(companyId, userId);
     } else {
       sql += 'user_id = ?';
       params.push(userId);
@@ -69,12 +94,91 @@ export const DebtService = {
     sql += ' ORDER BY due_date ASC';
 
     const rows = await db.query(sql, params);
-    return (rows || []).map(debt => ({
-      ...debt,
-      total_amount: Number(debt.total_amount),
-      remaining_amount: Number(debt.remaining_amount),
-      computed_status: computeDueStatus(debt)
-    }));
+    return (rows || []).map(debt => {
+      const total = Number(debt.total_amount);
+      const count = Number(debt.installments_count || 1);
+      return {
+        ...debt,
+        total_amount: total,
+        remaining_amount: Number(debt.remaining_amount),
+        installments_count: count,
+        installment_amount: Math.round(total / count),
+        computed_status: computeDueStatus(debt)
+      };
+    });
+  },
+
+  async getDebtReminders(userId, familyId = null, companyId = null, today = new Date().toISOString().split('T')[0]) {
+    const allDebts = await db.query('SELECT * FROM debts WHERE status != "paid" ORDER BY due_date ASC');
+
+    const relevant = (allDebts || []).filter(d => {
+      const rem = Number(d.remaining_amount || 0);
+      if (rem <= 0 || d.status === 'paid') return false;
+
+      // 1. Personal debt of this user
+      if (d.user_id === userId && (d.scope === 'personal' || !d.scope)) return true;
+      // 2. Family debt for family members
+      if (familyId && d.family_id === familyId && d.scope === 'family') return true;
+      // 3. Company debt for company members
+      if (companyId && d.company_id === companyId && d.scope === 'company') return true;
+      return false;
+    });
+
+    return relevant.map(d => {
+      const remaining = Number(d.remaining_amount);
+      const total = Number(d.total_amount);
+      const count = Number(d.installments_count || 1);
+      const installmentAmt = Math.round(total / count);
+
+      const dueDateObj = new Date(d.due_date);
+      const todayObj = new Date(today);
+      const diffDays = Math.ceil((dueDateObj - todayObj) / (1000 * 60 * 60 * 24));
+      const isOverdue = diffDays < 0;
+
+      let scopeLabel = 'Pribadi';
+      if (d.scope === 'family') scopeLabel = 'Keluarga';
+      else if (d.scope === 'company') scopeLabel = 'Perusahaan';
+
+      let urgency = 'normal';
+      let title = '';
+      if (isOverdue) {
+        urgency = 'high';
+        title = `Tagihan Lewat Jatuh Tempo (${scopeLabel})`;
+      } else if (diffDays === 0) {
+        urgency = 'high';
+        title = `Jatuh Tempo Hari Ini (${scopeLabel})`;
+      } else if (diffDays <= 3) {
+        urgency = 'medium';
+        title = `Jatuh Tempo dalam ${diffDays} Hari (${scopeLabel})`;
+      } else {
+        urgency = 'low';
+        title = `Pengingat Tagihan (${scopeLabel})`;
+      }
+
+      const actionText = d.type === 'payable' ? 'Hutang kepada' : 'Piutang dari';
+      const cicilanText = count > 1 ? ` (${count}x cicilan @ Rp ${installmentAmt.toLocaleString('id-ID')})` : '';
+      const message = `${actionText} ${d.person_name} sisa Rp ${remaining.toLocaleString('id-ID')}${cicilanText} jatuh tempo ${d.due_date}.`;
+
+      return {
+        id: d.id,
+        debt_id: d.id,
+        type: d.type,
+        person_name: d.person_name,
+        scope: d.scope || 'personal',
+        scope_label: scopeLabel,
+        total_amount: total,
+        remaining_amount: remaining,
+        installments_count: count,
+        installment_amount: installmentAmt,
+        due_date: d.due_date,
+        days_left: diffDays,
+        is_overdue: isOverdue,
+        is_due_today: diffDays === 0,
+        urgency,
+        title,
+        message
+      };
+    });
   },
 
   async recordPayment(userId, debtId, walletId, paymentAmount, date = new Date().toISOString().split('T')[0], notes = '') {
@@ -107,8 +211,8 @@ export const DebtService = {
       const txType = 'debt_payment';
       const memo = notes || (debt.type === 'payable' ? `Bayar hutang ke: ${debt.person_name}` : `Terima piutang dari: ${debt.person_name}`);
       await trx.query(
-        'INSERT INTO transactions (user_id, family_id, wallet_id, category_id, type, amount, transaction_date, notes, destination_wallet_id, destination_saving_id, debt_id, scope) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [userId, debt.family_id, walletId, null, txType, numPayment, date, memo, null, null, debtId, debt.scope]
+        'INSERT INTO transactions (user_id, family_id, company_id, wallet_id, category_id, type, amount, transaction_date, notes, destination_wallet_id, destination_saving_id, debt_id, scope) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [userId, debt.family_id, debt.company_id || null, walletId, null, txType, numPayment, date, memo, null, null, debtId, debt.scope]
       );
 
       return {

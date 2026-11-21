@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/finance_provider.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/constants/api_constants.dart';
 import '../../models/saving_model.dart';
 import '../../models/project_model.dart';
 import '../../widgets/family_switcher.dart';
@@ -1147,6 +1148,265 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  void _showAdminPortalModal(BuildContext context) {
+    final finance = context.read<FinanceProvider>();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return FutureBuilder<dynamic>(
+          future: finance.apiClient.get(ApiConstants.adminDashboard),
+          builder: (context, snapshot) {
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.85,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+              ),
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+              child: Column(
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 5,
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFD1D1D6),
+                        borderRadius: BorderRadius.circular(2.5),
+                      ),
+                    ),
+                  ),
+
+                  // Header with LiNC Company Logo
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFAFAFC),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppTheme.iosDivider, width: 0.8),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Image.asset(
+                          'assets/images/linc_logo.png',
+                          width: 140,
+                          fit: BoxFit.contain,
+                          errorBuilder: (_, __, ___) => const Text(
+                            'LiNC Admin',
+                            style: TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF0038FF), fontSize: 18),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF0038FF).withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Text(
+                            'Backend Control',
+                            style: TextStyle(color: Color(0xFF0038FF), fontSize: 11, fontWeight: FontWeight.w700),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+
+                  if (snapshot.connectionState == ConnectionState.waiting)
+                    const Expanded(
+                      child: Center(
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF0038FF)),
+                      ),
+                    )
+                  else if (snapshot.hasError)
+                    Expanded(
+                      child: Center(
+                        child: Text(
+                          'Gagal memuat portal admin: ${snapshot.error}',
+                          style: const TextStyle(color: AppTheme.expenseRed, fontSize: 13),
+                        ),
+                      ),
+                    )
+                  else ...[
+                    Expanded(
+                      child: SingleChildScrollView(
+                        physics: const BouncingScrollPhysics(),
+                        child: _buildAdminDashboardContent(snapshot.data as Map<String, dynamic>),
+                      ),
+                    ),
+                  ],
+
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Sistem by Linc 2026',
+                    style: TextStyle(fontSize: 11, color: AppTheme.textSecondary, fontWeight: FontWeight.w500),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildAdminDashboardContent(Map<String, dynamic> data) {
+    final totalUsers = data['total_users'] ?? 0;
+    final adminCount = data['admin_count'] ?? 0;
+    final totalFamilies = data['total_families'] ?? 0;
+    final totalCompanies = data['total_companies'] ?? 0;
+    final totalProjects = data['total_projects'] ?? 0;
+    final totalTx = data['total_transactions'] ?? 0;
+    final systemBalance = int.tryParse(data['total_system_balance']?.toString() ?? '0') ?? 0;
+    final savingsBalance = int.tryParse(data['total_savings_balance']?.toString() ?? '0') ?? 0;
+    final activeDebts = int.tryParse(data['total_active_debts']?.toString() ?? '0') ?? 0;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Ikhtisar Global Sistem',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+        ),
+        const SizedBox(height: 10),
+
+        Row(
+          children: [
+            Expanded(
+              child: _buildAdminStatCard(
+                'Total Pengguna',
+                '$totalUsers Akun',
+                '$adminCount Administrator',
+                Icons.people_outline_rounded,
+                AppTheme.iosBlue,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _buildAdminStatCard(
+                'Keluarga & Bisnis',
+                '$totalFamilies Kel • $totalCompanies PT',
+                '$totalProjects Proyek Terdata',
+                Icons.domain_rounded,
+                const Color(0xFF1E3A8A),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+
+        Row(
+          children: [
+            Expanded(
+              child: _buildAdminStatCard(
+                'Kas Seluruh Sistem',
+                _formatRupiah(systemBalance),
+                '$totalTx Mutasi Tercatat',
+                Icons.account_balance_wallet_outlined,
+                AppTheme.incomeGreen,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _buildAdminStatCard(
+                'Simpanan & Hutang',
+                _formatRupiah(savingsBalance),
+                'Hutang: ${_formatRupiah(activeDebts)}',
+                Icons.savings_outlined,
+                AppTheme.warningOrange,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF2F4F8),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppTheme.iosDivider, width: 0.8),
+          ),
+          child: const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.verified_user_outlined, size: 16, color: Color(0xFF0038FF)),
+                  SizedBox(width: 6),
+                  Text(
+                    'Status Sistem Terverifikasi',
+                    style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                  ),
+                ],
+              ),
+              SizedBox(height: 4),
+              Text(
+                'Seluruh fitur CRUD Admin, manajemen data pengguna, keluarga, perusahaan, proyek, dan audit transaksi aktif.',
+                style: TextStyle(fontSize: 11.5, color: AppTheme.textSecondary, height: 1.35),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
+  Widget _buildAdminStatCard(String title, String mainValue, String subValue, IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.iosDivider, width: 0.8),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 6, offset: const Offset(0, 2)),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 10.5, color: AppTheme.textSecondary, fontWeight: FontWeight.w500),
+                ),
+              ),
+              Icon(icon, size: 14, color: color),
+            ],
+          ),
+          const SizedBox(height: 6),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              mainValue,
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: color),
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            subValue,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary),
+          ),
+        ],
+      ),
+    );
+  }
+
   // ======================= MAIN BUILD =======================
   @override
   Widget build(BuildContext context) {
@@ -1246,6 +1506,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ],
               ),
               actions: [
+                if (auth.currentUser?.role == 'admin') ...[
+                  IconButton(
+                    padding: const EdgeInsets.all(6),
+                    constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                    tooltip: 'Admin Backend Portal',
+                    icon: const Icon(Icons.admin_panel_settings_rounded, size: 20, color: Color(0xFF0038FF)),
+                    onPressed: () {
+                      HapticFeedback.lightImpact();
+                      _showAdminPortalModal(context);
+                    },
+                  ),
+                  const SizedBox(width: 4),
+                ],
                 const FittedBox(
                   fit: BoxFit.scaleDown,
                   child: FamilySwitcher(),

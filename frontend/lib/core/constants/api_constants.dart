@@ -45,4 +45,7 @@ class ApiConstants {
   static const String debts = '/debts';
   static const String debtReminders = '/debts/reminders';
   static String debtPay(int id) => '/debts/$id/pay';
+
+  // Admin
+  static const String adminDashboard = '/admin/dashboard';
 }

@@ -73,19 +73,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
         elevation: 0,
         scrolledUnderElevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: AppTheme.textPrimary),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18, color: AppTheme.textPrimary),
           onPressed: () {
             auth.clearError();
             Navigator.pop(context);
           },
-        ),
-        title: const Text(
-          'Daftar Akun',
-          style: TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.w600,
-            color: AppTheme.textPrimary,
-          ),
         ),
         centerTitle: true,
       ),
@@ -93,67 +85,62 @@ class _RegisterScreenState extends State<RegisterScreen> {
         child: Center(
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 420),
+              constraints: const BoxConstraints(maxWidth: 400),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // LINC Company Logo Card
+                  // Minimalist Category Tag
                   Center(
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                       decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF0038FF).withValues(alpha: 0.08),
-                            blurRadius: 18,
-                            offset: const Offset(0, 5),
-                          ),
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.03),
-                            blurRadius: 6,
-                            offset: const Offset(0, 2),
+                        color: AppTheme.iosBlue.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.person_add_outlined, size: 13, color: AppTheme.iosBlue),
+                          SizedBox(width: 5),
+                          Text(
+                            'Pendaftaran Akun',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.iosBlue,
+                              letterSpacing: 0.2,
+                            ),
                           ),
                         ],
                       ),
-                      child: Image.asset(
-                        'assets/images/linc_logo.png',
-                        width: 150,
-                        fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) => const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.business_rounded, color: Color(0xFF0038FF), size: 20),
-                            SizedBox(width: 6),
-                            Text('LiNC', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF0038FF))),
-                          ],
-                        ),
-                      ),
                     ),
                   ),
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 16),
 
+                  // Brand Display Title (Clean Typography)
                   const Text(
-                    'Daftar Akun Uangku',
+                    'Buat Akun Baru',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 22,
+                      fontSize: 28,
                       fontWeight: FontWeight.w800,
-                      letterSpacing: -0.4,
+                      letterSpacing: -0.7,
                       color: AppTheme.textPrimary,
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 8),
+
+                  // Subtitle
                   const Text(
-                    'Kelola finansial pribadi, keluarga & perusahaan secara terpadu',
+                    'Satu akun terpadu untuk finansial pribadi, keluarga, dan kolaborasi bisnis Anda.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 13.5,
                       color: AppTheme.textSecondary,
-                      height: 1.35,
+                      height: 1.4,
+                      fontWeight: FontWeight.w400,
                     ),
                   ),
                   const SizedBox(height: 32),
@@ -170,7 +157,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.info_outline_rounded, size: 20, color: AppTheme.expenseRed),
+                          const Icon(Icons.info_outline_rounded, size: 18, color: AppTheme.expenseRed),
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
@@ -189,14 +176,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   // iOS Inset Grouped Text Input Container (3 fields)
                   Container(
                     decoration: BoxDecoration(
-                      color: AppTheme.iosSurface,
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(18),
                       border: Border.all(color: AppTheme.iosDivider, width: 0.8),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.02),
-                          blurRadius: 10,
-                          offset: const Offset(0, 2),
+                          color: Colors.black.withValues(alpha: 0.025),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
                         ),
                       ],
                     ),
@@ -206,11 +193,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         TextField(
                           controller: _nameController,
                           textCapitalization: TextCapitalization.words,
-                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: AppTheme.textPrimary),
+                          textInputAction: TextInputAction.next,
+                          style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w500, color: AppTheme.textPrimary),
                           decoration: const InputDecoration(
                             hintText: 'Nama Lengkap',
-                            hintStyle: TextStyle(color: AppTheme.textSecondary, fontSize: 15),
-                            prefixIcon: Icon(Icons.person_outline_rounded, size: 20, color: AppTheme.textSecondary),
+                            hintStyle: TextStyle(color: Color(0xFF8E8E93), fontSize: 14.5, fontWeight: FontWeight.w400),
+                            prefixIcon: Icon(Icons.person_outline_rounded, size: 19, color: Color(0xFF8E8E93)),
                             border: InputBorder.none,
                             enabledBorder: InputBorder.none,
                             focusedBorder: InputBorder.none,
@@ -223,11 +211,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         TextField(
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
-                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: AppTheme.textPrimary),
+                          textInputAction: TextInputAction.next,
+                          style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w500, color: AppTheme.textPrimary),
                           decoration: const InputDecoration(
-                            hintText: 'Email',
-                            hintStyle: TextStyle(color: AppTheme.textSecondary, fontSize: 15),
-                            prefixIcon: Icon(Icons.mail_outline_rounded, size: 20, color: AppTheme.textSecondary),
+                            hintText: 'Alamat Email',
+                            hintStyle: TextStyle(color: Color(0xFF8E8E93), fontSize: 14.5, fontWeight: FontWeight.w400),
+                            prefixIcon: Icon(Icons.mail_outline_rounded, size: 19, color: Color(0xFF8E8E93)),
                             border: InputBorder.none,
                             enabledBorder: InputBorder.none,
                             focusedBorder: InputBorder.none,
@@ -240,16 +229,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         TextField(
                           controller: _passwordController,
                           obscureText: _obscurePassword,
-                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: AppTheme.textPrimary),
+                          textInputAction: TextInputAction.done,
+                          onSubmitted: (_) => _submitRegister(),
+                          style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w500, color: AppTheme.textPrimary),
                           decoration: InputDecoration(
                             hintText: 'Kata Sandi (min. 6 karakter)',
-                            hintStyle: const TextStyle(color: AppTheme.textSecondary, fontSize: 15),
-                            prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20, color: AppTheme.textSecondary),
+                            hintStyle: const TextStyle(color: Color(0xFF8E8E93), fontSize: 14.5, fontWeight: FontWeight.w400),
+                            prefixIcon: const Icon(Icons.lock_outline_rounded, size: 19, color: Color(0xFF8E8E93)),
                             suffixIcon: IconButton(
                               icon: Icon(
                                 _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                                size: 20,
-                                color: AppTheme.textSecondary,
+                                size: 18,
+                                color: const Color(0xFF8E8E93),
                               ),
                               onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                             ),
@@ -265,11 +256,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  // Apple Action Button
+                  // Apple Obsidian Action Button
                   ElevatedButton(
                     onPressed: auth.isLoading ? null : _submitRegister,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.textPrimary,
+                      backgroundColor: const Color(0xFF1C1C1E),
                       foregroundColor: Colors.white,
                       minimumSize: const Size(double.infinity, 52),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -279,11 +270,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ? const SizedBox(
                             width: 20,
                             height: 20,
-                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.2),
                           )
                         : const Text(
-                            'Buat Akun',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, letterSpacing: -0.2),
+                            'Daftar Akun',
+                            style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700, letterSpacing: -0.2),
                           ),
                   ),
                   const SizedBox(height: 24),
@@ -295,7 +286,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     children: [
                       const Text(
                         'Sudah memiliki akun? ',
-                        style: TextStyle(fontSize: 14, color: AppTheme.textSecondary),
+                        style: TextStyle(fontSize: 13.5, color: AppTheme.textSecondary),
                       ),
                       GestureDetector(
                         onTap: () {
@@ -305,15 +296,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         child: const Text(
                           'Masuk',
                           style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w700,
                             color: AppTheme.iosBlue,
                           ),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 36),
 
                   // Bottom Small Brand Attribution
                   Text(
@@ -323,7 +314,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       fontSize: 11.5,
                       fontWeight: FontWeight.w500,
                       letterSpacing: 0.4,
-                      color: AppTheme.textSecondary.withValues(alpha: 0.7),
+                      color: AppTheme.textSecondary.withValues(alpha: 0.6),
                     ),
                   ),
                   const SizedBox(height: 12),

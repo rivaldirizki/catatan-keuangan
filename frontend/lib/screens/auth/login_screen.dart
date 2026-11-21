@@ -59,69 +59,64 @@ class _LoginScreenState extends State<LoginScreen> {
         child: Center(
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 36),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 420),
+              constraints: const BoxConstraints(maxWidth: 400),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const SizedBox(height: 16),
-                  // Apple-Style LINC Company Logo Card
+                  const SizedBox(height: 12),
+
+                  // Minimalist Category Tag
                   Center(
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: AppTheme.iosBlue.withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF0038FF).withValues(alpha: 0.08),
-                            blurRadius: 20,
-                            offset: const Offset(0, 6),
-                          ),
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.03),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.shield_outlined, size: 13, color: AppTheme.iosBlue),
+                          SizedBox(width: 5),
+                          Text(
+                            'Finansial Terpadu',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.iosBlue,
+                              letterSpacing: 0.2,
+                            ),
                           ),
                         ],
                       ),
-                      child: Image.asset(
-                        'assets/images/linc_logo.png',
-                        width: 180,
-                        fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) => const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.business_rounded, color: Color(0xFF0038FF), size: 24),
-                            SizedBox(width: 8),
-                            Text('LiNC', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF0038FF))),
-                          ],
-                        ),
-                      ),
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 16),
 
-                  // Header Titles
+                  // Brand Display Title (Clean Typography)
                   const Text(
                     'Uangku',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 26,
+                      fontSize: 32,
                       fontWeight: FontWeight.w800,
-                      letterSpacing: -0.5,
+                      letterSpacing: -0.8,
                       color: AppTheme.textPrimary,
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 8),
+
+                  // Subtitle
                   const Text(
-                    'Sistem Manajemen Finansial Pribadi, Keluarga & Bisnis',
+                    'Kelola keuangan pribadi, keluarga, dan bisnis secara rapi dalam satu aplikasi elegan.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 13.5,
                       color: AppTheme.textSecondary,
-                      height: 1.35,
+                      height: 1.4,
+                      fontWeight: FontWeight.w400,
                     ),
                   ),
                   const SizedBox(height: 36),
@@ -138,7 +133,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.info_outline_rounded, size: 20, color: AppTheme.expenseRed),
+                          const Icon(Icons.info_outline_rounded, size: 18, color: AppTheme.expenseRed),
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
@@ -157,14 +152,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   // iOS Inset Grouped Text Input Container
                   Container(
                     decoration: BoxDecoration(
-                      color: AppTheme.iosSurface,
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(18),
                       border: Border.all(color: AppTheme.iosDivider, width: 0.8),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.02),
-                          blurRadius: 10,
-                          offset: const Offset(0, 2),
+                          color: Colors.black.withValues(alpha: 0.025),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
                         ),
                       ],
                     ),
@@ -174,11 +169,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         TextField(
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
-                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: AppTheme.textPrimary),
+                          textInputAction: TextInputAction.next,
+                          style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w500, color: AppTheme.textPrimary),
                           decoration: const InputDecoration(
-                            hintText: 'Email',
-                            hintStyle: TextStyle(color: AppTheme.textSecondary, fontSize: 15),
-                            prefixIcon: Icon(Icons.mail_outline_rounded, size: 20, color: AppTheme.textSecondary),
+                            hintText: 'Alamat Email',
+                            hintStyle: TextStyle(color: Color(0xFF8E8E93), fontSize: 14.5, fontWeight: FontWeight.w400),
+                            prefixIcon: Icon(Icons.mail_outline_rounded, size: 19, color: Color(0xFF8E8E93)),
                             border: InputBorder.none,
                             enabledBorder: InputBorder.none,
                             focusedBorder: InputBorder.none,
@@ -191,16 +187,18 @@ class _LoginScreenState extends State<LoginScreen> {
                         TextField(
                           controller: _passwordController,
                           obscureText: _obscurePassword,
-                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: AppTheme.textPrimary),
+                          textInputAction: TextInputAction.done,
+                          onSubmitted: (_) => _submitLogin(),
+                          style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w500, color: AppTheme.textPrimary),
                           decoration: InputDecoration(
                             hintText: 'Kata Sandi',
-                            hintStyle: const TextStyle(color: AppTheme.textSecondary, fontSize: 15),
-                            prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20, color: AppTheme.textSecondary),
+                            hintStyle: const TextStyle(color: Color(0xFF8E8E93), fontSize: 14.5, fontWeight: FontWeight.w400),
+                            prefixIcon: const Icon(Icons.lock_outline_rounded, size: 19, color: Color(0xFF8E8E93)),
                             suffixIcon: IconButton(
                               icon: Icon(
                                 _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                                size: 20,
-                                color: AppTheme.textSecondary,
+                                size: 18,
+                                color: const Color(0xFF8E8E93),
                               ),
                               onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                             ),
@@ -216,11 +214,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  // Apple Black Pill Button
+                  // Apple Obsidian Primary Action Button
                   ElevatedButton(
                     onPressed: auth.isLoading ? null : _submitLogin,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.textPrimary,
+                      backgroundColor: const Color(0xFF1C1C1E),
                       foregroundColor: Colors.white,
                       minimumSize: const Size(double.infinity, 52),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -230,23 +228,23 @@ class _LoginScreenState extends State<LoginScreen> {
                         ? const SizedBox(
                             width: 20,
                             height: 20,
-                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.2),
                           )
                         : const Text(
                             'Masuk',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, letterSpacing: -0.2),
+                            style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700, letterSpacing: -0.2),
                           ),
                   ),
                   const SizedBox(height: 24),
 
-                  // Register Link Footer (Wrap-safe)
+                  // Register Link Footer
                   Wrap(
                     alignment: WrapAlignment.center,
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       const Text(
                         'Belum memiliki akun? ',
-                        style: TextStyle(fontSize: 14, color: AppTheme.textSecondary),
+                        style: TextStyle(fontSize: 13.5, color: AppTheme.textSecondary),
                       ),
                       GestureDetector(
                         onTap: () {
@@ -259,15 +257,15 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: const Text(
                           'Daftar Sekarang',
                           style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w700,
                             color: AppTheme.iosBlue,
                           ),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 36),
 
                   // Bottom Small Brand Attribution
                   Text(
@@ -277,7 +275,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       fontSize: 11.5,
                       fontWeight: FontWeight.w500,
                       letterSpacing: 0.4,
-                      color: AppTheme.textSecondary.withValues(alpha: 0.7),
+                      color: AppTheme.textSecondary.withValues(alpha: 0.6),
                     ),
                   ),
                   const SizedBox(height: 12),

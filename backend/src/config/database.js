@@ -162,35 +162,36 @@ class MockDatabase {
     const updateMatch = cleanSql.match(/^UPDATE\s+([a-zA-Z0-9_]+)\s+SET\s+(.+?)\s+WHERE\s+(.+)$/is);
     if (updateMatch) {
       const table = updateMatch[1].toLowerCase();
-      const whereClause = updateMatch[3];
+      const whereClause = updateMatch[3].trim();
       const rows = this.tables[table] || [];
+      const setParts = updateMatch[2].split(',').map(s => s.trim());
+      
+      const eqMatch = whereClause.match(/(?:[a-zA-Z0-9_]+\.)?([a-zA-Z0-9_]+)\s*=\s*\?/i);
       let affected = 0;
-      const idMatch = whereClause.match(/id\s*=\s*\?/i);
-      if (idMatch) {
-        const idVal = params[params.length - 1];
-        const row = rows.find(r => r.id === Number(idVal));
-        if (row) {
-          const setParts = updateMatch[2].split(',').map(s => s.trim());
-          setParts.forEach((part, idx) => {
-            const col = part.split('=')[0].trim().replace(/[`"']/g, '');
-            row[col] = params[idx];
-          });
-          affected++;
-        }
+      if (eqMatch) {
+        const whereCol = eqMatch[1].toLowerCase();
+        const whereVal = params[params.length - 1];
+        rows.forEach(row => {
+          if (String(row[whereCol]) === String(whereVal)) {
+            setParts.forEach((part, idx) => {
+              const col = part.split('=')[0].trim().replace(/[`"']/g, '');
+              row[col] = params[idx];
+            });
+            affected++;
+          }
+        });
       }
       return { affectedRows: affected };
     }
 
-    const deleteMatch = cleanSql.match(/^DELETE\s+FROM\s+([a-zA-Z0-9_]+)\s+WHERE\s+id\s*=\s*\?/i);
+    const deleteMatch = cleanSql.match(/^DELETE\s+FROM\s+([a-zA-Z0-9_]+)\s+WHERE\s+([a-zA-Z0-9_]+)\s*=\s*\?/i);
     if (deleteMatch) {
       const table = deleteMatch[1].toLowerCase();
-      const idVal = params[0];
-      const idx = (this.tables[table] || []).findIndex(r => r.id === Number(idVal));
-      if (idx !== -1) {
-        this.tables[table].splice(idx, 1);
-        return { affectedRows: 1 };
-      }
-      return { affectedRows: 0 };
+      const col = deleteMatch[2].toLowerCase();
+      const val = params[0];
+      const initialLen = (this.tables[table] || []).length;
+      this.tables[table] = (this.tables[table] || []).filter(r => String(r[col]) !== String(val));
+      return { affectedRows: initialLen - this.tables[table].length };
     }
 
     return [];

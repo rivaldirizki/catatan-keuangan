@@ -405,14 +405,64 @@ app.post('/api/v1/debts/:id/pay', authenticateJWT, async (req, res) => {
   }
 });
 
-// ======================= ADMIN API ROUTES =======================
+// ======================= ADMIN API ROUTES (FULL CRUD) =======================
+// Stats & Overview
 app.get('/admin/api/stats', authenticateJWT, requireAdmin, AdminController.getStats);
+
+// Users CRUD
 app.get('/admin/api/users', authenticateJWT, requireAdmin, AdminController.getUsers);
-app.get('/admin/api/families', authenticateJWT, requireAdmin, AdminController.getFamilies);
-app.get('/admin/api/transactions', authenticateJWT, requireAdmin, AdminController.getTransactions);
-app.get('/admin/api/savings', authenticateJWT, requireAdmin, AdminController.getSavings);
-app.get('/admin/api/debts', authenticateJWT, requireAdmin, AdminController.getDebts);
+app.post('/admin/api/users', authenticateJWT, requireAdmin, AdminController.createUser);
+app.put('/admin/api/users/:id', authenticateJWT, requireAdmin, AdminController.updateUser);
+app.delete('/admin/api/users/:id', authenticateJWT, requireAdmin, AdminController.deleteUser);
 app.put('/admin/api/users/:id/role', authenticateJWT, requireAdmin, AdminController.updateUserRole);
+
+// Families CRUD
+app.get('/admin/api/families', authenticateJWT, requireAdmin, AdminController.getFamilies);
+app.post('/admin/api/families', authenticateJWT, requireAdmin, AdminController.createFamily);
+app.put('/admin/api/families/:id', authenticateJWT, requireAdmin, AdminController.updateFamily);
+app.delete('/admin/api/families/:id', authenticateJWT, requireAdmin, AdminController.deleteFamily);
+
+// Companies CRUD
+app.get('/admin/api/companies', authenticateJWT, requireAdmin, AdminController.getCompanies);
+app.post('/admin/api/companies', authenticateJWT, requireAdmin, AdminController.createCompany);
+app.put('/admin/api/companies/:id', authenticateJWT, requireAdmin, AdminController.updateCompany);
+app.delete('/admin/api/companies/:id', authenticateJWT, requireAdmin, AdminController.deleteCompany);
+
+// Projects CRUD
+app.get('/admin/api/projects', authenticateJWT, requireAdmin, AdminController.getProjects);
+app.post('/admin/api/projects', authenticateJWT, requireAdmin, AdminController.createProject);
+app.put('/admin/api/projects/:id', authenticateJWT, requireAdmin, AdminController.updateProject);
+app.delete('/admin/api/projects/:id', authenticateJWT, requireAdmin, AdminController.deleteProject);
+
+// Wallets CRUD
+app.get('/admin/api/wallets', authenticateJWT, requireAdmin, AdminController.getWallets);
+app.post('/admin/api/wallets', authenticateJWT, requireAdmin, AdminController.createWallet);
+app.put('/admin/api/wallets/:id', authenticateJWT, requireAdmin, AdminController.updateWallet);
+app.delete('/admin/api/wallets/:id', authenticateJWT, requireAdmin, AdminController.deleteWallet);
+
+// Transactions CRUD
+app.get('/admin/api/transactions', authenticateJWT, requireAdmin, AdminController.getTransactions);
+app.post('/admin/api/transactions', authenticateJWT, requireAdmin, AdminController.createTransaction);
+app.put('/admin/api/transactions/:id', authenticateJWT, requireAdmin, AdminController.updateTransaction);
+app.delete('/admin/api/transactions/:id', authenticateJWT, requireAdmin, AdminController.deleteTransaction);
+
+// Savings CRUD
+app.get('/admin/api/savings', authenticateJWT, requireAdmin, AdminController.getSavings);
+app.post('/admin/api/savings', authenticateJWT, requireAdmin, AdminController.createSaving);
+app.put('/admin/api/savings/:id', authenticateJWT, requireAdmin, AdminController.updateSaving);
+app.delete('/admin/api/savings/:id', authenticateJWT, requireAdmin, AdminController.deleteSaving);
+
+// Debts CRUD
+app.get('/admin/api/debts', authenticateJWT, requireAdmin, AdminController.getDebts);
+app.post('/admin/api/debts', authenticateJWT, requireAdmin, AdminController.createDebt);
+app.put('/admin/api/debts/:id', authenticateJWT, requireAdmin, AdminController.updateDebt);
+app.delete('/admin/api/debts/:id', authenticateJWT, requireAdmin, AdminController.deleteDebt);
+
+// Categories CRUD
+app.get('/admin/api/categories', authenticateJWT, requireAdmin, AdminController.getCategories);
+app.post('/admin/api/categories', authenticateJWT, requireAdmin, AdminController.createCategory);
+app.put('/admin/api/categories/:id', authenticateJWT, requireAdmin, AdminController.updateCategory);
+app.delete('/admin/api/categories/:id', authenticateJWT, requireAdmin, AdminController.deleteCategory);
 
 // ======================= ADMIN WEB PORTAL WITH LOGIN GATE =======================
 const adminHtmlPath = path.join(__dirname, 'views', 'admin.html');

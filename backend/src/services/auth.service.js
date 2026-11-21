@@ -4,7 +4,7 @@ import { db } from '../config/database.js';
 const JWT_SECRET = process.env.JWT_SECRET || 'finance-super-secret-key-2026';
 
 // Helper to hash password with PBKDF2 salt
-function hashPassword(password) {
+export function hashPassword(password) {
   const salt = crypto.randomBytes(16).toString('hex');
   const hash = crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha512').toString('hex');
   return `${salt}:${hash}`;

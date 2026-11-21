@@ -6,7 +6,7 @@
   <title>Admin Console • Finance OS</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -15,6 +15,7 @@
           fontFamily: {
             sans: ['Inter', 'sans-serif'],
             display: ['Plus Jakarta Sans', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
           },
           colors: {
             brand: {
@@ -34,33 +35,21 @@
       background-color: #F8FAFC;
       font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
     }
-    /* Clean subtle scrollbar */
-    ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #F1F5F9;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #CBD5E1;
-      border-radius: 4px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #94A3B8;
-    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #F1F5F9; }
+    ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+    .modal-backdrop { background-color: rgba(15, 23, 42, 0.45); backdrop-filter: blur(4px); }
   </style>
 </head>
 <body class="text-slate-800 min-h-screen flex flex-col font-sans selection:bg-indigo-100 selection:text-indigo-800 antialiased bg-[#F8FAFC]">
 
   <!-- ======================== 1. LOGIN GATE VIEW ======================== -->
   <div id="login-view" class="flex items-center justify-center min-h-screen px-4 py-12 relative overflow-hidden bg-gradient-to-b from-slate-50 via-white to-slate-100">
-    <!-- Ambient subtle glow -->
     <div class="absolute -top-32 -left-32 w-96 h-96 bg-indigo-100/60 rounded-full blur-3xl pointer-events-none"></div>
     <div class="absolute -bottom-32 -right-32 w-96 h-96 bg-emerald-100/60 rounded-full blur-3xl pointer-events-none"></div>
 
     <div class="w-full max-w-md bg-white p-8 sm:p-10 rounded-3xl border border-slate-200/80 shadow-xl shadow-slate-200/50 relative z-10">
-      <!-- Brand Icon & Header -->
       <div class="text-center mb-8">
         <div class="w-16 h-16 bg-gradient-to-tr from-indigo-600 to-indigo-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-indigo-200">
           <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -68,10 +57,9 @@
           </svg>
         </div>
         <h1 class="text-2xl font-extrabold font-display text-slate-900 tracking-tight">Finance OS <span class="text-indigo-600">Admin</span></h1>
-        <p class="text-slate-500 text-sm mt-1.5">Portal Manajemen & Pengawasan Keuangan</p>
+        <p class="text-slate-500 text-sm mt-1.5">Portal Kontrol Penuh & Manajemen Sistem</p>
       </div>
 
-      <!-- Quick Fill Credentials Banner -->
       <div class="mb-6 p-3.5 rounded-2xl bg-indigo-50/70 border border-indigo-100 flex items-center justify-between text-xs">
         <div>
           <span class="text-slate-500 block font-medium">Kredensial Default:</span>
@@ -82,13 +70,11 @@
         </button>
       </div>
 
-      <!-- Alert Error -->
       <div id="login-alert" class="hidden mb-5 p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
         <svg class="w-4 h-4 text-rose-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
         <span id="login-alert-text">Kredensial salah</span>
       </div>
 
-      <!-- Login Form -->
       <form id="admin-login-form" class="space-y-4">
         <div>
           <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Email Administrator</label>
@@ -113,7 +99,7 @@
 
         <button type="submit" id="btn-login"
           class="w-full mt-2 py-3.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition-all shadow-md shadow-indigo-200 active:scale-[0.99] text-sm flex items-center justify-center gap-2">
-          <span>Masuk ke Dashboard</span>
+          <span>Masuk ke Console</span>
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
         </button>
       </form>
@@ -137,11 +123,11 @@
             <div>
               <div class="flex items-center gap-2">
                 <span class="font-extrabold font-display text-slate-900 tracking-tight text-base">Finance OS</span>
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase bg-indigo-50 text-indigo-700 border border-indigo-200">Console</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase bg-indigo-50 text-indigo-700 border border-indigo-200">Admin CRUD</span>
               </div>
               <div class="flex items-center gap-1.5 mt-0.5">
                 <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span class="text-[11px] text-slate-500 font-medium">Sistem MySQL Online</span>
+                <span class="text-[11px] text-slate-500 font-medium">Sistem MySQL / MariaDB Terhubung</span>
               </div>
             </div>
           </div>
@@ -174,34 +160,54 @@
       <!-- Navigation Tabs (Segmented Linear Style) -->
       <div class="border-t border-slate-100 bg-white overflow-x-auto">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex space-x-1.5 py-1.5">
-          <button data-tab="overview" class="nav-tab px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all bg-indigo-50 text-indigo-700 border border-indigo-200/80 shadow-2xs">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          <button data-tab="overview" class="nav-tab px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all bg-indigo-50 text-indigo-700 border border-indigo-200/80 shadow-2xs">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
             <span>Ringkasan</span>
           </button>
-          <button data-tab="users" class="nav-tab px-4 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 flex items-center gap-2 transition-all">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+          <button data-tab="users" class="nav-tab px-3.5 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 flex items-center gap-1.5 transition-all">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
             <span>Pengguna</span>
             <span id="badge-tab-users" class="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-100 text-slate-600 font-bold">0</span>
           </button>
-          <button data-tab="families" class="nav-tab px-4 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 flex items-center gap-2 transition-all">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+          <button data-tab="families" class="nav-tab px-3.5 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 flex items-center gap-1.5 transition-all">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
             <span>Keluarga</span>
             <span id="badge-tab-families" class="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-100 text-slate-600 font-bold">0</span>
           </button>
-          <button data-tab="transactions" class="nav-tab px-4 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 flex items-center gap-2 transition-all">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            <span>Transaksi Global</span>
+          <button data-tab="companies" class="nav-tab px-3.5 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 flex items-center gap-1.5 transition-all">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+            <span>Perusahaan</span>
+            <span id="badge-tab-companies" class="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-100 text-slate-600 font-bold">0</span>
+          </button>
+          <button data-tab="projects" class="nav-tab px-3.5 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 flex items-center gap-1.5 transition-all">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+            <span>Proyek</span>
+            <span id="badge-tab-projects" class="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-100 text-slate-600 font-bold">0</span>
+          </button>
+          <button data-tab="wallets" class="nav-tab px-3.5 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 flex items-center gap-1.5 transition-all">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+            <span>Dompet</span>
+            <span id="badge-tab-wallets" class="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-100 text-slate-600 font-bold">0</span>
+          </button>
+          <button data-tab="transactions" class="nav-tab px-3.5 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 flex items-center gap-1.5 transition-all">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span>Transaksi</span>
             <span id="badge-tab-tx" class="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-100 text-slate-600 font-bold">0</span>
           </button>
-          <button data-tab="savings" class="nav-tab px-4 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 flex items-center gap-2 transition-all">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+          <button data-tab="savings" class="nav-tab px-3.5 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 flex items-center gap-1.5 transition-all">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
             <span>Celengan</span>
             <span id="badge-tab-savings" class="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-100 text-slate-600 font-bold">0</span>
           </button>
-          <button data-tab="debts" class="nav-tab px-4 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 flex items-center gap-2 transition-all">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
-            <span>Hutang / Piutang</span>
+          <button data-tab="debts" class="nav-tab px-3.5 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 flex items-center gap-1.5 transition-all">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span>Hutang/Piutang</span>
             <span id="badge-tab-debts" class="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-100 text-slate-600 font-bold">0</span>
+          </button>
+          <button data-tab="categories" class="nav-tab px-3.5 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 flex items-center gap-1.5 transition-all">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+            <span>Kategori</span>
+            <span id="badge-tab-categories" class="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-100 text-slate-600 font-bold">0</span>
           </button>
         </div>
       </div>
@@ -212,109 +218,70 @@
       
       <!-- ======================== TAB 1: OVERVIEW ======================== -->
       <section id="tab-overview" class="tab-pane space-y-8">
-        
-        <!-- Welcome Banner -->
         <div class="relative overflow-hidden p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-indigo-50/80 via-white to-slate-50 border border-indigo-100/80 shadow-xs">
           <div class="max-w-2xl">
             <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-100/60 border border-indigo-200/80 text-indigo-700 text-xs font-semibold mb-3">
               <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-              <span>Platform Health: Optimal</span>
+              <span>Platform Health: Optimal (Full CRUD Enabled)</span>
             </div>
             <h2 class="text-2xl sm:text-3xl font-bold font-display text-slate-900 tracking-tight">Executive System Overview</h2>
             <p class="text-slate-500 text-sm mt-1.5 leading-relaxed">
-              Monitoring seluruh sirkulasi perputaran saldo, grup keluarga, celengan bersama, dan aktivitas transaksi pengguna dalam satu dashboard tersinkronisasi.
+              Monitoring dan kendali penuh terhadap 9 entitas inti: Pengguna, Grup Keluarga, Perusahaan, Proyek, Dompet, Transaksi Finansial, Celengan Bersama, Catatan Hutang/Piutang, serta Master Kategori.
             </p>
           </div>
         </div>
 
         <!-- Metric Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          <!-- Card 1: Total Saldo Dompet Sistem -->
-          <div class="p-6 rounded-2xl bg-white border border-slate-200/90 hover:border-slate-300 transition-all shadow-xs hover:shadow-sm">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Card 1 -->
+          <div class="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs">
             <div class="flex items-center justify-between">
-              <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Perputaran Saldo Dompet</span>
-              <div class="p-2.5 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+              <span class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Perputaran Saldo</span>
+              <div class="p-2 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
               </div>
             </div>
-            <p id="stat-total-balance" class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-3 font-display">Rp 0</p>
-            <div class="flex items-center gap-2 mt-2 text-xs text-slate-500">
-              <span id="stat-wallet-count" class="text-slate-700 font-semibold">0</span>
-              <span>dompet aktif terdaftar</span>
-            </div>
+            <p id="stat-total-balance" class="text-2xl font-extrabold text-slate-900 mt-2 font-display">Rp 0</p>
+            <p class="text-[11px] text-slate-500 mt-1"><span id="stat-wallet-count" class="font-semibold text-slate-700">0</span> dompet aktif</p>
           </div>
 
-          <!-- Card 2: Pengguna Sistem -->
-          <div class="p-6 rounded-2xl bg-white border border-slate-200/90 hover:border-slate-300 transition-all shadow-xs hover:shadow-sm">
+          <!-- Card 2 -->
+          <div class="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs">
             <div class="flex items-center justify-between">
-              <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Pengguna Terdaftar</span>
-              <div class="p-2.5 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+              <span class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Pengguna</span>
+              <div class="p-2 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
               </div>
             </div>
-            <p id="stat-total-users" class="text-2xl sm:text-3xl font-extrabold text-indigo-600 mt-3 font-display">0</p>
-            <div class="flex items-center gap-2 mt-2 text-xs text-slate-500">
-              <span class="px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200 font-semibold" id="stat-admin-count">0 Admin</span>
-              <span>• Akses terkontrol role</span>
-            </div>
+            <p id="stat-total-users" class="text-2xl font-extrabold text-indigo-600 mt-2 font-display">0</p>
+            <p class="text-[11px] text-slate-500 mt-1"><span id="stat-admin-count" class="font-semibold text-indigo-700">0 Admin</span> terdaftar</p>
           </div>
 
-          <!-- Card 3: Total Grup Keluarga -->
-          <div class="p-6 rounded-2xl bg-white border border-slate-200/90 hover:border-slate-300 transition-all shadow-xs hover:shadow-sm">
+          <!-- Card 3 -->
+          <div class="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs">
             <div class="flex items-center justify-between">
-              <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Grup Keluarga</span>
-              <div class="p-2.5 rounded-xl bg-purple-50 text-purple-600 border border-purple-100">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+              <span class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Perusahaan & Proyek</span>
+              <div class="p-2 rounded-xl bg-blue-50 text-blue-600 border border-blue-100">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
               </div>
             </div>
-            <p id="stat-total-families" class="text-2xl sm:text-3xl font-extrabold text-purple-600 mt-3 font-display">0</p>
-            <div class="flex items-center gap-2 mt-2 text-xs text-slate-500">
-              <span>Fitur ID Acak & Inspeksi Catatan Aktif</span>
-            </div>
+            <p id="stat-total-companies" class="text-2xl font-extrabold text-blue-600 mt-2 font-display">0</p>
+            <p class="text-[11px] text-slate-500 mt-1"><span id="stat-total-projects" class="font-semibold text-slate-700">0</span> proyek bisnis aktif</p>
           </div>
 
-          <!-- Card 4: Total Mutasi Transaksi -->
-          <div class="p-6 rounded-2xl bg-white border border-slate-200/90 hover:border-slate-300 transition-all shadow-xs hover:shadow-sm">
+          <!-- Card 4 -->
+          <div class="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs">
             <div class="flex items-center justify-between">
-              <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Mutasi Transaksi</span>
-              <div class="p-2.5 rounded-xl bg-sky-50 text-sky-600 border border-sky-100">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/></svg>
+              <span class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Mutasi Transaksi</span>
+              <div class="p-2 rounded-xl bg-sky-50 text-sky-600 border border-sky-100">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/></svg>
               </div>
             </div>
-            <p id="stat-total-tx" class="text-2xl sm:text-3xl font-extrabold text-sky-600 mt-3 font-display">0</p>
-            <div class="flex items-center gap-2 mt-2 text-xs text-slate-500">
-              <span class="text-emerald-600 font-semibold" id="stat-income-vol">In: Rp 0</span>
-              <span>•</span>
-              <span class="text-rose-600 font-semibold" id="stat-expense-vol">Out: Rp 0</span>
-            </div>
-          </div>
-
-          <!-- Card 5: Celengan & Nabung Bersama -->
-          <div class="p-6 rounded-2xl bg-white border border-slate-200/90 hover:border-slate-300 transition-all shadow-xs hover:shadow-sm">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Dana Celengan Terkumpul</span>
-              <div class="p-2.5 rounded-xl bg-amber-50 text-amber-600 border border-amber-100">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              </div>
-            </div>
-            <p id="stat-savings-balance" class="text-2xl sm:text-3xl font-extrabold text-amber-600 mt-3 font-display">Rp 0</p>
-            <div class="flex items-center gap-2 mt-2 text-xs text-slate-500">
-              <span id="stat-shared-savings" class="font-semibold text-indigo-700">0 Celengan Bersama</span>
-              <span>terdaftar</span>
-            </div>
-          </div>
-
-          <!-- Card 6: Hutang Aktif -->
-          <div class="p-6 rounded-2xl bg-white border border-slate-200/90 hover:border-slate-300 transition-all shadow-xs hover:shadow-sm">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Hutang Aktif (Kewajiban)</span>
-              <div class="p-2.5 rounded-xl bg-rose-50 text-rose-600 border border-rose-100">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              </div>
-            </div>
-            <p id="stat-active-debts" class="text-2xl sm:text-3xl font-extrabold text-rose-600 mt-3 font-display">Rp 0</p>
-            <div class="flex items-center gap-2 mt-2 text-xs text-slate-500">
-              <span>Total sisa pokok hutang belum terlunasi</span>
+            <p id="stat-total-tx" class="text-2xl font-extrabold text-sky-600 mt-2 font-display">0</p>
+            <div class="flex items-center gap-1.5 mt-1 text-[11px] font-mono">
+              <span class="text-emerald-600 font-semibold" id="stat-income-vol">+Rp 0</span>
+              <span class="text-slate-300">•</span>
+              <span class="text-rose-600 font-semibold" id="stat-expense-vol">-Rp 0</span>
             </div>
           </div>
         </div>
@@ -354,13 +321,16 @@
 
       <!-- ======================== TAB 2: USERS DIRECTORY ======================== -->
       <section id="tab-users" class="tab-pane hidden space-y-6">
-        <!-- Controls Bar -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 class="text-2xl font-bold font-display text-slate-900">Manajemen Pengguna</h2>
-            <p class="text-xs text-slate-500 mt-0.5">Kelola data seluruh akun terdaftar, saldo dompet, dan hak akses peran.</p>
+            <p class="text-xs text-slate-500 mt-0.5">Kelola akun, hak akses role, serta keanggotaan keluarga dan perusahaan.</p>
           </div>
-          <div class="flex items-center gap-3">
+          <div class="flex items-center gap-2">
+            <button onclick="openUserModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold transition-all shadow-xs flex items-center gap-1.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              <span>+ Tambah Pengguna</span>
+            </button>
             <button onclick="exportTableToCsv('users')" class="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl text-xs font-semibold transition-all shadow-2xs flex items-center gap-1.5">
               <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
               <span>Export CSV</span>
@@ -368,11 +338,10 @@
           </div>
         </div>
 
-        <!-- Filter & Search Toolbar -->
         <div class="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex flex-col md:flex-row items-center gap-3">
           <div class="relative flex-1 w-full">
             <input type="text" id="users-search" placeholder="Cari nama, email, atau ID..."
-              class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50/70 border border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-100 text-xs font-medium">
+              class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50/70 border border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-indigo-600 text-xs font-medium">
             <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
           </div>
           <div class="flex items-center gap-2 w-full md:w-auto">
@@ -381,15 +350,9 @@
               <option value="admin">Admin</option>
               <option value="user">User Biasa</option>
             </select>
-            <select id="users-family-filter" class="px-3 py-2.5 rounded-xl bg-white border border-slate-200 text-xs text-slate-700 focus:outline-none focus:border-indigo-600 font-medium">
-              <option value="all">Semua Status Keluarga</option>
-              <option value="has_family">Punya Keluarga</option>
-              <option value="no_family">Belum Gabung Keluarga</option>
-            </select>
           </div>
         </div>
 
-        <!-- Users Table -->
         <div class="bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-xs">
           <div class="overflow-x-auto">
             <table class="w-full text-left text-xs text-slate-600">
@@ -399,8 +362,8 @@
                   <th class="px-5 py-3.5">Pengguna</th>
                   <th class="px-5 py-3.5">Role</th>
                   <th class="px-5 py-3.5">Keluarga</th>
+                  <th class="px-5 py-3.5">Perusahaan</th>
                   <th class="px-5 py-3.5">Dompet & Saldo</th>
-                  <th class="px-5 py-3.5">Mutasi</th>
                   <th class="px-5 py-3.5 text-right">Aksi</th>
                 </tr>
               </thead>
@@ -417,17 +380,23 @@
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 class="text-2xl font-bold font-display text-slate-900">Grup Keluarga</h2>
-            <p class="text-xs text-slate-500 mt-0.5">Daftar seluruh grup keluarga terdaftar dengan kode ID acak dan tabungan bersama.</p>
+            <p class="text-xs text-slate-500 mt-0.5">Kelola grup keluarga, kode undangan, serta anggota terhubung.</p>
           </div>
-          <button onclick="exportTableToCsv('families')" class="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl text-xs font-semibold transition-all shadow-2xs flex items-center gap-1.5">
-            <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-            <span>Export CSV</span>
-          </button>
+          <div class="flex items-center gap-2">
+            <button onclick="openFamilyModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold transition-all shadow-xs flex items-center gap-1.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              <span>+ Tambah Keluarga</span>
+            </button>
+            <button onclick="exportTableToCsv('families')" class="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl text-xs font-semibold transition-all shadow-2xs flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+              <span>Export CSV</span>
+            </button>
+          </div>
         </div>
 
         <div class="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs">
           <div class="relative w-full">
-            <input type="text" id="families-search" placeholder="Cari nama keluarga atau kode ID acak..."
+            <input type="text" id="families-search" placeholder="Cari nama keluarga atau kode undangan..."
               class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50/70 border border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-indigo-600 text-xs font-medium">
             <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
           </div>
@@ -438,20 +407,167 @@
         </div>
       </section>
 
-      <!-- ======================== TAB 4: TRANSACTIONS GLOBAL ======================== -->
+      <!-- ======================== TAB 4: COMPANIES ======================== -->
+      <section id="tab-companies" class="tab-pane hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-bold font-display text-slate-900">Perusahaan Bisnis</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Kelola entitas bisnis, kode gabung tim, dan integrasi proyek.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="openCompanyModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold transition-all shadow-xs flex items-center gap-1.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              <span>+ Tambah Perusahaan</span>
+            </button>
+            <button onclick="exportTableToCsv('companies')" class="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl text-xs font-semibold transition-all shadow-2xs flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+              <span>Export CSV</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs">
+          <div class="relative w-full">
+            <input type="text" id="companies-search" placeholder="Cari nama perusahaan atau kode undangan..."
+              class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50/70 border border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-indigo-600 text-xs font-medium">
+            <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          </div>
+        </div>
+
+        <div id="companies-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div class="col-span-full py-12 text-center text-slate-400 text-xs">Memuat daftar perusahaan...</div>
+        </div>
+      </section>
+
+      <!-- ======================== TAB 5: PROJECTS ======================== -->
+      <section id="tab-projects" class="tab-pane hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-bold font-display text-slate-900">Manajemen Proyek Perusahaan</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Kontrol alokasi anggaran, status proyek, dan arus kas per proyek.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="openProjectModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold transition-all shadow-xs flex items-center gap-1.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              <span>+ Tambah Proyek</span>
+            </button>
+            <button onclick="exportTableToCsv('projects')" class="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl text-xs font-semibold transition-all shadow-2xs flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+              <span>Export CSV</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex flex-col md:flex-row items-center gap-3">
+          <div class="relative flex-1 w-full">
+            <input type="text" id="projects-search" placeholder="Cari nama proyek, deskripsi, atau perusahaan..."
+              class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50/70 border border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-indigo-600 text-xs font-medium">
+            <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          </div>
+          <select id="projects-status-filter" class="px-3 py-2.5 rounded-xl bg-white border border-slate-200 text-xs text-slate-700 focus:outline-none focus:border-indigo-600 font-medium">
+            <option value="all">Semua Status</option>
+            <option value="active">Active</option>
+            <option value="completed">Completed</option>
+            <option value="on_hold">On Hold</option>
+          </select>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-xs">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-600">
+              <thead class="text-[11px] uppercase tracking-wider text-slate-500 bg-slate-50/90 font-semibold border-b border-slate-200">
+                <tr>
+                  <th class="px-5 py-3.5">ID</th>
+                  <th class="px-5 py-3.5">Proyek & Perusahaan</th>
+                  <th class="px-5 py-3.5">Target Budget</th>
+                  <th class="px-5 py-3.5">Arus Kas (In / Out)</th>
+                  <th class="px-5 py-3.5">Net Profit/Loss</th>
+                  <th class="px-5 py-3.5">Status</th>
+                  <th class="px-5 py-3.5 text-right">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="projects-table-body" class="divide-y divide-slate-100 font-medium">
+                <tr><td colspan="7" class="px-5 py-6 text-center text-slate-400">Memuat proyek...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================== TAB 6: WALLETS ======================== -->
+      <section id="tab-wallets" class="tab-pane hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-bold font-display text-slate-900">Manajemen Dompet / Rekening</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Kelola seluruh saldo kas, bank, dan e-wallet pengguna maupun grup.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="openWalletModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold transition-all shadow-xs flex items-center gap-1.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              <span>+ Tambah Dompet</span>
+            </button>
+            <button onclick="exportTableToCsv('wallets')" class="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl text-xs font-semibold transition-all shadow-2xs flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+              <span>Export CSV</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex flex-col md:flex-row items-center gap-3">
+          <div class="relative flex-1 w-full">
+            <input type="text" id="wallets-search" placeholder="Cari nama dompet, pemilik, atau ID..."
+              class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50/70 border border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-indigo-600 text-xs font-medium">
+            <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          </div>
+          <select id="wallets-scope-filter" class="px-3 py-2.5 rounded-xl bg-white border border-slate-200 text-xs text-slate-700 focus:outline-none focus:border-indigo-600 font-medium">
+            <option value="all">Semua Lingkup</option>
+            <option value="personal">Pribadi</option>
+            <option value="family">Keluarga</option>
+            <option value="company">Perusahaan</option>
+          </select>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-xs">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-600">
+              <thead class="text-[11px] uppercase tracking-wider text-slate-500 bg-slate-50/90 font-semibold border-b border-slate-200">
+                <tr>
+                  <th class="px-5 py-3.5">ID</th>
+                  <th class="px-5 py-3.5">Nama Dompet</th>
+                  <th class="px-5 py-3.5">Pemilik (User)</th>
+                  <th class="px-5 py-3.5">Lingkup</th>
+                  <th class="px-5 py-3.5">Saldo Terkini</th>
+                  <th class="px-5 py-3.5">Status</th>
+                  <th class="px-5 py-3.5 text-right">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="wallets-table-body" class="divide-y divide-slate-100 font-medium">
+                <tr><td colspan="7" class="px-5 py-6 text-center text-slate-400">Memuat data dompet...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================== TAB 7: TRANSACTIONS GLOBAL ======================== -->
       <section id="tab-transactions" class="tab-pane hidden space-y-6">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 class="text-2xl font-bold font-display text-slate-900">Mutasi Transaksi Global</h2>
-            <p class="text-xs text-slate-500 mt-0.5">Buku besar audit sistem untuk seluruh transaksi pemasukan, pengeluaran, transfer, dan celengan.</p>
+            <p class="text-xs text-slate-500 mt-0.5">Buku besar audit sistem untuk seluruh transaksi pemasukan dan pengeluaran.</p>
           </div>
-          <button onclick="exportTableToCsv('transactions')" class="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl text-xs font-semibold transition-all shadow-2xs flex items-center gap-1.5">
-            <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-            <span>Export CSV</span>
-          </button>
+          <div class="flex items-center gap-2">
+            <button onclick="openTxModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold transition-all shadow-xs flex items-center gap-1.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              <span>+ Catat Transaksi</span>
+            </button>
+            <button onclick="exportTableToCsv('transactions')" class="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl text-xs font-semibold transition-all shadow-2xs flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+              <span>Export CSV</span>
+            </button>
+          </div>
         </div>
 
-        <!-- Filter Toolbar -->
         <div class="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex flex-col md:flex-row items-center gap-3">
           <div class="relative flex-1 w-full">
             <input type="text" id="tx-search" placeholder="Cari catatan, nominal, nama pengguna, dompet..."
@@ -463,65 +579,64 @@
               <option value="all">Semua Jenis</option>
               <option value="income">Pemasukan (+)</option>
               <option value="expense">Pengeluaran (-)</option>
-              <option value="transfer">Transfer</option>
-              <option value="saving_deposit">Setor Celengan</option>
-              <option value="debt_payment">Bayar Hutang</option>
             </select>
             <select id="tx-scope-filter" class="px-3 py-2.5 rounded-xl bg-white border border-slate-200 text-xs text-slate-700 focus:outline-none focus:border-indigo-600 font-medium">
               <option value="all">Semua Lingkup</option>
-              <option value="family">Keluarga</option>
               <option value="personal">Pribadi</option>
+              <option value="family">Keluarga</option>
+              <option value="company">Perusahaan</option>
             </select>
           </div>
         </div>
 
-        <!-- Transactions Table -->
         <div class="bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-xs">
           <div class="overflow-x-auto">
             <table class="w-full text-left text-xs text-slate-600">
               <thead class="text-[11px] uppercase tracking-wider text-slate-500 bg-slate-50/90 font-semibold border-b border-slate-200">
                 <tr>
                   <th class="px-5 py-3.5">ID / Tanggal</th>
-                  <th class="px-5 py-3.5">Dicatat Oleh</th>
+                  <th class="px-5 py-3.5">Pengguna</th>
                   <th class="px-5 py-3.5">Jenis</th>
                   <th class="px-5 py-3.5">Dompet</th>
                   <th class="px-5 py-3.5">Nominal</th>
-                  <th class="px-5 py-3.5">Lingkup</th>
+                  <th class="px-5 py-3.5">Lingkup / Proyek</th>
                   <th class="px-5 py-3.5">Catatan</th>
+                  <th class="px-5 py-3.5 text-right">Aksi</th>
                 </tr>
               </thead>
               <tbody id="tx-table-body" class="divide-y divide-slate-100 font-medium">
-                <tr><td colspan="7" class="px-5 py-6 text-center text-slate-400">Memuat mutasi transaksi...</td></tr>
+                <tr><td colspan="8" class="px-5 py-6 text-center text-slate-400">Memuat mutasi transaksi...</td></tr>
               </tbody>
             </table>
           </div>
         </div>
       </section>
 
-      <!-- ======================== TAB 5: SAVINGS ======================== -->
+      <!-- ======================== TAB 8: SAVINGS ======================== -->
       <section id="tab-savings" class="tab-pane hidden space-y-6">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 class="text-2xl font-bold font-display text-slate-900">Target Tabungan & Celengan</h2>
-            <p class="text-xs text-slate-500 mt-0.5">Monitoring progress tabungan pribadi maupun celengan bersama keluarga.</p>
+            <p class="text-xs text-slate-500 mt-0.5">Kelola impian tabungan pribadi maupun celengan bersama keluarga.</p>
           </div>
-          <button onclick="exportTableToCsv('savings')" class="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl text-xs font-semibold transition-all shadow-2xs flex items-center gap-1.5">
-            <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-            <span>Export CSV</span>
-          </button>
+          <div class="flex items-center gap-2">
+            <button onclick="openSavingModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold transition-all shadow-xs flex items-center gap-1.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              <span>+ Tambah Celengan</span>
+            </button>
+            <button onclick="exportTableToCsv('savings')" class="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl text-xs font-semibold transition-all shadow-2xs flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+              <span>Export CSV</span>
+            </button>
+          </div>
         </div>
 
         <div class="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex items-center gap-3">
           <div class="relative flex-1">
-            <input type="text" id="savings-search" placeholder="Cari nama celengan, pemilik, atau nama keluarga..."
+            <input type="text" id="savings-search" placeholder="Cari nama celengan, pemilik, atau target..."
               class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50/70 border border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-indigo-600 text-xs font-medium">
             <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
           </div>
-          <select id="savings-scope-filter" class="px-3 py-2.5 rounded-xl bg-white border border-slate-200 text-xs text-slate-700 focus:outline-none focus:border-indigo-600 font-medium">
-            <option value="all">Semua Scope</option>
-            <option value="family">Bersama Keluarga</option>
-            <option value="personal">Pribadi</option>
-          </select>
         </div>
 
         <div id="savings-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -529,35 +644,38 @@
         </div>
       </section>
 
-      <!-- ======================== TAB 6: DEBTS ======================== -->
+      <!-- ======================== TAB 9: DEBTS ======================== -->
       <section id="tab-debts" class="tab-pane hidden space-y-6">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 class="text-2xl font-bold font-display text-slate-900">Monitoring Hutang & Piutang</h2>
-            <p class="text-xs text-slate-500 mt-0.5">Pengawasan kewajiban finansial yang tercatat di seluruh sistem pengguna.</p>
+            <p class="text-xs text-slate-500 mt-0.5">Kelola kewajiban hutang dan hak piutang pengguna dan keluarga.</p>
           </div>
-          <button onclick="exportTableToCsv('debts')" class="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl text-xs font-semibold transition-all shadow-2xs flex items-center gap-1.5">
-            <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-            <span>Export CSV</span>
-          </button>
+          <div class="flex items-center gap-2">
+            <button onclick="openDebtModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold transition-all shadow-xs flex items-center gap-1.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              <span>+ Tambah Catatan</span>
+            </button>
+            <button onclick="exportTableToCsv('debts')" class="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl text-xs font-semibold transition-all shadow-2xs flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+              <span>Export CSV</span>
+            </button>
+          </div>
         </div>
 
-        <div class="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex items-center gap-3">
-          <div class="relative flex-1">
+        <div class="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex flex-col md:flex-row items-center gap-3">
+          <div class="relative flex-1 w-full">
             <input type="text" id="debts-search" placeholder="Cari nama pihak lain, pengguna, atau catatan..."
               class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50/70 border border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-indigo-600 text-xs font-medium">
             <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
           </div>
-          <select id="debts-type-filter" class="px-3 py-2.5 rounded-xl bg-white border border-slate-200 text-xs text-slate-700 focus:outline-none focus:border-indigo-600 font-medium">
-            <option value="all">Semua Jenis</option>
-            <option value="payable">Hutang (Kewajiban)</option>
-            <option value="receivable">Piutang (Tagihan)</option>
-          </select>
-          <select id="debts-status-filter" class="px-3 py-2.5 rounded-xl bg-white border border-slate-200 text-xs text-slate-700 focus:outline-none focus:border-indigo-600 font-medium">
-            <option value="all">Semua Status</option>
-            <option value="unpaid">Belum Lunas</option>
-            <option value="paid">Lunas</option>
-          </select>
+          <div class="flex items-center gap-2 w-full md:w-auto">
+            <select id="debts-type-filter" class="px-3 py-2.5 rounded-xl bg-white border border-slate-200 text-xs text-slate-700 focus:outline-none focus:border-indigo-600 font-medium">
+              <option value="all">Semua Jenis</option>
+              <option value="payable">Hutang (Kewajiban)</option>
+              <option value="receivable">Piutang (Tagihan)</option>
+            </select>
+          </div>
         </div>
 
         <div class="bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-xs">
@@ -572,7 +690,7 @@
                   <th class="px-5 py-3.5">Nominal / Sisa</th>
                   <th class="px-5 py-3.5">Jatuh Tempo</th>
                   <th class="px-5 py-3.5">Status</th>
-                  <th class="px-5 py-3.5">Catatan</th>
+                  <th class="px-5 py-3.5 text-right">Aksi</th>
                 </tr>
               </thead>
               <tbody id="debts-table-body" class="divide-y divide-slate-100 font-medium">
@@ -583,44 +701,495 @@
         </div>
       </section>
 
+      <!-- ======================== TAB 10: CATEGORIES ======================== -->
+      <section id="tab-categories" class="tab-pane hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-bold font-display text-slate-900">Master Kategori Transaksi</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Kelola kategori pemasukan & pengeluaran untuk klasifikasi keuangan.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="openCategoryModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold transition-all shadow-xs flex items-center gap-1.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              <span>+ Tambah Kategori</span>
+            </button>
+            <button onclick="exportTableToCsv('categories')" class="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl text-xs font-semibold transition-all shadow-2xs flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+              <span>Export CSV</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex items-center gap-3">
+          <div class="relative flex-1">
+            <input type="text" id="categories-search" placeholder="Cari nama kategori..."
+              class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50/70 border border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-indigo-600 text-xs font-medium">
+            <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          </div>
+          <select id="categories-type-filter" class="px-3 py-2.5 rounded-xl bg-white border border-slate-200 text-xs text-slate-700 focus:outline-none focus:border-indigo-600 font-medium">
+            <option value="all">Semua Jenis</option>
+            <option value="income">Pemasukan</option>
+            <option value="expense">Pengeluaran</option>
+          </select>
+        </div>
+
+        <div id="categories-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div class="col-span-full py-12 text-center text-slate-400 text-xs">Memuat daftar kategori...</div>
+        </div>
+      </section>
+
     </main>
 
     <!-- Footer -->
     <footer class="border-t border-slate-200 bg-white py-5 text-center text-xs text-slate-500">
       <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-        <p class="font-medium">Finance OS Admin Engine v1.2.0 • Clean & Elegant Architecture</p>
-        <p class="text-slate-400">Node.js Express & MySQL/MariaDB</p>
+        <p class="font-medium">Finance OS Admin Console • Full CRUD Engine v2.0</p>
+        <p class="text-slate-400 font-mono">Node.js Express & MySQL/MariaDB</p>
       </div>
     </footer>
   </div>
 
-  <!-- ======================== MODAL: ROLE SWITCHER ======================== -->
-  <div id="modal-role" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-    <div class="bg-white border border-slate-200 rounded-2xl max-w-sm w-full p-6 shadow-2xl relative">
-      <h3 class="text-base font-bold text-slate-900 mb-1.5">Ubah Peran Pengguna</h3>
-      <p class="text-xs text-slate-500 mb-4" id="modal-role-desc">Pilih peran akses baru untuk akun ini.</p>
-      <input type="hidden" id="modal-role-user-id">
-      
-      <div class="space-y-2 mb-5">
-        <label class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 bg-slate-50/60 cursor-pointer hover:bg-slate-50 hover:border-slate-300 transition-all">
-          <input type="radio" name="target_role" value="user" class="text-indigo-600 focus:ring-indigo-500">
-          <div>
-            <p class="text-xs font-semibold text-slate-900">User Biasa</p>
-            <p class="text-[11px] text-slate-500">Hanya dapat mengakses aplikasi mobile & keuangan pribadi/keluarga.</p>
-          </div>
-        </label>
-        <label class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 bg-slate-50/60 cursor-pointer hover:bg-slate-50 hover:border-slate-300 transition-all">
-          <input type="radio" name="target_role" value="admin" class="text-indigo-600 focus:ring-indigo-500">
-          <div>
-            <p class="text-xs font-semibold text-slate-900">Administrator</p>
-            <p class="text-[11px] text-slate-500">Dapat login ke Admin Console ini dan melihat seluruh data sistem.</p>
-          </div>
-        </label>
-      </div>
+  <!-- ======================== ALL CRUD MODALS ======================== -->
 
-      <div class="flex items-center justify-end gap-2">
-        <button type="button" onclick="closeRoleModal()" class="px-4 py-2 text-xs font-semibold text-slate-500 hover:text-slate-700 rounded-xl">Batal</button>
-        <button type="button" id="btn-save-role" class="px-4 py-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-all shadow-xs">Simpan Peran</button>
+  <!-- MODAL: USER (Create & Edit) -->
+  <div id="modal-user" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white border border-slate-200 rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+        <h3 id="modal-user-title" class="text-base font-bold text-slate-900">Tambah Pengguna Baru</h3>
+        <button onclick="closeModal('modal-user')" class="text-slate-400 hover:text-slate-600">&times;</button>
+      </div>
+      <form id="form-user" class="space-y-3.5">
+        <input type="hidden" id="user-id">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Lengkap *</label>
+          <input type="text" id="user-name" required placeholder="Contoh: Rivaldi Rizki" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium focus:bg-white focus:outline-none focus:border-indigo-600">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Email *</label>
+          <input type="email" id="user-email" required placeholder="user@domain.com" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium focus:bg-white focus:outline-none focus:border-indigo-600">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1" id="user-password-label">Kata Sandi *</label>
+          <input type="password" id="user-password" placeholder="Minimal 6 karakter" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium focus:bg-white focus:outline-none focus:border-indigo-600">
+          <p id="user-password-hint" class="hidden text-[10px] text-slate-400 mt-0.5">Biarkan kosong jika tidak ingin mengubah kata sandi.</p>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Peran Akses</label>
+            <select id="user-role" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium focus:bg-white focus:outline-none focus:border-indigo-600">
+              <option value="user">User Biasa</option>
+              <option value="admin">Administrator</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Grup Keluarga</label>
+            <select id="user-family-id" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium focus:bg-white focus:outline-none focus:border-indigo-600">
+              <option value="">(Tanpa Keluarga)</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Perusahaan Bisnis</label>
+          <select id="user-company-id" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium focus:bg-white focus:outline-none focus:border-indigo-600">
+            <option value="">(Tanpa Perusahaan)</option>
+          </select>
+        </div>
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+          <button type="button" onclick="closeModal('modal-user')" class="px-4 py-2 text-xs font-semibold text-slate-500 hover:text-slate-700 rounded-xl">Batal</button>
+          <button type="submit" id="btn-save-user" class="px-4 py-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-xs">Simpan Data</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: FAMILY (Create & Edit) -->
+  <div id="modal-family" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white border border-slate-200 rounded-2xl max-w-sm w-full p-6 shadow-2xl relative">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+        <h3 id="modal-family-title" class="text-base font-bold text-slate-900">Tambah Grup Keluarga</h3>
+        <button onclick="closeModal('modal-family')" class="text-slate-400 hover:text-slate-600">&times;</button>
+      </div>
+      <form id="form-family" class="space-y-3.5">
+        <input type="hidden" id="family-id">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Keluarga *</label>
+          <input type="text" id="family-name" required placeholder="Contoh: Keluarga Rizki" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium focus:bg-white focus:outline-none focus:border-indigo-600">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Kode Undangan (Opsional)</label>
+          <input type="text" id="family-invite-code" placeholder="Kosongkan untuk otomatis 8 huruf acak" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono uppercase focus:bg-white focus:outline-none focus:border-indigo-600">
+        </div>
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+          <button type="button" onclick="closeModal('modal-family')" class="px-4 py-2 text-xs font-semibold text-slate-500 hover:text-slate-700 rounded-xl">Batal</button>
+          <button type="submit" class="px-4 py-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-xs">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: COMPANY (Create & Edit) -->
+  <div id="modal-company" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white border border-slate-200 rounded-2xl max-w-sm w-full p-6 shadow-2xl relative">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+        <h3 id="modal-company-title" class="text-base font-bold text-slate-900">Tambah Perusahaan</h3>
+        <button onclick="closeModal('modal-company')" class="text-slate-400 hover:text-slate-600">&times;</button>
+      </div>
+      <form id="form-company" class="space-y-3.5">
+        <input type="hidden" id="company-id">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Perusahaan *</label>
+          <input type="text" id="company-name" required placeholder="Contoh: PT Teknologi Bangsa" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium focus:bg-white focus:outline-none focus:border-indigo-600">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Kode Undangan (Opsional)</label>
+          <input type="text" id="company-invite-code" placeholder="Kosongkan untuk otomatis 8 huruf acak" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono uppercase focus:bg-white focus:outline-none focus:border-indigo-600">
+        </div>
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+          <button type="button" onclick="closeModal('modal-company')" class="px-4 py-2 text-xs font-semibold text-slate-500 hover:text-slate-700 rounded-xl">Batal</button>
+          <button type="submit" class="px-4 py-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-xs">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: PROJECT (Create & Edit) -->
+  <div id="modal-project" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white border border-slate-200 rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+        <h3 id="modal-project-title" class="text-base font-bold text-slate-900">Tambah Proyek Perusahaan</h3>
+        <button onclick="closeModal('modal-project')" class="text-slate-400 hover:text-slate-600">&times;</button>
+      </div>
+      <form id="form-project" class="space-y-3.5">
+        <input type="hidden" id="project-id">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Perusahaan Pemilik *</label>
+          <select id="project-company-id" required class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium focus:bg-white focus:outline-none focus:border-indigo-600">
+            <!-- options dynamically populated -->
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Proyek *</label>
+          <input type="text" id="project-name" required placeholder="Contoh: Redesign Website PT" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium focus:bg-white focus:outline-none focus:border-indigo-600">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Target Anggaran (Budget) Rp</label>
+          <input type="number" id="project-target-budget" min="0" value="0" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono font-medium focus:bg-white focus:outline-none focus:border-indigo-600">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Status Proyek</label>
+            <select id="project-status" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium focus:bg-white focus:outline-none focus:border-indigo-600">
+              <option value="active">Active</option>
+              <option value="completed">Completed</option>
+              <option value="on_hold">On Hold</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Batas Waktu (End Date)</label>
+            <input type="date" id="project-end-date" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium focus:bg-white focus:outline-none focus:border-indigo-600">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Deskripsi Proyek</label>
+          <textarea id="project-description" rows="2" placeholder="Catatan lingkup dan tujuan proyek..." class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium focus:bg-white focus:outline-none focus:border-indigo-600"></textarea>
+        </div>
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+          <button type="button" onclick="closeModal('modal-project')" class="px-4 py-2 text-xs font-semibold text-slate-500 hover:text-slate-700 rounded-xl">Batal</button>
+          <button type="submit" class="px-4 py-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-xs">Simpan Proyek</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: WALLET (Create & Edit) -->
+  <div id="modal-wallet" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white border border-slate-200 rounded-2xl max-w-sm w-full p-6 shadow-2xl relative">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+        <h3 id="modal-wallet-title" class="text-base font-bold text-slate-900">Tambah Dompet Baru</h3>
+        <button onclick="closeModal('modal-wallet')" class="text-slate-400 hover:text-slate-600">&times;</button>
+      </div>
+      <form id="form-wallet" class="space-y-3.5">
+        <input type="hidden" id="wallet-id">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Pemilik Dompet (User) *</label>
+          <select id="wallet-user-id" required class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium focus:bg-white focus:outline-none focus:border-indigo-600">
+            <!-- dynamic -->
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Dompet *</label>
+          <input type="text" id="wallet-name" required placeholder="Contoh: Rekening BCA, Kas Tunai" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium focus:bg-white focus:outline-none focus:border-indigo-600">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Saldo Awal / Nominal (Rp) *</label>
+          <input type="number" id="wallet-balance" value="0" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono font-medium focus:bg-white focus:outline-none focus:border-indigo-600">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Lingkup Dompet</label>
+            <select id="wallet-scope" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium focus:bg-white focus:outline-none focus:border-indigo-600">
+              <option value="personal">Pribadi</option>
+              <option value="family">Keluarga</option>
+              <option value="company">Perusahaan</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Status</label>
+            <select id="wallet-is-active" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium focus:bg-white focus:outline-none focus:border-indigo-600">
+              <option value="1">Aktif</option>
+              <option value="0">Nonaktif</option>
+            </select>
+          </div>
+        </div>
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+          <button type="button" onclick="closeModal('modal-wallet')" class="px-4 py-2 text-xs font-semibold text-slate-500 hover:text-slate-700 rounded-xl">Batal</button>
+          <button type="submit" class="px-4 py-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-xs">Simpan Dompet</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: TRANSACTION (Create & Edit) -->
+  <div id="modal-tx" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white border border-slate-200 rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+        <h3 id="modal-tx-title" class="text-base font-bold text-slate-900">Catat Transaksi Finansial</h3>
+        <button onclick="closeModal('modal-tx')" class="text-slate-400 hover:text-slate-600">&times;</button>
+      </div>
+      <form id="form-tx" class="space-y-3.5">
+        <input type="hidden" id="tx-id">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Pengguna *</label>
+            <select id="tx-user-id" required class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium focus:bg-white focus:outline-none focus:border-indigo-600">
+              <!-- dynamic -->
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Dompet Target *</label>
+            <select id="tx-wallet-id" required class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium focus:bg-white focus:outline-none focus:border-indigo-600">
+              <!-- dynamic -->
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Jenis Mutasi *</label>
+            <select id="tx-type" required class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium focus:bg-white focus:outline-none focus:border-indigo-600">
+              <option value="income">Pemasukan (+)</option>
+              <option value="expense">Pengeluaran (-)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Nominal (Rp) *</label>
+            <input type="number" id="tx-amount" required min="1" placeholder="Contoh: 100000" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono font-medium focus:bg-white focus:outline-none focus:border-indigo-600">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Tanggal *</label>
+            <input type="date" id="tx-date" required class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium focus:bg-white focus:outline-none focus:border-indigo-600">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Kategori</label>
+            <select id="tx-category-id" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium focus:bg-white focus:outline-none focus:border-indigo-600">
+              <!-- dynamic -->
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Lingkup</label>
+            <select id="tx-scope" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium focus:bg-white focus:outline-none focus:border-indigo-600">
+              <option value="personal">Pribadi</option>
+              <option value="family">Keluarga</option>
+              <option value="company">Perusahaan</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Proyek (Opsional)</label>
+            <select id="tx-project-id" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium focus:bg-white focus:outline-none focus:border-indigo-600">
+              <option value="">(Bukan Proyek)</option>
+              <!-- dynamic -->
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Catatan / Deskripsi</label>
+          <input type="text" id="tx-notes" placeholder="Keterangan transaksi..." class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium focus:bg-white focus:outline-none focus:border-indigo-600">
+        </div>
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+          <button type="button" onclick="closeModal('modal-tx')" class="px-4 py-2 text-xs font-semibold text-slate-500 hover:text-slate-700 rounded-xl">Batal</button>
+          <button type="submit" class="px-4 py-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-xs">Simpan Transaksi</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: SAVING (Create & Edit) -->
+  <div id="modal-saving" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white border border-slate-200 rounded-2xl max-w-sm w-full p-6 shadow-2xl relative">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+        <h3 id="modal-saving-title" class="text-base font-bold text-slate-900">Tambah Target Celengan</h3>
+        <button onclick="closeModal('modal-saving')" class="text-slate-400 hover:text-slate-600">&times;</button>
+      </div>
+      <form id="form-saving" class="space-y-3.5">
+        <input type="hidden" id="saving-id">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Pemilik (User) *</label>
+          <select id="saving-user-id" required class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium focus:bg-white focus:outline-none focus:border-indigo-600">
+            <!-- dynamic -->
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Target Tabungan *</label>
+          <input type="text" id="saving-goal-name" required placeholder="Contoh: Beli Laptop Baru" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium focus:bg-white focus:outline-none focus:border-indigo-600">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Target Nominal (Rp) *</label>
+            <input type="number" id="saving-target-amount" required min="1" placeholder="10000000" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono font-medium focus:bg-white focus:outline-none focus:border-indigo-600">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Terkumpul Saat Ini</label>
+            <input type="number" id="saving-current-amount" min="0" value="0" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono font-medium focus:bg-white focus:outline-none focus:border-indigo-600">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Lingkup Tabungan</label>
+            <select id="saving-scope" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium focus:bg-white focus:outline-none focus:border-indigo-600">
+              <option value="personal">Pribadi</option>
+              <option value="family">Bersama Keluarga</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Target Tanggal Selesai</label>
+            <input type="date" id="saving-target-date" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium focus:bg-white focus:outline-none focus:border-indigo-600">
+          </div>
+        </div>
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+          <button type="button" onclick="closeModal('modal-saving')" class="px-4 py-2 text-xs font-semibold text-slate-500 hover:text-slate-700 rounded-xl">Batal</button>
+          <button type="submit" class="px-4 py-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-xs">Simpan Celengan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: DEBT (Create & Edit) -->
+  <div id="modal-debt" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white border border-slate-200 rounded-2xl max-w-sm w-full p-6 shadow-2xl relative">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+        <h3 id="modal-debt-title" class="text-base font-bold text-slate-900">Tambah Catatan Hutang/Piutang</h3>
+        <button onclick="closeModal('modal-debt')" class="text-slate-400 hover:text-slate-600">&times;</button>
+      </div>
+      <form id="form-debt" class="space-y-3.5">
+        <input type="hidden" id="debt-id">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Pengguna *</label>
+            <select id="debt-user-id" required class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium focus:bg-white focus:outline-none focus:border-indigo-600">
+              <!-- dynamic -->
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Jenis Catatan *</label>
+            <select id="debt-type" required class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium focus:bg-white focus:outline-none focus:border-indigo-600">
+              <option value="payable">Hutang (Kewajiban)</option>
+              <option value="receivable">Piutang (Tagihan)</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Pihak Terkait *</label>
+          <input type="text" id="debt-person-name" required placeholder="Contoh: Toko Bangunan / Budi" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium focus:bg-white focus:outline-none focus:border-indigo-600">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Nominal Pokok (Rp) *</label>
+            <input type="number" id="debt-total-amount" required min="1" placeholder="5000000" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono font-medium focus:bg-white focus:outline-none focus:border-indigo-600">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Sisa Belum Dibayar</label>
+            <input type="number" id="debt-remaining-amount" min="0" placeholder="5000000" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono font-medium focus:bg-white focus:outline-none focus:border-indigo-600">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Jatuh Tempo *</label>
+            <input type="date" id="debt-due-date" required class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium focus:bg-white focus:outline-none focus:border-indigo-600">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Status Pembayaran</label>
+            <select id="debt-status" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium focus:bg-white focus:outline-none focus:border-indigo-600">
+              <option value="unpaid">Belum Lunas</option>
+              <option value="partially_paid">Sebagian</option>
+              <option value="paid">Lunas</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Catatan Tambahan</label>
+          <input type="text" id="debt-notes" placeholder="Keterangan hutang/piutang..." class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium focus:bg-white focus:outline-none focus:border-indigo-600">
+        </div>
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+          <button type="button" onclick="closeModal('modal-debt')" class="px-4 py-2 text-xs font-semibold text-slate-500 hover:text-slate-700 rounded-xl">Batal</button>
+          <button type="submit" class="px-4 py-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-xs">Simpan Catatan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: CATEGORY (Create & Edit) -->
+  <div id="modal-category" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white border border-slate-200 rounded-2xl max-w-sm w-full p-6 shadow-2xl relative">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+        <h3 id="modal-category-title" class="text-base font-bold text-slate-900">Tambah Kategori Baru</h3>
+        <button onclick="closeModal('modal-category')" class="text-slate-400 hover:text-slate-600">&times;</button>
+      </div>
+      <form id="form-category" class="space-y-3.5">
+        <input type="hidden" id="category-id">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Kategori *</label>
+          <input type="text" id="category-name" required placeholder="Contoh: Operasional Server" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium focus:bg-white focus:outline-none focus:border-indigo-600">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Jenis Transaksi *</label>
+            <select id="category-type" required class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium focus:bg-white focus:outline-none focus:border-indigo-600">
+              <option value="expense">Pengeluaran</option>
+              <option value="income">Pemasukan</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Warna Label</label>
+            <input type="color" id="category-color" value="#6366F1" class="w-full h-8 p-0.5 rounded-lg border border-slate-200 cursor-pointer">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Ikon Identifikasi</label>
+          <input type="text" id="category-icon" value="tag" placeholder="tag, briefcase, receipt, car..." class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium focus:bg-white focus:outline-none focus:border-indigo-600">
+        </div>
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+          <button type="button" onclick="closeModal('modal-category')" class="px-4 py-2 text-xs font-semibold text-slate-500 hover:text-slate-700 rounded-xl">Batal</button>
+          <button type="submit" class="px-4 py-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-xs">Simpan Kategori</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: DELETE CONFIRMATION -->
+  <div id="modal-delete" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white border border-slate-200 rounded-2xl max-w-sm w-full p-6 shadow-2xl relative">
+      <div class="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto mb-3">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+      </div>
+      <h3 class="text-base font-bold text-center text-slate-900 mb-1">Konfirmasi Penghapusan</h3>
+      <p id="modal-delete-desc" class="text-xs text-center text-slate-500 mb-5">Apakah Anda yakin ingin menghapus data ini secara permanen?</p>
+      
+      <div class="flex items-center justify-center gap-3">
+        <button type="button" onclick="closeModal('modal-delete')" class="flex-1 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-all">Batal</button>
+        <button type="button" id="btn-confirm-delete" class="flex-1 py-2.5 text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white rounded-xl shadow-xs transition-all">Hapus Permanen</button>
       </div>
     </div>
   </div>
@@ -640,86 +1209,133 @@
     let cacheStats = null;
     let cacheUsers = [];
     let cacheFamilies = [];
+    let cacheCompanies = [];
+    let cacheProjects = [];
+    let cacheWallets = [];
     let cacheTransactions = [];
     let cacheSavings = [];
     let cacheDebts = [];
+    let cacheCategories = [];
 
-    // Format Rupiah
+    // Pending delete callback
+    let pendingDeleteCallback = null;
+
+    // Helpers
     function formatRupiah(num) {
       const val = Number(num || 0);
       return 'Rp ' + val.toLocaleString('id-ID');
     }
 
-    // Format Date
-    function formatDate(dateStr) {
-      if (!dateStr) return '-';
+    function formatDate(dStr) {
+      if (!dStr) return '-';
       try {
-        const d = new Date(dateStr);
-        return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
-      } catch {
-        return dateStr;
+        const d = new Date(dStr);
+        if (isNaN(d.getTime())) return dStr;
+        return d.toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' });
+      } catch (e) {
+        return dStr;
       }
     }
 
-    // Toast alert
     function showToast(msg, isError = false) {
       const toast = document.getElementById('toast');
-      const toastMsg = document.getElementById('toast-message');
-      const toastIcon = document.getElementById('toast-icon');
+      const text = document.getElementById('toast-message');
+      const icon = document.getElementById('toast-icon');
 
-      toastMsg.innerText = msg;
+      text.innerText = msg;
       if (isError) {
-        toastIcon.classList.replace('text-emerald-400', 'text-rose-400');
-        toastIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>';
+        icon.classList.remove('text-emerald-400');
+        icon.classList.add('text-rose-400');
+        icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>';
       } else {
-        toastIcon.classList.replace('text-rose-400', 'text-emerald-400');
-        toastIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>';
+        icon.classList.remove('text-rose-400');
+        icon.classList.add('text-emerald-400');
+        icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>';
       }
 
       toast.classList.remove('translate-y-12', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
       setTimeout(() => {
         toast.classList.add('translate-y-12', 'opacity-0');
-      }, 2800);
+        toast.classList.remove('translate-y-0', 'opacity-100');
+      }, 3200);
     }
 
-    // Copy to clipboard
-    function copyText(text, label = 'Teks') {
-      navigator.clipboard.writeText(text).then(() => {
-        showToast(label + ' berhasil disalin ke clipboard!');
-      }).catch(() => {
-        showToast('Gagal menyalin', true);
-      });
+    function openModal(id) {
+      document.getElementById(id).classList.remove('hidden');
     }
 
-    // Auth gate check
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+    }
+
+    // Modal Delete Trigger
+    function confirmDelete(entityName, itemName, callback) {
+      document.getElementById('modal-delete-desc').innerText = `Yakin ingin menghapus ${entityName} "${itemName}"? Tindakan ini tidak dapat dibatalkan.`;
+      pendingDeleteCallback = callback;
+      openModal('modal-delete');
+    }
+
+    document.getElementById('btn-confirm-delete').addEventListener('click', async () => {
+      if (typeof pendingDeleteCallback === 'function') {
+        const btn = document.getElementById('btn-confirm-delete');
+        btn.disabled = true;
+        btn.innerText = 'Menghapus...';
+        try {
+          await pendingDeleteCallback();
+          closeModal('modal-delete');
+        } catch (err) {
+          showToast(err.message, true);
+        } finally {
+          btn.disabled = false;
+          btn.innerText = 'Hapus Permanen';
+        }
+      }
+    });
+
+    // ======================== AUTH SYSTEM ========================
     function checkAuth() {
       const token = localStorage.getItem(tokenKey);
       if (!token) {
-        document.getElementById('login-view').classList.remove('hidden');
-        document.getElementById('dashboard-view').classList.add('hidden');
+        showLoginView();
       } else {
-        document.getElementById('login-view').classList.add('hidden');
-        document.getElementById('dashboard-view').classList.remove('hidden');
-        const adminEmail = localStorage.getItem('admin_email');
-        if (adminEmail) {
-          document.getElementById('admin-user-label').innerText = adminEmail;
-        }
+        showDashboardView();
         fetchAllData();
       }
     }
 
-    // Login Form Submit
+    function showLoginView() {
+      document.getElementById('login-view').classList.remove('hidden');
+      document.getElementById('dashboard-view').classList.add('hidden');
+    }
+
+    function showDashboardView() {
+      document.getElementById('login-view').classList.add('hidden');
+      document.getElementById('dashboard-view').classList.remove('hidden');
+    }
+
+    document.getElementById('btn-fill-demo').addEventListener('click', () => {
+      document.getElementById('email').value = 'admin@gmail.com';
+      document.getElementById('password').value = 'alvian14';
+    });
+
+    document.getElementById('toggle-pwd').addEventListener('click', () => {
+      const pwd = document.getElementById('password');
+      pwd.type = pwd.type === 'password' ? 'text' : 'password';
+    });
+
     document.getElementById('admin-login-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
+      const btn = document.getElementById('btn-login');
       const alertBox = document.getElementById('login-alert');
       const alertText = document.getElementById('login-alert-text');
-      const btn = document.getElementById('btn-login');
 
-      alertBox.classList.add('hidden');
       btn.disabled = true;
-      btn.innerHTML = '<span class="inline-block animate-spin mr-2">⏳</span> Memverifikasi...';
+      btn.innerText = 'Memverifikasi...';
+      alertBox.classList.add('hidden');
 
       try {
         const res = await fetch('/api/v1/auth/login', {
@@ -728,314 +1344,735 @@
           body: JSON.stringify({ email, password })
         });
         const data = await res.json();
-
         if (!res.ok) throw new Error(data.error || 'Login gagal');
-        if (data.user.role !== 'admin') throw new Error('Akses ditolak: Akun ini bukan administrator');
+
+        if (data.user.role !== 'admin') {
+          throw new Error('Akses ditolak: Akun ini bukan administrator');
+        }
 
         localStorage.setItem(tokenKey, data.token);
-        localStorage.setItem('admin_email', data.user.email);
-        checkAuth();
-        showToast('Selamat datang kembali, Admin!');
+        document.getElementById('admin-user-label').innerText = data.user.email;
+        showDashboardView();
+        fetchAllData();
+        showToast('Selamat datang di Admin Console Finance OS!');
       } catch (err) {
         alertText.innerText = err.message;
         alertBox.classList.remove('hidden');
       } finally {
         btn.disabled = false;
-        btn.innerHTML = '<span>Masuk ke Dashboard</span><svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>';
+        btn.innerText = 'Masuk ke Console';
       }
     });
 
-    // Quick Fill Demo Credentials
-    document.getElementById('btn-fill-demo').addEventListener('click', () => {
-      document.getElementById('email').value = 'admin@gmail.com';
-      document.getElementById('password').value = 'alvian14';
-      showToast('Kredensial admin otomatis diisi!');
-    });
-
-    // Password visibility toggle
-    document.getElementById('toggle-pwd').addEventListener('click', () => {
-      const pwd = document.getElementById('password');
-      pwd.type = pwd.type === 'password' ? 'text' : 'password';
-    });
-
-    // Logout
     document.getElementById('btn-logout').addEventListener('click', () => {
       localStorage.removeItem(tokenKey);
-      localStorage.removeItem('admin_email');
-      checkAuth();
-      showToast('Berhasil keluar dari sistem');
+      showLoginView();
+      showToast('Berhasil keluar dari sesi admin');
     });
 
-    // Refresh Button
-    document.getElementById('btn-refresh').addEventListener('click', () => {
-      const icon = document.getElementById('icon-refresh');
-      icon.classList.add('animate-spin');
-      fetchAllData().finally(() => {
-        setTimeout(() => icon.classList.remove('animate-spin'), 600);
-      });
-    });
+    // ======================== API CLIENT HELPER ========================
+    async function apiRequest(endpoint, method = 'GET', body = null) {
+      const token = localStorage.getItem(tokenKey);
+      const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      };
+      const opts = { method, headers };
+      if (body) opts.body = JSON.stringify(body);
 
-    // Tab Navigation
-    document.querySelectorAll('.nav-tab').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const tab = btn.getAttribute('data-tab');
-        switchTab(tab);
-      });
-    });
-
-    function switchTab(tabId) {
-      currentTab = tabId;
-      document.querySelectorAll('.nav-tab').forEach(b => {
-        const active = b.getAttribute('data-tab') === tabId;
-        if (active) {
-          b.className = 'nav-tab px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all bg-indigo-50 text-indigo-700 border border-indigo-200/80 shadow-2xs';
-        } else {
-          b.className = 'nav-tab px-4 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 flex items-center gap-2 transition-all';
-        }
-      });
-
-      document.querySelectorAll('.tab-pane').forEach(p => p.classList.add('hidden'));
-      const activePane = document.getElementById('tab-' + tabId);
-      if (activePane) activePane.classList.remove('hidden');
+      const res = await fetch(endpoint, opts);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Terjadi kesalahan sistem');
+      return data;
     }
 
-    // ======================== API FETCHING ========================
+    // ======================== FETCH ALL DATA ========================
     async function fetchAllData() {
-      const token = localStorage.getItem(tokenKey);
-      if (!token) return;
-      const headers = { 'Authorization': 'Bearer ' + token };
+      const refreshIcon = document.getElementById('icon-refresh');
+      refreshIcon.classList.add('animate-spin');
 
       try {
-        const [statsRes, usersRes, familiesRes, txRes, savingsRes, debtsRes] = await Promise.all([
-          fetch('/admin/api/stats', { headers }),
-          fetch('/admin/api/users', { headers }),
-          fetch('/admin/api/families', { headers }),
-          fetch('/admin/api/transactions', { headers }),
-          fetch('/admin/api/savings', { headers }),
-          fetch('/admin/api/debts', { headers }),
+        const [stats, users, families, companies, projects, wallets, transactions, savings, debts, categories] = await Promise.all([
+          apiRequest('/admin/api/stats'),
+          apiRequest('/admin/api/users'),
+          apiRequest('/admin/api/families'),
+          apiRequest('/admin/api/companies'),
+          apiRequest('/admin/api/projects'),
+          apiRequest('/admin/api/wallets'),
+          apiRequest('/admin/api/transactions'),
+          apiRequest('/admin/api/savings'),
+          apiRequest('/admin/api/debts'),
+          apiRequest('/admin/api/categories')
         ]);
 
-        if (statsRes.status === 401 || statsRes.status === 403) {
-          localStorage.removeItem(tokenKey);
-          return checkAuth();
-        }
+        cacheStats = stats;
+        cacheUsers = users;
+        cacheFamilies = families;
+        cacheCompanies = companies;
+        cacheProjects = projects;
+        cacheWallets = wallets;
+        cacheTransactions = transactions;
+        cacheSavings = savings;
+        cacheDebts = debts;
+        cacheCategories = categories;
 
-        cacheStats = await statsRes.json();
-        cacheUsers = await usersRes.json();
-        cacheFamilies = await familiesRes.json();
-        cacheTransactions = await txRes.json();
-        cacheSavings = await savingsRes.json();
-        cacheDebts = await debtsRes.json();
-
-        // Update badge counters
-        document.getElementById('badge-tab-users').innerText = cacheUsers.length;
-        document.getElementById('badge-tab-families').innerText = cacheFamilies.length;
-        document.getElementById('badge-tab-tx').innerText = cacheTransactions.length;
-        document.getElementById('badge-tab-savings').innerText = cacheSavings.length;
-        document.getElementById('badge-tab-debts').innerText = cacheDebts.length;
-
-        // Render sections
-        renderOverview();
-        renderUsers();
-        renderFamilies();
-        renderTransactions();
-        renderSavings();
-        renderDebts();
+        updateBadges();
+        populateSelectDropdowns();
+        renderActiveTab();
       } catch (err) {
-        console.error('Fetch error:', err);
-        showToast('Gagal memuat data dari server', true);
+        if (err.message && err.message.includes('Forbidden') || err.message.includes('No token')) {
+          localStorage.removeItem(tokenKey);
+          showLoginView();
+        } else {
+          showToast(err.message, true);
+        }
+      } finally {
+        refreshIcon.classList.remove('animate-spin');
       }
     }
 
-    // 1. RENDER OVERVIEW
+    document.getElementById('btn-refresh').addEventListener('click', fetchAllData);
+
+    function updateBadges() {
+      document.getElementById('badge-tab-users').innerText = cacheUsers.length;
+      document.getElementById('badge-tab-families').innerText = cacheFamilies.length;
+      document.getElementById('badge-tab-companies').innerText = cacheCompanies.length;
+      document.getElementById('badge-tab-projects').innerText = cacheProjects.length;
+      document.getElementById('badge-tab-wallets').innerText = cacheWallets.length;
+      document.getElementById('badge-tab-tx').innerText = cacheTransactions.length;
+      document.getElementById('badge-tab-savings').innerText = cacheSavings.length;
+      document.getElementById('badge-tab-debts').innerText = cacheDebts.length;
+      document.getElementById('badge-tab-categories').innerText = cacheCategories.length;
+    }
+
+    function populateSelectDropdowns() {
+      // Users
+      const userSelects = ['wallet-user-id', 'tx-user-id', 'saving-user-id', 'debt-user-id'];
+      userSelects.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.innerHTML = cacheUsers.map(u => `<option value="${u.id}">${u.name} (${u.email})</option>`).join('');
+        }
+      });
+
+      // Families
+      const famSelect = document.getElementById('user-family-id');
+      if (famSelect) {
+        famSelect.innerHTML = '<option value="">(Tanpa Keluarga)</option>' +
+          cacheFamilies.map(f => `<option value="${f.id}">${f.name} [${f.invite_code}]</option>`).join('');
+      }
+
+      // Companies
+      const compSelects = ['user-company-id', 'project-company-id'];
+      compSelects.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.innerHTML = (id.includes('user') ? '<option value="">(Tanpa Perusahaan)</option>' : '') +
+            cacheCompanies.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+        }
+      });
+
+      // Wallets
+      const txWalletSelect = document.getElementById('tx-wallet-id');
+      if (txWalletSelect) {
+        txWalletSelect.innerHTML = cacheWallets.map(w => `<option value="${w.id}">${w.name} (${w.user_name || 'User ' + w.user_id}) - ${formatRupiah(w.balance)}</option>`).join('');
+      }
+
+      // Categories
+      const catSelect = document.getElementById('tx-category-id');
+      if (catSelect) {
+        catSelect.innerHTML = '<option value="">(Tanpa Kategori)</option>' +
+          cacheCategories.map(c => `<option value="${c.id}">[${c.type === 'income' ? '+' : '-'}] ${c.name}</option>`).join('');
+      }
+
+      // Projects
+      const projSelect = document.getElementById('tx-project-id');
+      if (projSelect) {
+        projSelect.innerHTML = '<option value="">(Bukan Transaksi Proyek)</option>' +
+          cacheProjects.map(p => `<option value="${p.id}">${p.name} [${p.company_name}]</option>`).join('');
+      }
+    }
+
+    // ======================== TAB NAVIGATION ========================
+    function switchTab(tabId) {
+      currentTab = tabId;
+      document.querySelectorAll('.tab-pane').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.nav-tab').forEach(el => {
+        el.classList.remove('bg-indigo-50', 'text-indigo-700', 'border-indigo-200/80', 'shadow-2xs');
+        el.classList.add('text-slate-600', 'hover:text-slate-900', 'hover:bg-slate-50');
+      });
+
+      const activePane = document.getElementById('tab-' + tabId);
+      if (activePane) activePane.classList.remove('hidden');
+
+      const activeBtn = document.querySelector(`.nav-tab[data-tab="${tabId}"]`);
+      if (activeBtn) {
+        activeBtn.classList.remove('text-slate-600', 'hover:text-slate-900', 'hover:bg-slate-50');
+        activeBtn.classList.add('bg-indigo-50', 'text-indigo-700', 'border-indigo-200/80', 'shadow-2xs');
+      }
+
+      renderActiveTab();
+    }
+
+    document.querySelectorAll('.nav-tab').forEach(btn => {
+      btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+    });
+
+    function renderActiveTab() {
+      if (currentTab === 'overview') renderOverview();
+      else if (currentTab === 'users') renderUsers();
+      else if (currentTab === 'families') renderFamilies();
+      else if (currentTab === 'companies') renderCompanies();
+      else if (currentTab === 'projects') renderProjects();
+      else if (currentTab === 'wallets') renderWallets();
+      else if (currentTab === 'transactions') renderTransactions();
+      else if (currentTab === 'savings') renderSavings();
+      else if (currentTab === 'debts') renderDebts();
+      else if (currentTab === 'categories') renderCategories();
+    }
+
+    // ======================== 1. RENDER OVERVIEW ========================
     function renderOverview() {
       if (!cacheStats) return;
       document.getElementById('stat-total-balance').innerText = formatRupiah(cacheStats.total_system_balance);
-      document.getElementById('stat-wallet-count').innerText = cacheStats.total_wallets || 0;
+      document.getElementById('stat-wallet-count').innerText = cacheStats.total_wallets;
       document.getElementById('stat-total-users').innerText = cacheStats.total_users;
-      document.getElementById('stat-admin-count').innerText = (cacheStats.admin_count || 1) + ' Admin';
-      document.getElementById('stat-total-families').innerText = cacheStats.total_families;
+      document.getElementById('stat-admin-count').innerText = `${cacheStats.admin_count} Admin`;
+      document.getElementById('stat-total-companies').innerText = cacheStats.total_companies || 0;
+      document.getElementById('stat-total-projects').innerText = cacheStats.total_projects || 0;
       document.getElementById('stat-total-tx').innerText = cacheStats.total_transactions;
-      document.getElementById('stat-income-vol').innerText = 'In: ' + formatRupiah(cacheStats.total_income_volume);
-      document.getElementById('stat-expense-vol').innerText = 'Out: ' + formatRupiah(cacheStats.total_expense_volume);
-      document.getElementById('stat-savings-balance').innerText = formatRupiah(cacheStats.total_savings_balance);
-      document.getElementById('stat-shared-savings').innerText = (cacheStats.shared_savings_count || 0) + ' Celengan Bersama';
-      document.getElementById('stat-active-debts').innerText = formatRupiah(cacheStats.total_active_debts);
+      document.getElementById('stat-income-vol').innerText = '+ ' + formatRupiah(cacheStats.total_income_volume);
+      document.getElementById('stat-expense-vol').innerText = '- ' + formatRupiah(cacheStats.total_expense_volume);
 
-      const tbody = document.getElementById('overview-recent-rows');
-      const recent = cacheStats.recent_transactions || [];
-      if (recent.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-6 text-center text-slate-400">Belum ada transaksi tercatat</td></tr>';
+      const rows = document.getElementById('overview-recent-rows');
+      if (!cacheStats.recent_transactions || cacheStats.recent_transactions.length === 0) {
+        rows.innerHTML = '<tr><td colspan="6" class="px-4 py-6 text-center text-slate-400">Belum ada riwayat transaksi</td></tr>';
         return;
       }
 
-      tbody.innerHTML = recent.map(t => {
+      rows.innerHTML = cacheStats.recent_transactions.map(t => {
         const isIncome = t.type === 'income';
-        const isSaving = t.type === 'saving_deposit';
-        const colorClass = isIncome ? 'text-emerald-600' : (isSaving ? 'text-indigo-600' : 'text-rose-600');
-        const badgeClass = isIncome ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : (isSaving ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-rose-50 text-rose-700 border-rose-200');
-        
         return `
           <tr class="hover:bg-slate-50/70 transition-colors">
-            <td class="px-4 py-3 text-slate-500 font-mono text-[11px]">${formatDate(t.transaction_date)}</td>
+            <td class="px-4 py-3 font-mono text-[11px] text-slate-500">${formatDate(t.transaction_date)}</td>
             <td class="px-4 py-3 font-semibold text-slate-900">${t.user_name || 'User #' + t.user_id}</td>
-            <td class="px-4 py-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold border ${badgeClass}">${t.type}</span></td>
-            <td class="px-4 py-3 font-bold font-mono ${colorClass}">${isIncome ? '+' : '-'} ${formatRupiah(t.amount)}</td>
-            <td class="px-4 py-3 text-slate-500 truncate max-w-[200px]">${t.notes || '-'}</td>
             <td class="px-4 py-3">
-              <span class="px-2 py-0.5 rounded text-[10px] font-semibold ${t.scope === 'family' ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'bg-slate-100 text-slate-600 border border-slate-200'}">
-                ${t.scope === 'family' ? 'Keluarga' : 'Pribadi'}
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold ${isIncome ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}">
+                ${isIncome ? 'Pemasukan (+)' : 'Pengeluaran (-)'}
               </span>
+            </td>
+            <td class="px-4 py-3 font-bold font-mono ${isIncome ? 'text-emerald-600' : 'text-slate-900'}">${formatRupiah(t.amount)}</td>
+            <td class="px-4 py-3 text-slate-500 truncate max-w-xs">${t.notes || '-'}</td>
+            <td class="px-4 py-3">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-700 border border-slate-200">${t.scope || 'personal'}</span>
             </td>
           </tr>
         `;
       }).join('');
     }
 
-    // 2. RENDER USERS
+    // ======================== 2. RENDER USERS ========================
     function renderUsers() {
       const q = (document.getElementById('users-search').value || '').toLowerCase().trim();
       const roleFilter = document.getElementById('users-role-filter').value;
-      const familyFilter = document.getElementById('users-family-filter').value;
 
       const filtered = cacheUsers.filter(u => {
         if (roleFilter !== 'all' && u.role !== roleFilter) return false;
-        if (familyFilter === 'has_family' && !u.family_id) return false;
-        if (familyFilter === 'no_family' && u.family_id) return false;
         if (q) {
-          const name = (u.name || '').toLowerCase();
-          const email = (u.email || '').toLowerCase();
-          const idStr = String(u.id);
-          if (!name.includes(q) && !email.includes(q) && !idStr.includes(q)) return false;
+          const matchName = (u.name || '').toLowerCase().includes(q);
+          const matchEmail = (u.email || '').toLowerCase().includes(q);
+          const matchId = String(u.id) === q;
+          if (!matchName && !matchEmail && !matchId) return false;
         }
         return true;
       });
 
       const tbody = document.getElementById('users-table-body');
       if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="px-5 py-8 text-center text-slate-400">Tidak ada pengguna yang cocok dengan kriteria filter</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="px-5 py-8 text-center text-slate-400">Tidak ada pengguna yang cocok</td></tr>';
         return;
       }
 
-      tbody.innerHTML = filtered.map(u => {
-        const isAdmin = u.role === 'admin';
+      tbody.innerHTML = filtered.map(u => `
+        <tr class="hover:bg-slate-50/70 transition-colors">
+          <td class="px-5 py-3.5 font-mono text-xs text-slate-400">#${u.id}</td>
+          <td class="px-5 py-3.5">
+            <p class="font-semibold text-slate-900">${u.name}</p>
+            <p class="text-[11px] text-slate-400 font-mono">${u.email}</p>
+          </td>
+          <td class="px-5 py-3.5">
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${u.role === 'admin' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-slate-50 text-slate-600 border-slate-200'}">
+              ${u.role}
+            </span>
+          </td>
+          <td class="px-5 py-3.5 text-xs">
+            ${u.family_name ? `<span class="font-semibold text-slate-800">${u.family_name}</span> <span class="font-mono text-[10px] text-slate-400">(${u.family_code})</span>` : '<span class="text-slate-400">-</span>'}
+          </td>
+          <td class="px-5 py-3.5 text-xs">
+            ${u.company_name ? `<span class="font-semibold text-blue-700">${u.company_name}</span>` : '<span class="text-slate-400">-</span>'}
+          </td>
+          <td class="px-5 py-3.5">
+            <p class="font-bold font-mono text-slate-900">${formatRupiah(u.total_balance)}</p>
+            <p class="text-[10px] text-slate-400">${u.wallet_count || 0} dompet terdaftar</p>
+          </td>
+          <td class="px-5 py-3.5 text-right space-x-1.5 whitespace-nowrap">
+            <button onclick="editUser(${u.id})" class="px-2.5 py-1 text-[11px] font-semibold text-indigo-600 hover:bg-indigo-50 border border-indigo-200 rounded-lg transition-all">Edit</button>
+            <button onclick="deleteUserPrompt(${u.id}, '${u.name.replace(/'/g, "\\'")}')" class="px-2.5 py-1 text-[11px] font-semibold text-rose-600 hover:bg-rose-50 border border-rose-200 rounded-lg transition-all">Hapus</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    document.getElementById('users-search').addEventListener('input', renderUsers);
+    document.getElementById('users-role-filter').addEventListener('change', renderUsers);
+
+    function openUserModal(isEdit = false) {
+      document.getElementById('modal-user-title').innerText = isEdit ? 'Edit Pengguna' : 'Tambah Pengguna Baru';
+      document.getElementById('user-password-hint').classList.toggle('hidden', !isEdit);
+      document.getElementById('user-password').required = !isEdit;
+      openModal('modal-user');
+    }
+
+    function editUser(id) {
+      const u = cacheUsers.find(user => user.id === id);
+      if (!u) return;
+      document.getElementById('user-id').value = u.id;
+      document.getElementById('user-name').value = u.name;
+      document.getElementById('user-email').value = u.email;
+      document.getElementById('user-password').value = '';
+      document.getElementById('user-role').value = u.role;
+      document.getElementById('user-family-id').value = u.family_id || '';
+      document.getElementById('user-company-id').value = u.company_id || '';
+      openUserModal(true);
+    }
+
+    document.getElementById('form-user').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('user-id').value;
+      const payload = {
+        name: document.getElementById('user-name').value.trim(),
+        email: document.getElementById('user-email').value.trim(),
+        role: document.getElementById('user-role').value,
+        family_id: document.getElementById('user-family-id').value || null,
+        company_id: document.getElementById('user-company-id').value || null
+      };
+      const pwd = document.getElementById('user-password').value;
+      if (pwd) payload.password = pwd;
+
+      try {
+        if (id) {
+          await apiRequest(`/admin/api/users/${id}`, 'PUT', payload);
+          showToast('Data pengguna berhasil diperbarui!');
+        } else {
+          payload.password = pwd;
+          await apiRequest('/admin/api/users', 'POST', payload);
+          showToast('Pengguna baru berhasil ditambahkan!');
+        }
+        closeModal('modal-user');
+        fetchAllData();
+      } catch (err) {
+        showToast(err.message, true);
+      }
+    });
+
+    function deleteUserPrompt(id, name) {
+      confirmDelete('pengguna', name, async () => {
+        await apiRequest(`/admin/api/users/${id}`, 'DELETE');
+        showToast(`Pengguna "${name}" berhasil dihapus!`);
+        fetchAllData();
+      });
+    }
+
+    // ======================== 3. RENDER FAMILIES ========================
+    function renderFamilies() {
+      const q = (document.getElementById('families-search').value || '').toLowerCase().trim();
+      const filtered = cacheFamilies.filter(f => {
+        if (!q) return true;
+        return (f.name || '').toLowerCase().includes(q) || (f.invite_code || '').toLowerCase().includes(q);
+      });
+
+      const container = document.getElementById('families-container');
+      if (filtered.length === 0) {
+        container.innerHTML = '<div class="col-span-full py-12 text-center text-slate-400 text-xs">Tidak ada grup keluarga ditemukan</div>';
+        return;
+      }
+
+      container.innerHTML = filtered.map(f => `
+        <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-purple-50 text-purple-700 border border-purple-200">#${f.id}</span>
+              <span class="text-[11px] font-mono font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-100 flex items-center gap-1 cursor-pointer" title="Klik untuk salin kode" onclick="copyText('${f.invite_code}')">
+                <span>${f.invite_code}</span>
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+              </span>
+            </div>
+            <h4 class="text-base font-bold font-display text-slate-900 mt-2">${f.name}</h4>
+            <p class="text-xs text-slate-500 mt-1">${f.member_count} Anggota terhubung</p>
+            <div class="mt-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
+              <p class="text-[10px] uppercase font-semibold text-slate-400">Total Celengan Bersama</p>
+              <p class="text-base font-bold font-mono text-purple-700 mt-0.5">${formatRupiah(f.total_savings)}</p>
+            </div>
+          </div>
+          <div class="pt-4 border-t border-slate-100 mt-4 flex items-center justify-end gap-2">
+            <button onclick="editFamily(${f.id})" class="px-3 py-1.5 text-xs font-semibold text-indigo-600 hover:bg-indigo-50 border border-indigo-200 rounded-xl transition-all">Edit</button>
+            <button onclick="deleteFamilyPrompt(${f.id}, '${f.name.replace(/'/g, "\\'")}')" class="px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 border border-rose-200 rounded-xl transition-all">Hapus</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    document.getElementById('families-search').addEventListener('input', renderFamilies);
+
+    function openFamilyModal(isEdit = false) {
+      document.getElementById('modal-family-title').innerText = isEdit ? 'Edit Grup Keluarga' : 'Tambah Grup Keluarga';
+      openModal('modal-family');
+    }
+
+    function editFamily(id) {
+      const f = cacheFamilies.find(fam => fam.id === id);
+      if (!f) return;
+      document.getElementById('family-id').value = f.id;
+      document.getElementById('family-name').value = f.name;
+      document.getElementById('family-invite-code').value = f.invite_code;
+      openFamilyModal(true);
+    }
+
+    document.getElementById('form-family').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('family-id').value;
+      const payload = {
+        name: document.getElementById('family-name').value.trim(),
+        invite_code: document.getElementById('family-invite-code').value.trim() || undefined
+      };
+      try {
+        if (id) {
+          await apiRequest(`/admin/api/families/${id}`, 'PUT', payload);
+          showToast('Grup keluarga berhasil diperbarui!');
+        } else {
+          await apiRequest('/admin/api/families', 'POST', payload);
+          showToast('Grup keluarga berhasil dibuat!');
+        }
+        closeModal('modal-family');
+        fetchAllData();
+      } catch (err) {
+        showToast(err.message, true);
+      }
+    });
+
+    function deleteFamilyPrompt(id, name) {
+      confirmDelete('grup keluarga', name, async () => {
+        await apiRequest(`/admin/api/families/${id}`, 'DELETE');
+        showToast(`Grup keluarga "${name}" berhasil dihapus!`);
+        fetchAllData();
+      });
+    }
+
+    // ======================== 4. RENDER COMPANIES ========================
+    function renderCompanies() {
+      const q = (document.getElementById('companies-search').value || '').toLowerCase().trim();
+      const filtered = cacheCompanies.filter(c => {
+        if (!q) return true;
+        return (c.name || '').toLowerCase().includes(q) || (c.invite_code || '').toLowerCase().includes(q);
+      });
+
+      const container = document.getElementById('companies-container');
+      if (filtered.length === 0) {
+        container.innerHTML = '<div class="col-span-full py-12 text-center text-slate-400 text-xs">Tidak ada perusahaan ditemukan</div>';
+        return;
+      }
+
+      container.innerHTML = filtered.map(c => `
+        <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-blue-50 text-blue-700 border border-blue-200">#${c.id}</span>
+              <span class="text-[11px] font-mono font-bold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-100 flex items-center gap-1 cursor-pointer" title="Salin kode" onclick="copyText('${c.invite_code}')">
+                <span>${c.invite_code}</span>
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+              </span>
+            </div>
+            <h4 class="text-base font-bold font-display text-slate-900 mt-2">${c.name}</h4>
+            <div class="flex items-center gap-2 text-xs text-slate-500 mt-1">
+              <span>${c.member_count} Karyawan/Anggota</span>
+              <span>•</span>
+              <span class="text-blue-600 font-semibold">${c.project_count} Proyek</span>
+            </div>
+            <div class="grid grid-cols-2 gap-2 mt-3 p-3 rounded-xl bg-slate-50 border border-slate-100 text-[11px]">
+              <div>
+                <p class="text-[10px] text-slate-400 uppercase font-semibold">Total Anggaran</p>
+                <p class="font-bold font-mono text-slate-800">${formatRupiah(c.total_budget)}</p>
+              </div>
+              <div>
+                <p class="text-[10px] text-slate-400 uppercase font-semibold">Arus Kas In/Out</p>
+                <p class="font-bold font-mono text-emerald-600">+${formatRupiah(c.total_income)}</p>
+              </div>
+            </div>
+          </div>
+          <div class="pt-4 border-t border-slate-100 mt-4 flex items-center justify-end gap-2">
+            <button onclick="editCompany(${c.id})" class="px-3 py-1.5 text-xs font-semibold text-indigo-600 hover:bg-indigo-50 border border-indigo-200 rounded-xl transition-all">Edit</button>
+            <button onclick="deleteCompanyPrompt(${c.id}, '${c.name.replace(/'/g, "\\'")}')" class="px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 border border-rose-200 rounded-xl transition-all">Hapus</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    document.getElementById('companies-search').addEventListener('input', renderCompanies);
+
+    function openCompanyModal(isEdit = false) {
+      document.getElementById('modal-company-title').innerText = isEdit ? 'Edit Perusahaan' : 'Tambah Perusahaan Baru';
+      openModal('modal-company');
+    }
+
+    function editCompany(id) {
+      const c = cacheCompanies.find(comp => comp.id === id);
+      if (!c) return;
+      document.getElementById('company-id').value = c.id;
+      document.getElementById('company-name').value = c.name;
+      document.getElementById('company-invite-code').value = c.invite_code;
+      openCompanyModal(true);
+    }
+
+    document.getElementById('form-company').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('company-id').value;
+      const payload = {
+        name: document.getElementById('company-name').value.trim(),
+        invite_code: document.getElementById('company-invite-code').value.trim() || undefined
+      };
+      try {
+        if (id) {
+          await apiRequest(`/admin/api/companies/${id}`, 'PUT', payload);
+          showToast('Perusahaan berhasil diperbarui!');
+        } else {
+          await apiRequest('/admin/api/companies', 'POST', payload);
+          showToast('Perusahaan baru berhasil dibuat!');
+        }
+        closeModal('modal-company');
+        fetchAllData();
+      } catch (err) {
+        showToast(err.message, true);
+      }
+    });
+
+    function deleteCompanyPrompt(id, name) {
+      confirmDelete('perusahaan', name, async () => {
+        await apiRequest(`/admin/api/companies/${id}`, 'DELETE');
+        showToast(`Perusahaan "${name}" berhasil dihapus!`);
+        fetchAllData();
+      });
+    }
+
+    // ======================== 5. RENDER PROJECTS ========================
+    function renderProjects() {
+      const q = (document.getElementById('projects-search').value || '').toLowerCase().trim();
+      const statusFilter = document.getElementById('projects-status-filter').value;
+
+      const filtered = cacheProjects.filter(p => {
+        if (statusFilter !== 'all' && p.status !== statusFilter) return false;
+        if (q) {
+          const matchName = (p.name || '').toLowerCase().includes(q);
+          const matchDesc = (p.description || '').toLowerCase().includes(q);
+          const matchComp = (p.company_name || '').toLowerCase().includes(q);
+          if (!matchName && !matchDesc && !matchComp) return false;
+        }
+        return true;
+      });
+
+      const tbody = document.getElementById('projects-table-body');
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="px-5 py-8 text-center text-slate-400">Tidak ada proyek yang sesuai</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(p => {
+        const net = Number(p.current_income || 0) - Number(p.current_expense || 0);
         return `
           <tr class="hover:bg-slate-50/70 transition-colors">
-            <td class="px-5 py-3.5 font-mono text-xs text-slate-400">#${u.id}</td>
+            <td class="px-5 py-3.5 font-mono text-xs text-slate-400">#${p.id}</td>
             <td class="px-5 py-3.5">
-              <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-full ${isAdmin ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-700'} flex items-center justify-center font-bold text-xs">
-                  ${(u.name || 'U').charAt(0).toUpperCase()}
-                </div>
-                <div>
-                  <p class="font-semibold text-slate-900 leading-tight">${u.name}</p>
-                  <p class="text-[11px] text-slate-500">${u.email}</p>
-                </div>
-              </div>
+              <p class="font-bold text-slate-900">${p.name}</p>
+              <p class="text-[11px] text-blue-600 font-semibold">${p.company_name}</p>
+            </td>
+            <td class="px-5 py-3.5 font-mono font-bold text-slate-800">${formatRupiah(p.target_budget)}</td>
+            <td class="px-5 py-3.5 font-mono text-[11px]">
+              <span class="text-emerald-600 font-semibold">+${formatRupiah(p.current_income)}</span><br>
+              <span class="text-rose-600 font-semibold">-${formatRupiah(p.current_expense)}</span>
+            </td>
+            <td class="px-5 py-3.5 font-mono font-bold ${net >= 0 ? 'text-emerald-600' : 'text-rose-600'}">
+              ${net >= 0 ? '+' : ''}${formatRupiah(net)}
             </td>
             <td class="px-5 py-3.5">
-              <span class="px-2.5 py-1 rounded-lg text-[11px] font-bold border ${isAdmin ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-slate-100 text-slate-700 border border-slate-200'}">
-                ${isAdmin ? '👑 Admin' : 'User'}
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold ${p.status === 'active' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : (p.status === 'completed' ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'bg-amber-50 text-amber-700 border border-amber-200')}">
+                ${p.status}
               </span>
             </td>
-            <td class="px-5 py-3.5">
-              ${u.family_name ? `
-                <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-purple-50 text-purple-700 border border-purple-200 text-xs">
-                  <span class="font-medium">${u.family_name}</span>
-                  <span class="font-mono text-[10px] text-purple-600 font-bold">(${u.family_code || u.family_id})</span>
-                </div>
-              ` : '<span class="text-slate-400 text-xs">-</span>'}
-            </td>
-            <td class="px-5 py-3.5">
-              <p class="font-bold font-mono text-emerald-600">${formatRupiah(u.total_balance)}</p>
-              <p class="text-[10px] text-slate-500">${u.wallet_count || 0} dompet terdaftar</p>
-            </td>
-            <td class="px-5 py-3.5">
-              <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-xs font-semibold">${u.transaction_count || 0} tx</span>
-            </td>
-            <td class="px-5 py-3.5 text-right">
-              <button onclick="openRoleModal(${u.id}, '${u.name}', '${u.role}')" class="px-2.5 py-1.5 bg-white hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-medium border border-slate-200 transition-all shadow-2xs">
-                Ubah Role
-              </button>
+            <td class="px-5 py-3.5 text-right space-x-1.5 whitespace-nowrap">
+              <button onclick="editProject(${p.id})" class="px-2.5 py-1 text-[11px] font-semibold text-indigo-600 hover:bg-indigo-50 border border-indigo-200 rounded-lg transition-all">Edit</button>
+              <button onclick="deleteProjectPrompt(${p.id}, '${p.name.replace(/'/g, "\\'")}')" class="px-2.5 py-1 text-[11px] font-semibold text-rose-600 hover:bg-rose-50 border border-rose-200 rounded-lg transition-all">Hapus</button>
             </td>
           </tr>
         `;
       }).join('');
     }
 
-    document.getElementById('users-search').addEventListener('input', renderUsers);
-    document.getElementById('users-role-filter').addEventListener('change', renderUsers);
-    document.getElementById('users-family-filter').addEventListener('change', renderUsers);
+    document.getElementById('projects-search').addEventListener('input', renderProjects);
+    document.getElementById('projects-status-filter').addEventListener('change', renderProjects);
 
-    // 3. RENDER FAMILIES
-    function renderFamilies() {
-      const q = (document.getElementById('families-search').value || '').toLowerCase().trim();
-      const filtered = cacheFamilies.filter(f => {
-        if (!q) return true;
-        const name = (f.name || '').toLowerCase();
-        const code = (f.invite_code || '').toLowerCase();
-        return name.includes(q) || code.includes(q);
+    function openProjectModal(isEdit = false) {
+      document.getElementById('modal-project-title').innerText = isEdit ? 'Edit Proyek' : 'Tambah Proyek Perusahaan';
+      openModal('modal-project');
+    }
+
+    function editProject(id) {
+      const p = cacheProjects.find(proj => proj.id === id);
+      if (!p) return;
+      document.getElementById('project-id').value = p.id;
+      document.getElementById('project-company-id').value = p.company_id;
+      document.getElementById('project-name').value = p.name;
+      document.getElementById('project-target-budget').value = p.target_budget || 0;
+      document.getElementById('project-status').value = p.status || 'active';
+      document.getElementById('project-end-date').value = p.end_date ? p.end_date.split('T')[0] : '';
+      document.getElementById('project-description').value = p.description || '';
+      openProjectModal(true);
+    }
+
+    document.getElementById('form-project').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('project-id').value;
+      const payload = {
+        company_id: document.getElementById('project-company-id').value,
+        name: document.getElementById('project-name').value.trim(),
+        target_budget: Number(document.getElementById('project-target-budget').value || 0),
+        status: document.getElementById('project-status').value,
+        end_date: document.getElementById('project-end-date').value || null,
+        description: document.getElementById('project-description').value.trim()
+      };
+      try {
+        if (id) {
+          await apiRequest(`/admin/api/projects/${id}`, 'PUT', payload);
+          showToast('Proyek berhasil diperbarui!');
+        } else {
+          await apiRequest('/admin/api/projects', 'POST', payload);
+          showToast('Proyek perusahaan berhasil dibuat!');
+        }
+        closeModal('modal-project');
+        fetchAllData();
+      } catch (err) {
+        showToast(err.message, true);
+      }
+    });
+
+    function deleteProjectPrompt(id, name) {
+      confirmDelete('proyek', name, async () => {
+        await apiRequest(`/admin/api/projects/${id}`, 'DELETE');
+        showToast(`Proyek "${name}" berhasil dihapus!`);
+        fetchAllData();
+      });
+    }
+
+    // ======================== 6. RENDER WALLETS ========================
+    function renderWallets() {
+      const q = (document.getElementById('wallets-search').value || '').toLowerCase().trim();
+      const scopeFilter = document.getElementById('wallets-scope-filter').value;
+
+      const filtered = cacheWallets.filter(w => {
+        if (scopeFilter !== 'all' && w.scope !== scopeFilter) return false;
+        if (q) {
+          const matchName = (w.name || '').toLowerCase().includes(q);
+          const matchUser = (w.user_name || '').toLowerCase().includes(q);
+          if (!matchName && !matchUser) return false;
+        }
+        return true;
       });
 
-      const container = document.getElementById('families-container');
+      const tbody = document.getElementById('wallets-table-body');
       if (filtered.length === 0) {
-        container.innerHTML = '<div class="col-span-full py-12 text-center text-slate-400 text-xs">Tidak ada data keluarga yang ditemukan</div>';
+        tbody.innerHTML = '<tr><td colspan="7" class="px-5 py-8 text-center text-slate-400">Tidak ada dompet ditemukan</td></tr>';
         return;
       }
 
-      container.innerHTML = filtered.map(f => {
-        const members = f.members || [];
-        return `
-          <div class="p-5 rounded-2xl bg-white border border-slate-200/90 hover:border-slate-300 transition-all shadow-xs hover:shadow-sm flex flex-col justify-between">
-            <div>
-              <div class="flex items-start justify-between gap-3 mb-3">
-                <div>
-                  <h4 class="font-bold font-display text-slate-900 text-base">${f.name}</h4>
-                  <p class="text-[11px] text-slate-500 mt-0.5">Dibuat ${formatDate(f.created_at)}</p>
-                </div>
-                <span class="px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200 text-[11px] font-bold">
-                  ${f.member_count} Anggota
-                </span>
-              </div>
-
-              <!-- Invite Code Badge with 1-click copy -->
-              <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/90 flex items-center justify-between mb-4">
-                <div>
-                  <span class="text-[10px] text-slate-500 font-semibold block uppercase">Kode ID Acak</span>
-                  <span class="font-mono text-base font-extrabold text-indigo-700 tracking-wider">${f.invite_code}</span>
-                </div>
-                <button onclick="copyText('${f.invite_code}', 'Kode ID Keluarga')" class="p-2 text-slate-500 hover:text-slate-800 bg-white hover:bg-slate-100 rounded-lg border border-slate-200/80 transition-all shadow-2xs" title="Salin Kode ID">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
-                </button>
-              </div>
-
-              <!-- Members List Preview -->
-              <div class="mb-4">
-                <span class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block mb-2">Roster Anggota:</span>
-                <div class="space-y-1.5 max-h-28 overflow-y-auto pr-1">
-                  ${members.map(m => `
-                    <div class="flex items-center justify-between text-xs py-1.5 px-2.5 rounded-lg bg-slate-50 border border-slate-100">
-                      <span class="font-medium text-slate-800">${m.name}</span>
-                      <span class="text-[10px] text-slate-500 font-mono font-semibold">${m.role}</span>
-                    </div>
-                  `).join('')}
-                </div>
-              </div>
-            </div>
-
-            <!-- Total Celengan Bersama -->
-            <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-              <span class="text-slate-500 font-medium">Total Celengan Bersama</span>
-              <span class="font-bold font-mono text-amber-600">${formatRupiah(f.total_savings)}</span>
-            </div>
-          </div>
-        `;
-      }).join('');
+      tbody.innerHTML = filtered.map(w => `
+        <tr class="hover:bg-slate-50/70 transition-colors">
+          <td class="px-5 py-3.5 font-mono text-xs text-slate-400">#${w.id}</td>
+          <td class="px-5 py-3.5 font-bold text-slate-900">${w.name}</td>
+          <td class="px-5 py-3.5">
+            <p class="font-semibold text-slate-900">${w.user_name || 'User #' + w.user_id}</p>
+            <p class="text-[11px] text-slate-400 font-mono">${w.user_email || ''}</p>
+          </td>
+          <td class="px-5 py-3.5">
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold border ${w.scope === 'personal' ? 'bg-slate-50 text-slate-700 border-slate-200' : (w.scope === 'family' ? 'bg-purple-50 text-purple-700 border-purple-200' : 'bg-blue-50 text-blue-700 border-blue-200')}">
+              ${w.scope}
+            </span>
+          </td>
+          <td class="px-5 py-3.5 font-mono font-bold text-slate-900">${formatRupiah(w.balance)}</td>
+          <td class="px-5 py-3.5">
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${w.is_active ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}">
+              ${w.is_active ? 'Aktif' : 'Nonaktif'}
+            </span>
+          </td>
+          <td class="px-5 py-3.5 text-right space-x-1.5 whitespace-nowrap">
+            <button onclick="editWallet(${w.id})" class="px-2.5 py-1 text-[11px] font-semibold text-indigo-600 hover:bg-indigo-50 border border-indigo-200 rounded-lg transition-all">Edit</button>
+            <button onclick="deleteWalletPrompt(${w.id}, '${w.name.replace(/'/g, "\\'")}')" class="px-2.5 py-1 text-[11px] font-semibold text-rose-600 hover:bg-rose-50 border border-rose-200 rounded-lg transition-all">Hapus</button>
+          </td>
+        </tr>
+      `).join('');
     }
 
-    document.getElementById('families-search').addEventListener('input', renderFamilies);
+    document.getElementById('wallets-search').addEventListener('input', renderWallets);
+    document.getElementById('wallets-scope-filter').addEventListener('change', renderWallets);
 
-    // 4. RENDER TRANSACTIONS
+    function openWalletModal(isEdit = false) {
+      document.getElementById('modal-wallet-title').innerText = isEdit ? 'Edit Dompet' : 'Tambah Dompet Baru';
+      openModal('modal-wallet');
+    }
+
+    function editWallet(id) {
+      const w = cacheWallets.find(wal => wal.id === id);
+      if (!w) return;
+      document.getElementById('wallet-id').value = w.id;
+      document.getElementById('wallet-user-id').value = w.user_id;
+      document.getElementById('wallet-name').value = w.name;
+      document.getElementById('wallet-balance').value = w.balance;
+      document.getElementById('wallet-scope').value = w.scope || 'personal';
+      document.getElementById('wallet-is-active').value = w.is_active ? '1' : '0';
+      openWalletModal(true);
+    }
+
+    document.getElementById('form-wallet').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('wallet-id').value;
+      const payload = {
+        user_id: document.getElementById('wallet-user-id').value,
+        name: document.getElementById('wallet-name').value.trim(),
+        balance: Number(document.getElementById('wallet-balance').value || 0),
+        scope: document.getElementById('wallet-scope').value,
+        is_active: document.getElementById('wallet-is-active').value === '1'
+      };
+      try {
+        if (id) {
+          await apiRequest(`/admin/api/wallets/${id}`, 'PUT', payload);
+          showToast('Dompet berhasil diperbarui!');
+        } else {
+          await apiRequest('/admin/api/wallets', 'POST', payload);
+          showToast('Dompet baru berhasil dibuat!');
+        }
+        closeModal('modal-wallet');
+        fetchAllData();
+      } catch (err) {
+        showToast(err.message, true);
+      }
+    });
+
+    function deleteWalletPrompt(id, name) {
+      confirmDelete('dompet', name, async () => {
+        await apiRequest(`/admin/api/wallets/${id}`, 'DELETE');
+        showToast(`Dompet "${name}" berhasil dihapus!`);
+        fetchAllData();
+      });
+    }
+
+    // ======================== 7. RENDER TRANSACTIONS ========================
     function renderTransactions() {
       const q = (document.getElementById('tx-search').value || '').toLowerCase().trim();
       const typeFilter = document.getElementById('tx-type-filter').value;
@@ -1045,50 +2082,45 @@
         if (typeFilter !== 'all' && t.type !== typeFilter) return false;
         if (scopeFilter !== 'all' && t.scope !== scopeFilter) return false;
         if (q) {
-          const notes = (t.notes || '').toLowerCase();
-          const user = (t.user_name || '').toLowerCase();
-          const wallet = (t.wallet_name || '').toLowerCase();
-          const amtStr = String(t.amount);
-          if (!notes.includes(q) && !user.includes(q) && !wallet.includes(q) && !amtStr.includes(q)) return false;
+          const matchUser = (t.user_name || '').toLowerCase().includes(q);
+          const matchWallet = (t.wallet_name || '').toLowerCase().includes(q);
+          const matchNotes = (t.notes || '').toLowerCase().includes(q);
+          if (!matchUser && !matchWallet && !matchNotes) return false;
         }
         return true;
       });
 
       const tbody = document.getElementById('tx-table-body');
       if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="px-5 py-8 text-center text-slate-400">Tidak ada transaksi yang cocok dengan kriteria filter</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="px-5 py-8 text-center text-slate-400">Tidak ada transaksi ditemukan</td></tr>';
         return;
       }
 
       tbody.innerHTML = filtered.map(t => {
         const isIncome = t.type === 'income';
-        const isSaving = t.type === 'saving_deposit';
-        const colorClass = isIncome ? 'text-emerald-600' : (isSaving ? 'text-indigo-600' : 'text-rose-600');
-        const badgeClass = isIncome ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : (isSaving ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-rose-50 text-rose-700 border-rose-200');
-
         return `
           <tr class="hover:bg-slate-50/70 transition-colors">
             <td class="px-5 py-3.5">
-              <p class="font-mono text-xs text-slate-900 font-semibold">${formatDate(t.transaction_date)}</p>
-              <p class="font-mono text-[10px] text-slate-400">#${t.id}</p>
+              <span class="font-mono text-[11px] text-slate-400">#${t.id}</span>
+              <p class="font-medium text-slate-900">${formatDate(t.transaction_date)}</p>
             </td>
+            <td class="px-5 py-3.5 font-semibold text-slate-900">${t.user_name}</td>
             <td class="px-5 py-3.5">
-              <p class="font-semibold text-slate-900 leading-tight">${t.user_name}</p>
-              <p class="text-[10px] text-slate-500">${t.user_email || '-'}</p>
-            </td>
-            <td class="px-5 py-3.5">
-              <span class="px-2 py-0.5 rounded text-[10px] font-bold border ${badgeClass}">${t.type}</span>
-            </td>
-            <td class="px-5 py-3.5 text-slate-700 font-medium">${t.wallet_name}</td>
-            <td class="px-5 py-3.5 font-bold font-mono ${colorClass}">
-              ${isIncome ? '+' : '-'} ${formatRupiah(t.amount)}
-            </td>
-            <td class="px-5 py-3.5">
-              <span class="px-2 py-0.5 rounded text-[10px] font-semibold ${t.scope === 'family' ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'bg-slate-100 text-slate-600 border border-slate-200'}">
-                ${t.scope === 'family' ? '👨‍👩‍👧‍👦 Keluarga' : 'Pribadi'}
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold border ${isIncome ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'}">
+                ${isIncome ? 'Pemasukan (+)' : 'Pengeluaran (-)'}
               </span>
             </td>
-            <td class="px-5 py-3.5 text-slate-600 max-w-xs truncate">${t.notes || '-'}</td>
+            <td class="px-5 py-3.5 text-xs text-slate-700">${t.wallet_name}</td>
+            <td class="px-5 py-3.5 font-bold font-mono ${isIncome ? 'text-emerald-600' : 'text-slate-900'}">${formatRupiah(t.amount)}</td>
+            <td class="px-5 py-3.5">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-700">${t.scope || 'personal'}</span>
+              ${t.project_name ? `<p class="text-[10px] text-blue-600 font-semibold mt-0.5">📁 ${t.project_name}</p>` : ''}
+            </td>
+            <td class="px-5 py-3.5 text-slate-500 max-w-xs truncate">${t.notes || '-'}</td>
+            <td class="px-5 py-3.5 text-right space-x-1.5 whitespace-nowrap">
+              <button onclick="editTransaction(${t.id})" class="px-2.5 py-1 text-[11px] font-semibold text-indigo-600 hover:bg-indigo-50 border border-indigo-200 rounded-lg transition-all">Edit</button>
+              <button onclick="deleteTransactionPrompt(${t.id}, ${t.amount})" class="px-2.5 py-1 text-[11px] font-semibold text-rose-600 hover:bg-rose-50 border border-rose-200 rounded-lg transition-all">Hapus</button>
+            </td>
           </tr>
         `;
       }).join('');
@@ -1098,109 +2130,194 @@
     document.getElementById('tx-type-filter').addEventListener('change', renderTransactions);
     document.getElementById('tx-scope-filter').addEventListener('change', renderTransactions);
 
-    // 5. RENDER SAVINGS
+    function openTxModal(isEdit = false) {
+      document.getElementById('modal-tx-title').innerText = isEdit ? 'Edit Transaksi' : 'Catat Transaksi Finansial';
+      if (!isEdit) {
+        document.getElementById('tx-date').value = new Date().toISOString().split('T')[0];
+      }
+      openModal('modal-tx');
+    }
+
+    function editTransaction(id) {
+      const t = cacheTransactions.find(tx => tx.id === id);
+      if (!t) return;
+      document.getElementById('tx-id').value = t.id;
+      document.getElementById('tx-user-id').value = t.user_id;
+      document.getElementById('tx-wallet-id').value = t.wallet_id;
+      document.getElementById('tx-type').value = t.type;
+      document.getElementById('tx-amount').value = t.amount;
+      document.getElementById('tx-date').value = t.transaction_date ? t.transaction_date.split('T')[0] : '';
+      document.getElementById('tx-category-id').value = t.category_id || '';
+      document.getElementById('tx-scope').value = t.scope || 'personal';
+      document.getElementById('tx-project-id').value = t.project_id || '';
+      document.getElementById('tx-notes').value = t.notes || '';
+      openTxModal(true);
+    }
+
+    document.getElementById('form-tx').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('tx-id').value;
+      const payload = {
+        user_id: document.getElementById('tx-user-id').value,
+        wallet_id: document.getElementById('tx-wallet-id').value,
+        type: document.getElementById('tx-type').value,
+        amount: Number(document.getElementById('tx-amount').value),
+        transaction_date: document.getElementById('tx-date').value,
+        category_id: document.getElementById('tx-category-id').value || null,
+        scope: document.getElementById('tx-scope').value,
+        project_id: document.getElementById('tx-project-id').value || null,
+        notes: document.getElementById('tx-notes').value.trim()
+      };
+      try {
+        if (id) {
+          await apiRequest(`/admin/api/transactions/${id}`, 'PUT', payload);
+          showToast('Transaksi berhasil diperbarui!');
+        } else {
+          await apiRequest('/admin/api/transactions', 'POST', payload);
+          showToast('Transaksi berhasil dicatat!');
+        }
+        closeModal('modal-tx');
+        fetchAllData();
+      } catch (err) {
+        showToast(err.message, true);
+      }
+    });
+
+    function deleteTransactionPrompt(id, amount) {
+      confirmDelete('transaksi', `#${id} (${formatRupiah(amount)})`, async () => {
+        await apiRequest(`/admin/api/transactions/${id}`, 'DELETE');
+        showToast('Transaksi berhasil dihapus dan saldo dompet disesuaikan!');
+        fetchAllData();
+      });
+    }
+
+    // ======================== 8. RENDER SAVINGS ========================
     function renderSavings() {
       const q = (document.getElementById('savings-search').value || '').toLowerCase().trim();
-      const scopeFilter = document.getElementById('savings-scope-filter').value;
-
       const filtered = cacheSavings.filter(s => {
-        if (scopeFilter !== 'all' && s.scope !== scopeFilter) return false;
-        if (q) {
-          const name = (s.goal_name || '').toLowerCase();
-          const user = (s.user_name || '').toLowerCase();
-          const fam = (s.family_name || '').toLowerCase();
-          if (!name.includes(q) && !user.includes(q) && !fam.includes(q)) return false;
-        }
-        return true;
+        if (!q) return true;
+        return (s.goal_name || '').toLowerCase().includes(q) || (s.user_name || '').toLowerCase().includes(q);
       });
 
       const container = document.getElementById('savings-container');
       if (filtered.length === 0) {
-        container.innerHTML = '<div class="col-span-full py-12 text-center text-slate-400 text-xs">Tidak ada data celengan yang ditemukan</div>';
+        container.innerHTML = '<div class="col-span-full py-12 text-center text-slate-400 text-xs">Tidak ada celengan ditemukan</div>';
         return;
       }
 
-      container.innerHTML = filtered.map(s => {
-        const isFamily = s.scope === 'family';
-        const isReached = Number(s.current_amount || 0) >= Number(s.target_amount || 0);
-
-        return `
-          <div class="p-5 rounded-2xl bg-white border border-slate-200/90 hover:border-slate-300 transition-all shadow-xs hover:shadow-sm flex flex-col justify-between">
-            <div>
-              <div class="flex items-start justify-between gap-3 mb-3">
-                <div>
-                  <h4 class="font-bold font-display text-slate-900 text-base">${s.goal_name}</h4>
-                  <p class="text-[11px] text-slate-500 mt-0.5">Oleh: ${s.user_name} ${isFamily ? '• Grup ' + (s.family_name || 'Keluarga') : ''}</p>
-                </div>
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${isFamily ? 'bg-purple-50 text-purple-700 border-purple-200' : 'bg-slate-100 text-slate-700 border-slate-200'}">
-                  ${isFamily ? '👨‍👩‍👧‍👦 Bersama' : 'Pribadi'}
-                </span>
-              </div>
-
-              <!-- Amounts -->
-              <div class="my-4 space-y-1">
-                <div class="flex items-baseline justify-between">
-                  <span class="text-xs text-slate-500 font-medium">Terkumpul</span>
-                  <span class="font-extrabold font-mono text-emerald-600 text-base">${formatRupiah(s.current_amount)}</span>
-                </div>
-                <div class="flex items-baseline justify-between text-xs text-slate-400">
-                  <span>Target Nominal</span>
-                  <span class="font-mono text-slate-600 font-medium">${formatRupiah(s.target_amount)}</span>
-                </div>
-              </div>
-
-              <!-- Progress bar -->
-              <div class="space-y-1.5 mb-4">
-                <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
-                  <div class="bg-gradient-to-r from-emerald-500 to-indigo-600 h-2.5 rounded-full transition-all duration-500" style="width: ${s.progress}%"></div>
-                </div>
-                <div class="flex justify-between text-[11px] font-semibold">
-                  <span class="${isReached ? 'text-emerald-600' : 'text-slate-500'}">${isReached ? '🎉 Target Tercapai!' : 'Dalam Proses'}</span>
-                  <span class="font-mono text-indigo-600">${s.progress}%</span>
-                </div>
-              </div>
+      container.innerHTML = filtered.map(s => `
+        <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-50 text-amber-700 border border-amber-200">#${s.id}</span>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold border ${s.scope === 'family' ? 'bg-purple-50 text-purple-700 border-purple-200' : 'bg-slate-50 text-slate-600 border-slate-200'}">${s.scope === 'family' ? 'Keluarga' : 'Pribadi'}</span>
             </div>
+            <h4 class="text-base font-bold font-display text-slate-900 mt-2">${s.goal_name}</h4>
+            <p class="text-xs text-slate-500 mt-0.5">Pemilik: ${s.user_name}</p>
 
-            <div class="pt-3 border-t border-slate-100 text-[11px] text-slate-500 flex justify-between">
-              <span>Target Waktu:</span>
-              <span class="font-medium text-slate-700">${formatDate(s.target_date)}</span>
+            <div class="my-4">
+              <div class="flex justify-between text-xs font-semibold mb-1">
+                <span class="text-slate-900 font-mono">${formatRupiah(s.current_amount)}</span>
+                <span class="text-slate-400 font-mono">/ ${formatRupiah(s.target_amount)}</span>
+              </div>
+              <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                <div class="bg-gradient-to-r from-emerald-500 to-indigo-600 h-2 rounded-full" style="width: ${s.progress}%"></div>
+              </div>
+              <div class="flex justify-between text-[11px] font-semibold mt-1">
+                <span class="${s.progress >= 100 ? 'text-emerald-600' : 'text-slate-500'}">${s.progress >= 100 ? '🎉 Tercapai!' : 'Sedang Berjalan'}</span>
+                <span class="font-mono text-indigo-600">${s.progress}%</span>
+              </div>
             </div>
           </div>
-        `;
-      }).join('');
+          <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
+            <span class="text-[11px] text-slate-400 font-mono">${formatDate(s.target_date)}</span>
+            <div class="space-x-1">
+              <button onclick="editSaving(${s.id})" class="px-2.5 py-1 text-[11px] font-semibold text-indigo-600 hover:bg-indigo-50 border border-indigo-200 rounded-lg">Edit</button>
+              <button onclick="deleteSavingPrompt(${s.id}, '${s.goal_name.replace(/'/g, "\\'")}')" class="px-2.5 py-1 text-[11px] font-semibold text-rose-600 hover:bg-rose-50 border border-rose-200 rounded-lg">Hapus</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
     }
 
     document.getElementById('savings-search').addEventListener('input', renderSavings);
-    document.getElementById('savings-scope-filter').addEventListener('change', renderSavings);
 
-    // 6. RENDER DEBTS
+    function openSavingModal(isEdit = false) {
+      document.getElementById('modal-saving-title').innerText = isEdit ? 'Edit Celengan' : 'Tambah Target Celengan';
+      openModal('modal-saving');
+    }
+
+    function editSaving(id) {
+      const s = cacheSavings.find(sav => sav.id === id);
+      if (!s) return;
+      document.getElementById('saving-id').value = s.id;
+      document.getElementById('saving-user-id').value = s.user_id;
+      document.getElementById('saving-goal-name').value = s.goal_name;
+      document.getElementById('saving-target-amount').value = s.target_amount;
+      document.getElementById('saving-current-amount').value = s.current_amount || 0;
+      document.getElementById('saving-scope').value = s.scope || 'personal';
+      document.getElementById('saving-target-date').value = s.target_date ? s.target_date.split('T')[0] : '';
+      openSavingModal(true);
+    }
+
+    document.getElementById('form-saving').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('saving-id').value;
+      const payload = {
+        user_id: document.getElementById('saving-user-id').value,
+        goal_name: document.getElementById('saving-goal-name').value.trim(),
+        target_amount: Number(document.getElementById('saving-target-amount').value),
+        current_amount: Number(document.getElementById('saving-current-amount').value || 0),
+        scope: document.getElementById('saving-scope').value,
+        target_date: document.getElementById('saving-target-date').value || null
+      };
+      try {
+        if (id) {
+          await apiRequest(`/admin/api/savings/${id}`, 'PUT', payload);
+          showToast('Target celengan berhasil diperbarui!');
+        } else {
+          await apiRequest('/admin/api/savings', 'POST', payload);
+          showToast('Target celengan berhasil dibuat!');
+        }
+        closeModal('modal-saving');
+        fetchAllData();
+      } catch (err) {
+        showToast(err.message, true);
+      }
+    });
+
+    function deleteSavingPrompt(id, name) {
+      confirmDelete('celengan', name, async () => {
+        await apiRequest(`/admin/api/savings/${id}`, 'DELETE');
+        showToast(`Target celengan "${name}" berhasil dihapus!`);
+        fetchAllData();
+      });
+    }
+
+    // ======================== 9. RENDER DEBTS ========================
     function renderDebts() {
       const q = (document.getElementById('debts-search').value || '').toLowerCase().trim();
       const typeFilter = document.getElementById('debts-type-filter').value;
-      const statusFilter = document.getElementById('debts-status-filter').value;
 
       const filtered = cacheDebts.filter(d => {
         if (typeFilter !== 'all' && d.type !== typeFilter) return false;
-        if (statusFilter !== 'all' && d.status !== statusFilter) return false;
         if (q) {
-          const person = (d.person_name || '').toLowerCase();
-          const user = (d.user_name || '').toLowerCase();
-          const notes = (d.notes || '').toLowerCase();
-          if (!person.includes(q) && !user.includes(q) && !notes.includes(q)) return false;
+          const matchPerson = (d.person_name || '').toLowerCase().includes(q);
+          const matchUser = (d.user_name || '').toLowerCase().includes(q);
+          if (!matchPerson && !matchUser) return false;
         }
         return true;
       });
 
       const tbody = document.getElementById('debts-table-body');
       if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="px-5 py-8 text-center text-slate-400">Tidak ada catatan hutang yang ditemukan</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="px-5 py-8 text-center text-slate-400">Tidak ada catatan hutang/piutang ditemukan</td></tr>';
         return;
       }
 
       tbody.innerHTML = filtered.map(d => {
         const isPayable = d.type === 'payable';
-        const isPaid = d.status === 'paid';
-
+        const isPaid = d.status === 'paid' || Number(d.remaining_amount) <= 0;
         return `
           <tr class="hover:bg-slate-50/70 transition-colors">
             <td class="px-5 py-3.5 font-mono text-xs text-slate-400">#${d.id}</td>
@@ -1210,18 +2327,21 @@
                 ${isPayable ? 'Hutang Saya' : 'Piutang Saya'}
               </span>
             </td>
-            <td class="px-5 py-3.5 text-slate-900 font-semibold">${d.person_name}</td>
+            <td class="px-5 py-3.5 font-semibold text-slate-800">${d.person_name}</td>
             <td class="px-5 py-3.5">
               <p class="font-bold font-mono text-slate-900">${formatRupiah(d.remaining_amount)}</p>
-              <p class="text-[10px] text-slate-400">dari total ${formatRupiah(d.amount)}</p>
+              <p class="text-[10px] text-slate-400">dari total ${formatRupiah(d.total_amount || d.amount)}</p>
             </td>
-            <td class="px-5 py-3.5 text-slate-500 text-xs font-mono">${formatDate(d.due_date)}</td>
+            <td class="px-5 py-3.5 font-mono text-xs text-slate-500">${formatDate(d.due_date)}</td>
             <td class="px-5 py-3.5">
               <span class="px-2 py-0.5 rounded text-[10px] font-bold ${isPaid ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
                 ${isPaid ? 'Lunas' : 'Belum Lunas'}
               </span>
             </td>
-            <td class="px-5 py-3.5 text-slate-500 max-w-xs truncate">${d.notes || '-'}</td>
+            <td class="px-5 py-3.5 text-right space-x-1.5 whitespace-nowrap">
+              <button onclick="editDebt(${d.id})" class="px-2.5 py-1 text-[11px] font-semibold text-indigo-600 hover:bg-indigo-50 border border-indigo-200 rounded-lg transition-all">Edit</button>
+              <button onclick="deleteDebtPrompt(${d.id}, '${d.person_name.replace(/'/g, "\\'")}')" class="px-2.5 py-1 text-[11px] font-semibold text-rose-600 hover:bg-rose-50 border border-rose-200 rounded-lg transition-all">Hapus</button>
+            </td>
           </tr>
         `;
       }).join('');
@@ -1229,71 +2349,187 @@
 
     document.getElementById('debts-search').addEventListener('input', renderDebts);
     document.getElementById('debts-type-filter').addEventListener('change', renderDebts);
-    document.getElementById('debts-status-filter').addEventListener('change', renderDebts);
 
-    // ======================== ROLE MODAL SYSTEM ========================
-    function openRoleModal(userId, userName, currentRole) {
-      document.getElementById('modal-role-user-id').value = userId;
-      document.getElementById('modal-role-desc').innerText = `Ubah peran untuk akun "${userName}" (saat ini: ${currentRole})`;
-      const radios = document.getElementsByName('target_role');
-      radios.forEach(r => {
-        r.checked = (r.value === currentRole);
-      });
-      document.getElementById('modal-role').classList.remove('hidden');
+    function openDebtModal(isEdit = false) {
+      document.getElementById('modal-debt-title').innerText = isEdit ? 'Edit Hutang/Piutang' : 'Tambah Catatan Hutang/Piutang';
+      openModal('modal-debt');
     }
 
-    function closeRoleModal() {
-      document.getElementById('modal-role').classList.add('hidden');
+    function editDebt(id) {
+      const d = cacheDebts.find(debt => debt.id === id);
+      if (!d) return;
+      document.getElementById('debt-id').value = d.id;
+      document.getElementById('debt-user-id').value = d.user_id;
+      document.getElementById('debt-type').value = d.type;
+      document.getElementById('debt-person-name').value = d.person_name;
+      document.getElementById('debt-total-amount').value = d.total_amount || d.amount;
+      document.getElementById('debt-remaining-amount').value = d.remaining_amount;
+      document.getElementById('debt-due-date').value = d.due_date ? d.due_date.split('T')[0] : '';
+      document.getElementById('debt-status').value = d.status || 'unpaid';
+      document.getElementById('debt-notes').value = d.notes || '';
+      openDebtModal(true);
     }
 
-    document.getElementById('btn-save-role').addEventListener('click', async () => {
-      const userId = document.getElementById('modal-role-user-id').value;
-      const radios = document.getElementsByName('target_role');
-      let selectedRole = 'user';
-      radios.forEach(r => { if (r.checked) selectedRole = r.value; });
-
-      const token = localStorage.getItem(tokenKey);
-      const btn = document.getElementById('btn-save-role');
-      btn.disabled = true;
-      btn.innerText = 'Menyimpan...';
-
+    document.getElementById('form-debt').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('debt-id').value;
+      const total = Number(document.getElementById('debt-total-amount').value);
+      const rem = document.getElementById('debt-remaining-amount').value;
+      const payload = {
+        user_id: document.getElementById('debt-user-id').value,
+        type: document.getElementById('debt-type').value,
+        person_name: document.getElementById('debt-person-name').value.trim(),
+        total_amount: total,
+        remaining_amount: rem !== '' ? Number(rem) : total,
+        due_date: document.getElementById('debt-due-date').value,
+        status: document.getElementById('debt-status').value,
+        notes: document.getElementById('debt-notes').value.trim()
+      };
       try {
-        const res = await fetch('/admin/api/users/' + userId + '/role', {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + token
-          },
-          body: JSON.stringify({ role: selectedRole })
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Gagal mengubah role');
-
-        closeRoleModal();
-        showToast(`Role berhasil diubah menjadi ${selectedRole}!`);
+        if (id) {
+          await apiRequest(`/admin/api/debts/${id}`, 'PUT', payload);
+          showToast('Catatan hutang/piutang berhasil diperbarui!');
+        } else {
+          await apiRequest('/admin/api/debts', 'POST', payload);
+          showToast('Catatan hutang/piutang berhasil dibuat!');
+        }
+        closeModal('modal-debt');
         fetchAllData();
       } catch (err) {
         showToast(err.message, true);
-      } finally {
-        btn.disabled = false;
-        btn.innerText = 'Simpan Peran';
       }
     });
 
-    // ======================== CSV EXPORT TOOL ========================
+    function deleteDebtPrompt(id, name) {
+      confirmDelete('catatan hutang/piutang', name, async () => {
+        await apiRequest(`/admin/api/debts/${id}`, 'DELETE');
+        showToast(`Catatan hutang "${name}" berhasil dihapus!`);
+        fetchAllData();
+      });
+    }
+
+    // ======================== 10. RENDER CATEGORIES ========================
+    function renderCategories() {
+      const q = (document.getElementById('categories-search').value || '').toLowerCase().trim();
+      const typeFilter = document.getElementById('categories-type-filter').value;
+
+      const filtered = cacheCategories.filter(c => {
+        if (typeFilter !== 'all' && c.type !== typeFilter) return false;
+        if (q && !(c.name || '').toLowerCase().includes(q)) return false;
+        return true;
+      });
+
+      const container = document.getElementById('categories-container');
+      if (filtered.length === 0) {
+        container.innerHTML = '<div class="col-span-full py-12 text-center text-slate-400 text-xs">Tidak ada kategori ditemukan</div>';
+        return;
+      }
+
+      container.innerHTML = filtered.map(c => `
+        <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-xs flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs text-white" style="background-color: ${c.color || '#6366F1'}">
+              ${c.type === 'income' ? '↓' : '↑'}
+            </div>
+            <div>
+              <p class="font-bold text-slate-900 text-xs">${c.name}</p>
+              <p class="text-[10px] text-slate-400 uppercase font-semibold">${c.type === 'income' ? 'Pemasukan' : 'Pengeluaran'}</p>
+            </div>
+          </div>
+          <div class="space-x-1">
+            <button onclick="editCategory(${c.id})" class="px-2 py-1 text-[10px] font-semibold text-indigo-600 hover:bg-indigo-50 border border-indigo-200 rounded-lg">Edit</button>
+            <button onclick="deleteCategoryPrompt(${c.id}, '${c.name.replace(/'/g, "\\'")}')" class="px-2 py-1 text-[10px] font-semibold text-rose-600 hover:bg-rose-50 border border-rose-200 rounded-lg">Hapus</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    document.getElementById('categories-search').addEventListener('input', renderCategories);
+    document.getElementById('categories-type-filter').addEventListener('change', renderCategories);
+
+    function openCategoryModal(isEdit = false) {
+      document.getElementById('modal-category-title').innerText = isEdit ? 'Edit Kategori' : 'Tambah Kategori Baru';
+      openModal('modal-category');
+    }
+
+    function editCategory(id) {
+      const c = cacheCategories.find(cat => cat.id === id);
+      if (!c) return;
+      document.getElementById('category-id').value = c.id;
+      document.getElementById('category-name').value = c.name;
+      document.getElementById('category-type').value = c.type;
+      document.getElementById('category-color').value = c.color || '#6366F1';
+      document.getElementById('category-icon').value = c.icon || 'tag';
+      openCategoryModal(true);
+    }
+
+    document.getElementById('form-category').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('category-id').value;
+      const payload = {
+        name: document.getElementById('category-name').value.trim(),
+        type: document.getElementById('category-type').value,
+        color: document.getElementById('category-color').value,
+        icon: document.getElementById('category-icon').value.trim()
+      };
+      try {
+        if (id) {
+          await apiRequest(`/admin/api/categories/${id}`, 'PUT', payload);
+          showToast('Kategori berhasil diperbarui!');
+        } else {
+          await apiRequest('/admin/api/categories', 'POST', payload);
+          showToast('Kategori baru berhasil ditambahkan!');
+        }
+        closeModal('modal-category');
+        fetchAllData();
+      } catch (err) {
+        showToast(err.message, true);
+      }
+    });
+
+    function deleteCategoryPrompt(id, name) {
+      confirmDelete('kategori', name, async () => {
+        await apiRequest(`/admin/api/categories/${id}`, 'DELETE');
+        showToast(`Kategori "${name}" berhasil dihapus!`);
+        fetchAllData();
+      });
+    }
+
+    // ======================== COPY & CSV EXPORT ========================
+    function copyText(str) {
+      navigator.clipboard.writeText(str).then(() => {
+        showToast(`Kode "${str}" disalin ke clipboard!`);
+      });
+    }
+
     function exportTableToCsv(type) {
       let csvContent = 'data:text/csv;charset=utf-8,';
       let filename = `finance_os_${type}_${new Date().toISOString().split('T')[0]}.csv`;
 
       if (type === 'users') {
-        csvContent += 'ID,Nama,Email,Role,Family ID,Total Saldo,Dompet,Transaksi\n';
+        csvContent += 'ID,Nama,Email,Role,Keluarga,Perusahaan,Total Saldo\n';
         cacheUsers.forEach(u => {
-          csvContent += `"${u.id}","${u.name}","${u.email}","${u.role}","${u.family_name || u.family_id || ''}","${u.total_balance || 0}","${u.wallet_count || 0}","${u.transaction_count || 0}"\n`;
+          csvContent += `"${u.id}","${u.name}","${u.email}","${u.role}","${u.family_name || ''}","${u.company_name || ''}","${u.total_balance || 0}"\n`;
         });
       } else if (type === 'families') {
-        csvContent += 'ID,Nama Keluarga,Kode Undangan,Jumlah Anggota,Total Celengan,Tanggal Dibuat\n';
+        csvContent += 'ID,Nama Keluarga,Kode Undangan,Jumlah Anggota,Total Celengan\n';
         cacheFamilies.forEach(f => {
-          csvContent += `"${f.id}","${f.name}","${f.invite_code}","${f.member_count}","${f.total_savings}","${f.created_at}"\n`;
+          csvContent += `"${f.id}","${f.name}","${f.invite_code}","${f.member_count}","${f.total_savings}"\n`;
+        });
+      } else if (type === 'companies') {
+        csvContent += 'ID,Nama Perusahaan,Kode Undangan,Jumlah Anggota,Jumlah Proyek,Total Budget\n';
+        cacheCompanies.forEach(c => {
+          csvContent += `"${c.id}","${c.name}","${c.invite_code}","${c.member_count}","${c.project_count}","${c.total_budget}"\n`;
+        });
+      } else if (type === 'projects') {
+        csvContent += 'ID,Nama Proyek,Perusahaan,Budget,In,Out,Status\n';
+        cacheProjects.forEach(p => {
+          csvContent += `"${p.id}","${p.name}","${p.company_name}","${p.target_budget}","${p.current_income}","${p.current_expense}","${p.status}"\n`;
+        });
+      } else if (type === 'wallets') {
+        csvContent += 'ID,Nama Dompet,Pemilik,Lingkup,Saldo,Status\n';
+        cacheWallets.forEach(w => {
+          csvContent += `"${w.id}","${w.name}","${w.user_name}","${w.scope}","${w.balance}","${w.is_active ? 'Aktif' : 'Nonaktif'}"\n`;
         });
       } else if (type === 'transactions') {
         csvContent += 'ID,Tanggal,Pengguna,Jenis,Dompet,Nominal,Lingkup,Catatan\n';
@@ -1301,14 +2537,19 @@
           csvContent += `"${t.id}","${t.transaction_date}","${t.user_name}","${t.type}","${t.wallet_name}","${t.amount}","${t.scope}","${(t.notes || '').replace(/"/g, '""')}"\n`;
         });
       } else if (type === 'savings') {
-        csvContent += 'ID,Nama Celengan,Pemilik,Lingkup,Terkumpul,Target,Progress,Jatuh Tempo\n';
+        csvContent += 'ID,Nama Celengan,Pemilik,Lingkup,Terkumpul,Target,Progress%\n';
         cacheSavings.forEach(s => {
-          csvContent += `"${s.id}","${s.goal_name}","${s.user_name}","${s.scope}","${s.current_amount}","${s.target_amount}","${s.progress}%","${s.target_date || ''}"\n`;
+          csvContent += `"${s.id}","${s.goal_name}","${s.user_name}","${s.scope}","${s.current_amount}","${s.target_amount}","${s.progress}%"\n`;
         });
       } else if (type === 'debts') {
-        csvContent += 'ID,Pengguna,Jenis,Pihak Terkait,Sisa,Total,Status,Jatuh Tempo\n';
+        csvContent += 'ID,Pengguna,Jenis,Pihak Terkait,Sisa,Total,Status\n';
         cacheDebts.forEach(d => {
-          csvContent += `"${d.id}","${d.user_name}","${d.type}","${d.person_name}","${d.remaining_amount}","${d.amount}","${d.status}","${d.due_date || ''}"\n`;
+          csvContent += `"${d.id}","${d.user_name}","${d.type}","${d.person_name}","${d.remaining_amount}","${d.total_amount || d.amount}","${d.status}"\n`;
+        });
+      } else if (type === 'categories') {
+        csvContent += 'ID,Nama,Jenis,Warna,Ikon\n';
+        cacheCategories.forEach(c => {
+          csvContent += `"${c.id}","${c.name}","${c.type}","${c.color}","${c.icon}"\n`;
         });
       }
 
@@ -1322,7 +2563,7 @@
       showToast(`Data ${type} berhasil diekspor ke CSV!`);
     }
 
-    // Initialize check
+    // Startup
     checkAuth();
   </script>
 </body>

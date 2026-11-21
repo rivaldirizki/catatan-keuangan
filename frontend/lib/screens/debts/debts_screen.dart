@@ -653,6 +653,7 @@ class _DebtsScreenState extends State<DebtsScreen> {
                                   ),
                                 ),
                               ),
+                            ],
                           ],
                         ),
                       ],

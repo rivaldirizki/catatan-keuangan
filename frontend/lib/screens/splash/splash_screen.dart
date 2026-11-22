@@ -20,9 +20,13 @@ class _SplashScreenState extends State<SplashScreen> {
 
     // The animated GIF duration is ~3.0s (30 frames x 100ms)
     // Delay 3.0s so the user sees the complete full-screen animation loop
-    Future.delayed(const Duration(milliseconds: 3000), () {
+    Future.delayed(const Duration(milliseconds: 3000), () async {
       if (!mounted) return;
       final auth = context.read<AuthProvider>();
+      if (!auth.isAuthenticated && !widget.isPostLogin) {
+        await auth.tryAutoLogin();
+      }
+      if (!mounted) return;
       final nextScreen = (widget.isPostLogin || auth.isAuthenticated)
           ? const DashboardScreen()
           : const LoginScreen();

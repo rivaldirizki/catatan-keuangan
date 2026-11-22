@@ -1,5 +1,6 @@
 import { db } from '../config/database.js';
 import { WalletService } from './wallet.service.js';
+import { AuthService } from './auth.service.js';
 
 function computeDueStatus(debt, today = new Date().toISOString().split('T')[0]) {
   if (debt.status === 'paid' || Number(debt.remaining_amount) <= 0) {
@@ -211,7 +212,7 @@ export const DebtService = {
 
   async recordPayment(userId, debtId, walletId, paymentAmount, date = new Date().toISOString().split('T')[0], notes = '') {
     const numPayment = Number(paymentAmount);
-    if (numPayment <= 0) throw new Error('Payment amount must be greater than 0');
+    if (!Number.isFinite(numPayment) || numPayment <= 0) throw new Error('Payment amount must be greater than 0');
 
     const debt = await this.getDebtById(debtId);
     if (!debt) throw new Error('Debt record not found');
@@ -219,8 +220,19 @@ export const DebtService = {
       throw new Error('Debt is already fully paid');
     }
 
+    const user = await AuthService.getUserById(userId);
+    const isOwner = debt.user_id === userId;
+    const isFamilyDebt = debt.scope === 'family' && user?.family_id && debt.family_id === user.family_id;
+    const isCompanyDebt = debt.scope === 'company' && user?.company_id && debt.company_id === user.company_id;
+    if (!isOwner && !isFamilyDebt && !isCompanyDebt) {
+      throw new Error('Akses ditolak: Tagihan bukan milik Anda');
+    }
+
     const wallet = await WalletService.getWalletById(walletId);
     if (!wallet) throw new Error('Wallet not found');
+    if (wallet.user_id !== userId) {
+      throw new Error('Akses ditolak: Dompet bukan milik Anda');
+    }
 
     if (debt.type === 'payable' && Number(wallet.balance) < numPayment) {
       throw new Error('Insufficient wallet balance to pay debt');

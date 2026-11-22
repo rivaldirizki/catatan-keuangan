@@ -4,9 +4,15 @@ import { WalletService } from './wallet.service.js';
 export const TransactionService = {
   async recordIncome(userId, walletId, categoryId, amount, date, notes = '', isFamily = false, familyId = null, idempotencyKey = null) {
     const numAmount = Number(amount);
-    if (numAmount <= 0) throw new Error('Amount must be greater than 0');
+    if (!Number.isFinite(numAmount) || numAmount <= 0) throw new Error('Amount must be greater than 0');
     const wallet = await WalletService.getWalletById(walletId);
     if (!wallet) throw new Error('Wallet not found');
+
+    const isOwner = wallet.user_id === userId;
+    const isFamilyWallet = isFamily && familyId && wallet.family_id === familyId && wallet.scope === 'family';
+    if (!isOwner && !isFamilyWallet) {
+      throw new Error('Akses ditolak: Dompet bukan milik Anda atau keluarga Anda');
+    }
 
     if (idempotencyKey) {
       const existing = await db.query(
@@ -55,9 +61,19 @@ export const TransactionService = {
 
   async recordExpense(userId, walletId, categoryId, amount, date, notes = '', isFamily = false, familyId = null, idempotencyKey = null) {
     const numAmount = Number(amount);
-    if (numAmount <= 0) throw new Error('Amount must be greater than 0');
+    if (!Number.isFinite(numAmount) || numAmount <= 0) throw new Error('Amount must be greater than 0');
     const wallet = await WalletService.getWalletById(walletId);
     if (!wallet) throw new Error('Wallet not found');
+
+    const isOwner = wallet.user_id === userId;
+    const isFamilyWallet = isFamily && familyId && wallet.family_id === familyId && wallet.scope === 'family';
+    if (!isOwner && !isFamilyWallet) {
+      throw new Error('Akses ditolak: Dompet bukan milik Anda atau keluarga Anda');
+    }
+
+    if (Number(wallet.balance) < numAmount) {
+      throw new Error('Saldo dompet tidak mencukupi');
+    }
 
     if (idempotencyKey) {
       const existing = await db.query(
@@ -106,12 +122,16 @@ export const TransactionService = {
 
   async transfer(userId, fromWalletId, toWalletId, amount, date, notes = '', idempotencyKey = null) {
     const numAmount = Number(amount);
-    if (numAmount <= 0) throw new Error('Amount must be greater than 0');
+    if (!Number.isFinite(numAmount) || numAmount <= 0) throw new Error('Amount must be greater than 0');
     if (Number(fromWalletId) === Number(toWalletId)) throw new Error('Source and destination wallets must be different');
 
     const fromWallet = await WalletService.getWalletById(fromWalletId);
     const toWallet = await WalletService.getWalletById(toWalletId);
     if (!fromWallet || !toWallet) throw new Error('Wallet not found');
+
+    if (fromWallet.user_id !== userId) {
+      throw new Error('Akses ditolak: Dompet sumber bukan milik Anda');
+    }
 
     if (Number(fromWallet.balance) < numAmount) {
       throw new Error('Insufficient balance in source wallet');
@@ -197,8 +217,8 @@ export const TransactionService = {
 
   async getMemberSummary(familyId, targetUserId) {
     const transactions = await db.query(
-      'SELECT t.*, u.name as user_name, c.name as category_name, c.color as category_color, c.icon as category_icon FROM transactions t LEFT JOIN users u ON t.user_id = u.id LEFT JOIN categories c ON t.category_id = c.id WHERE t.user_id = ? AND (t.family_id = ? OR t.scope = "family" OR t.user_id = ?) ORDER BY t.transaction_date DESC, t.id DESC',
-      [targetUserId, familyId, targetUserId]
+      'SELECT t.*, u.name as user_name, c.name as category_name, c.color as category_color, c.icon as category_icon FROM transactions t LEFT JOIN users u ON t.user_id = u.id LEFT JOIN categories c ON t.category_id = c.id WHERE t.user_id = ? AND t.family_id = ? AND t.scope = "family" ORDER BY t.transaction_date DESC, t.id DESC',
+      [targetUserId, familyId]
     );
     let totalIncome = 0;
     let totalExpense = 0;
@@ -207,7 +227,7 @@ export const TransactionService = {
       if (tx.type === 'expense' || tx.type === 'saving_deposit') totalExpense += Number(tx.amount);
     }
     const memberRows = await db.query('SELECT id, name, email, role FROM users WHERE id = ?', [targetUserId]);
-    const wallets = await db.query('SELECT balance FROM wallets WHERE user_id = ?', [targetUserId]);
+    const wallets = await db.query('SELECT balance FROM wallets WHERE user_id = ? AND (family_id = ? OR scope = "family")', [targetUserId, familyId]);
     const totalBalance = (wallets || []).reduce((sum, w) => sum + Number(w.balance || 0), 0);
 
     return {

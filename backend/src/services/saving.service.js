@@ -1,5 +1,6 @@
 import { db } from '../config/database.js';
 import { WalletService } from './wallet.service.js';
+import { AuthService } from './auth.service.js';
 
 export const SavingService = {
   async createGoal(userId, goalName, targetAmount, targetDate = null, scope = 'personal', familyId = null) {
@@ -92,31 +93,13 @@ export const SavingService = {
 
   async deposit(userId, walletId, savingId, amount, date = new Date().toISOString().split('T')[0], notes = '', idempotencyKey = null) {
     const numAmount = Number(amount);
-    if (numAmount <= 0) throw new Error('Deposit amount must be greater than 0');
-
-    if (idempotencyKey) {
-      const existing = await db.query(
-        'SELECT * FROM transactions WHERE idempotency_key = ? LIMIT 1',
-        [idempotencyKey]
-      );
-      if (existing && existing.length > 0) {
-        const goal = await this.getGoalById(savingId);
-        const wallet = await WalletService.getWalletById(walletId);
-        return {
-          success: true,
-          wallet_id: walletId,
-          new_wallet_balance: wallet ? Number(wallet.balance) : 0,
-          saving_id: savingId,
-          new_saving_amount: goal ? Number(goal.current_amount) : 0,
-          status: goal ? goal.status : 'active',
-          already_processed: true,
-          idempotency_key: idempotencyKey
-        };
-      }
-    }
+    if (!Number.isFinite(numAmount) || numAmount <= 0) throw new Error('Deposit amount must be greater than 0');
 
     const wallet = await WalletService.getWalletById(walletId);
     if (!wallet) throw new Error('Wallet not found');
+    if (wallet.user_id !== userId) {
+      throw new Error('Akses ditolak: Dompet bukan milik Anda');
+    }
 
     if (Number(wallet.balance) < numAmount) {
       throw new Error('Insufficient balance in wallet to deposit into savings');
@@ -124,6 +107,34 @@ export const SavingService = {
 
     const goal = await this.getGoalById(savingId);
     if (!goal) throw new Error('Savings goal not found');
+
+    const user = await AuthService.getUserById(userId);
+    const isOwner = goal.user_id === userId;
+    const isFamilyShared = goal.scope === 'family' && user?.family_id && goal.family_id === user.family_id;
+    if (!isOwner && !isFamilyShared) {
+      throw new Error('Akses ditolak: Anda tidak memiliki akses ke tabungan ini');
+    }
+
+    if (idempotencyKey) {
+      const existing = await db.query(
+        'SELECT * FROM transactions WHERE idempotency_key = ? LIMIT 1',
+        [idempotencyKey]
+      );
+      if (existing && existing.length > 0) {
+        const curGoal = await this.getGoalById(savingId);
+        const curWallet = await WalletService.getWalletById(walletId);
+        return {
+          success: true,
+          wallet_id: walletId,
+          new_wallet_balance: curWallet ? Number(curWallet.balance) : 0,
+          saving_id: savingId,
+          new_saving_amount: curGoal ? Number(curGoal.current_amount) : 0,
+          status: curGoal ? curGoal.status : 'active',
+          already_processed: true,
+          idempotency_key: idempotencyKey
+        };
+      }
+    }
 
     return await db.transaction(async (trx) => {
       const newWalletBal = Number(wallet.balance) - numAmount;
@@ -152,10 +163,17 @@ export const SavingService = {
 
   async withdraw(userId, savingId, walletId, amount, date = new Date().toISOString().split('T')[0], notes = '') {
     const numAmount = Number(amount);
-    if (numAmount <= 0) throw new Error('Withdrawal amount must be greater than 0');
+    if (!Number.isFinite(numAmount) || numAmount <= 0) throw new Error('Withdrawal amount must be greater than 0');
 
     const goal = await this.getGoalById(savingId);
     if (!goal) throw new Error('Savings goal not found');
+
+    const user = await AuthService.getUserById(userId);
+    const isOwner = goal.user_id === userId;
+    const isFamilyShared = goal.scope === 'family' && user?.family_id && goal.family_id === user.family_id;
+    if (!isOwner && !isFamilyShared) {
+      throw new Error('Akses ditolak: Anda tidak memiliki akses ke tabungan ini');
+    }
 
     if (Number(goal.current_amount) < numAmount) {
       throw new Error('Insufficient savings balance for withdrawal');
@@ -163,6 +181,9 @@ export const SavingService = {
 
     const wallet = await WalletService.getWalletById(walletId);
     if (!wallet) throw new Error('Wallet not found');
+    if (wallet.user_id !== userId) {
+      throw new Error('Akses ditolak: Dompet bukan milik Anda');
+    }
 
     return await db.transaction(async (trx) => {
       const newSavingAmount = Number(goal.current_amount) - numAmount;

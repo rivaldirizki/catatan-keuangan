@@ -12,12 +12,16 @@ import { TransactionService } from './services/transaction.service.js';
 import { SavingService } from './services/saving.service.js';
 import { DebtService } from './services/debt.service.js';
 import { authenticateJWT, requireAdmin } from './middleware/auth.middleware.js';
+import { rateLimiter } from './middleware/rate_limit.middleware.js';
 import { AdminController } from './controllers/admin.controller.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export const app = express();
+
+const authLimiter = rateLimiter({ windowMs: 15 * 60 * 1000, max: 15, message: 'Terlalu banyak percobaan autentikasi. Silakan tunggu beberapa saat.' });
+const joinLimiter = rateLimiter({ windowMs: 15 * 60 * 1000, max: 15, message: 'Terlalu banyak percobaan kode undangan. Silakan coba lagi nanti.' });
 
 app.use(cors());
 app.use(express.json());
@@ -62,20 +66,21 @@ app.get('/health', (req, res) => {
 });
 
 // ======================= AUTH ROUTES =======================
-app.post('/api/v1/auth/register', async (req, res) => {
+app.post('/api/v1/auth/register', authLimiter, async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password } = req.body;
     if (!name || !email || !password) {
       return res.status(400).json({ error: 'Name, email, and password are required' });
     }
-    const result = await AuthService.register(name, email, password, role || 'user');
+    // Hardened: Always force user role on public self-registration (prevent mass assignment)
+    const result = await AuthService.register(name, email, password, 'user');
     res.status(201).json(result);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
 });
 
-app.post('/api/v1/auth/login', async (req, res) => {
+app.post('/api/v1/auth/login', authLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
@@ -110,7 +115,7 @@ app.post('/api/v1/family/create', authenticateJWT, async (req, res) => {
   }
 });
 
-app.post('/api/v1/family/join', authenticateJWT, async (req, res) => {
+app.post('/api/v1/family/join', authenticateJWT, joinLimiter, async (req, res) => {
   try {
     const { invite_code } = req.body;
     if (!invite_code) return res.status(400).json({ error: 'Invite code is required' });
@@ -155,6 +160,10 @@ app.get('/api/v1/family/members/:id/summary', authenticateJWT, async (req, res) 
       return res.status(400).json({ error: 'Pengguna belum terhubung ke grup keluarga' });
     }
     const memberId = Number(req.params.id);
+    const targetMember = await AuthService.getUserById(memberId);
+    if (!targetMember || targetMember.family_id !== user.family_id) {
+      return res.status(403).json({ error: 'Akses ditolak: Anggota bukan dari keluarga Anda' });
+    }
     const summary = await TransactionService.getMemberSummary(user.family_id, memberId);
     res.json(summary);
   } catch (err) {
@@ -174,7 +183,7 @@ app.post('/api/v1/company/create', authenticateJWT, async (req, res) => {
   }
 });
 
-app.post('/api/v1/company/join', authenticateJWT, async (req, res) => {
+app.post('/api/v1/company/join', authenticateJWT, joinLimiter, async (req, res) => {
   try {
     const { invite_code } = req.body;
     if (!invite_code) return res.status(400).json({ error: 'Invite code is required' });

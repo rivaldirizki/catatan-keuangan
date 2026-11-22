@@ -5,8 +5,11 @@ import '../constants/api_constants.dart';
 class ApiClient {
   final String baseUrl;
   String? _authToken;
+  final Duration timeoutDuration;
 
-  ApiClient({String? customBaseUrl}) : baseUrl = customBaseUrl ?? ApiConstants.baseUrl;
+  ApiClient({String? customBaseUrl, Duration? timeout})
+      : baseUrl = customBaseUrl ?? ApiConstants.baseUrl,
+        timeoutDuration = timeout ?? const Duration(seconds: 15);
 
   void setToken(String? token) {
     _authToken = token;
@@ -26,7 +29,10 @@ class ApiClient {
       uri = uri.replace(queryParameters: queryParams);
     }
 
-    final response = await http.get(uri, headers: _headers());
+    final response = await http.get(uri, headers: _headers()).timeout(
+      timeoutDuration,
+      onTimeout: () => throw Exception('Koneksi internet lambat atau batas waktu habis (15 detik).'),
+    );
     return _handleResponse(response);
   }
 
@@ -36,6 +42,9 @@ class ApiClient {
       uri,
       headers: _headers(),
       body: body != null ? jsonEncode(body) : null,
+    ).timeout(
+      timeoutDuration,
+      onTimeout: () => throw Exception('Koneksi internet lambat atau batas waktu habis (15 detik).'),
     );
     return _handleResponse(response);
   }
@@ -46,6 +55,9 @@ class ApiClient {
       uri,
       headers: _headers(),
       body: body != null ? jsonEncode(body) : null,
+    ).timeout(
+      timeoutDuration,
+      onTimeout: () => throw Exception('Koneksi internet lambat atau batas waktu habis (15 detik).'),
     );
     return _handleResponse(response);
   }

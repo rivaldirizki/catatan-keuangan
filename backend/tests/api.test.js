@@ -4,6 +4,7 @@ import { EventEmitter } from 'node:events';
 import fs from 'node:fs';
 import { app } from '../src/app.js';
 import { db } from '../src/config/database.js';
+import { AuthService } from '../src/services/auth.service.js';
 
 function request(app) {
   return {
@@ -94,13 +95,17 @@ describe('Task 6: Express App & REST API Integration (TDD)', () => {
 
   it('should provide Admin Dashboard stats for role: admin', async () => {
     const client = request(app);
-    // Register admin user
-    const adminReg = await client.send('POST', '/api/v1/auth/register', {
-      body: { name: 'Admin Boss', email: 'admin@finance.com', password: 'adminpass123', role: 'admin' }
+    // Security verification: public registration with role: 'admin' must be forced to 'user'
+    const attemptReg = await client.send('POST', '/api/v1/auth/register', {
+      body: { name: 'Attempted Admin', email: 'attempt@finance.com', password: 'password123', role: 'admin' }
     });
+    assert.strictEqual(attemptReg.body.user.role, 'user', 'Public registration must never grant admin role');
+
+    // Legit admin registered internally
+    const adminReg = await AuthService.register('Admin Boss', 'admin@finance.com', 'adminpass123', 'admin');
 
     const adminStatsRes = await client.send('GET', '/admin/api/stats', {
-      headers: { 'authorization': `Bearer ${adminReg.body.token}` }
+      headers: { 'authorization': `Bearer ${adminReg.token}` }
     });
     assert.strictEqual(adminStatsRes.status, 200);
     assert.ok(adminStatsRes.body.total_users >= 1);
@@ -114,32 +119,32 @@ describe('Task 6: Express App & REST API Integration (TDD)', () => {
     assert.strictEqual(logoRes.status, 200);
 
     const appAdminDashboardRes = await client.send('GET', '/api/v1/admin/dashboard', {
-      headers: { 'authorization': `Bearer ${adminReg.body.token}` }
+      headers: { 'authorization': `Bearer ${adminReg.token}` }
     });
     assert.strictEqual(appAdminDashboardRes.status, 200);
     assert.ok(appAdminDashboardRes.body.total_users >= 1);
 
     // Verify extended Admin API endpoints
     const familiesRes = await client.send('GET', '/admin/api/families', {
-      headers: { 'authorization': `Bearer ${adminReg.body.token}` }
+      headers: { 'authorization': `Bearer ${adminReg.token}` }
     });
     assert.strictEqual(familiesRes.status, 200);
     assert.ok(Array.isArray(familiesRes.body));
 
     const txRes = await client.send('GET', '/admin/api/transactions', {
-      headers: { 'authorization': `Bearer ${adminReg.body.token}` }
+      headers: { 'authorization': `Bearer ${adminReg.token}` }
     });
     assert.strictEqual(txRes.status, 200);
     assert.ok(Array.isArray(txRes.body));
 
     const savingsRes = await client.send('GET', '/admin/api/savings', {
-      headers: { 'authorization': `Bearer ${adminReg.body.token}` }
+      headers: { 'authorization': `Bearer ${adminReg.token}` }
     });
     assert.strictEqual(savingsRes.status, 200);
     assert.ok(Array.isArray(savingsRes.body));
 
     const debtsRes = await client.send('GET', '/admin/api/debts', {
-      headers: { 'authorization': `Bearer ${adminReg.body.token}` }
+      headers: { 'authorization': `Bearer ${adminReg.token}` }
     });
     assert.strictEqual(debtsRes.status, 200);
     assert.ok(Array.isArray(debtsRes.body));

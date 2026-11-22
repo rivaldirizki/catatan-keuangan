@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../core/network/api_client.dart';
 import '../core/constants/api_constants.dart';
 import '../models/user_model.dart';
@@ -43,6 +45,13 @@ class AuthProvider extends ChangeNotifier {
       _token = res['token'] as String;
       _currentUser = UserModel.fromJson(res['user'] as Map<String, dynamic>);
       apiClient.setToken(_token);
+
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('auth_token', _token!);
+        await prefs.setString('user_data', jsonEncode(res['user']));
+      } catch (_) {}
+
       _isLoading = false;
       notifyListeners();
       return true;
@@ -69,6 +78,13 @@ class AuthProvider extends ChangeNotifier {
       _token = res['token'] as String;
       _currentUser = UserModel.fromJson(res['user'] as Map<String, dynamic>);
       apiClient.setToken(_token);
+
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('auth_token', _token!);
+        await prefs.setString('user_data', jsonEncode(res['user']));
+      } catch (_) {}
+
       _isLoading = false;
       notifyListeners();
       return true;
@@ -78,6 +94,24 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
       return false;
     }
+  }
+
+  Future<bool> tryAutoLogin() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedToken = prefs.getString('auth_token');
+      final savedUser = prefs.getString('user_data');
+      if (savedToken != null && savedToken.isNotEmpty && savedUser != null && savedUser.isNotEmpty) {
+        _token = savedToken;
+        _currentUser = UserModel.fromJson(jsonDecode(savedUser) as Map<String, dynamic>);
+        apiClient.setToken(_token);
+        notifyListeners();
+        // Refresh silently in background
+        refreshUser();
+        return true;
+      }
+    } catch (_) {}
+    return false;
   }
 
   Future<void> refreshUser() async {
@@ -207,12 +241,18 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  void logout() {
+  Future<void> logout() async {
     _currentUser = null;
     _currentCompany = null;
     _companyMembers = [];
     _token = null;
     apiClient.setToken(null);
     notifyListeners();
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('auth_token');
+      await prefs.remove('user_data');
+    } catch (_) {}
   }
 }

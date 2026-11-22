@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../services/permission_service.dart';
 import '../auth/login_screen.dart';
 import '../dashboard/dashboard_screen.dart';
 
@@ -17,6 +18,9 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
+
+    // Request notification permission gracefully on startup
+    PermissionService.requestNotificationPermission();
 
     // The animated GIF duration is ~3.0s (30 frames x 100ms)
     // Delay 3.0s so the user sees the complete full-screen animation loop

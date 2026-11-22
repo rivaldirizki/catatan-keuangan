@@ -58,6 +58,8 @@ class ApiConstants {
   static String chatInvitationReject(int id) => '/chat/invitations/$id/reject';
   static String chatRoomMessages(int id) => '/chat/rooms/$id/messages';
   static String chatRoomRead(int id) => '/chat/rooms/$id/read';
+  static const String chatUpload = '/chat/upload';
+  static String chatMessageDelete(int id) => '/chat/messages/$id';
 
   // Admin
   static const String adminDashboard = '/admin/dashboard';

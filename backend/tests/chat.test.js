@@ -202,4 +202,47 @@ test('💬 ChatService Test Suite', async (t) => {
       /Akses ditolak/
     );
   });
+
+  let imageMsg;
+  await t.test('10. Should send and retrieve media messages (image, video, file)', async () => {
+    imageMsg = await ChatService.sendMessage(
+      directRoomId,
+      user1.id,
+      'Foto struk pembayaran',
+      'image',
+      {
+        file_url: '/uploads/chat/sample-struk.jpg',
+        file_name: 'sample-struk.jpg',
+        file_size: 154000,
+        mime_type: 'image/jpeg'
+      }
+    );
+
+    assert.ok(imageMsg.id);
+    assert.equal(imageMsg.message_type, 'image');
+    assert.equal(imageMsg.metadata.file_name, 'sample-struk.jpg');
+
+    const msgs = await ChatService.getRoomMessages(directRoomId, user1.id);
+    const retrieved = msgs.find(m => m.id === imageMsg.id);
+    assert.ok(retrieved);
+    assert.equal(retrieved.message_type, 'image');
+    assert.equal(retrieved.metadata.file_url, '/uploads/chat/sample-struk.jpg');
+  });
+
+  await t.test('11. Should delete message and reject deletion by unauthorized user', async () => {
+    // David tries to delete Alice's message -> rejected 403
+    await assert.rejects(
+      async () => ChatService.deleteMessage(imageMsg.id, user4.id),
+      /Akses ditolak/
+    );
+
+    // Alice deletes her own message -> success
+    const delRes = await ChatService.deleteMessage(imageMsg.id, user1.id);
+    assert.equal(delRes.success, true);
+    assert.equal(delRes.deleted_message_id, imageMsg.id);
+
+    // Verify it is no longer in the room
+    const msgsAfterDelete = await ChatService.getRoomMessages(directRoomId, user1.id);
+    assert.ok(!msgsAfterDelete.some(m => m.id === imageMsg.id));
+  });
 });

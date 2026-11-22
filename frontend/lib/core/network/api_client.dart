@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../constants/api_constants.dart';
 
@@ -59,6 +61,55 @@ class ApiClient {
       timeoutDuration,
       onTimeout: () => throw Exception('Koneksi internet lambat atau batas waktu habis (15 detik).'),
     );
+    return _handleResponse(response);
+  }
+
+  Future<dynamic> delete(String endpoint) async {
+    final uri = Uri.parse('$baseUrl$endpoint');
+    final response = await http.delete(uri, headers: _headers()).timeout(
+      timeoutDuration,
+      onTimeout: () => throw Exception('Koneksi internet lambat atau batas waktu habis (15 detik).'),
+    );
+    return _handleResponse(response);
+  }
+
+  Future<dynamic> postMultipart(
+    String endpoint,
+    File? file, {
+    Uint8List? bytes,
+    String? filename,
+    String fileField = 'file',
+  }) async {
+    final uri = Uri.parse('$baseUrl$endpoint');
+    final request = http.MultipartRequest('POST', uri);
+    if (_authToken != null) {
+      request.headers['Authorization'] = 'Bearer $_authToken';
+    }
+
+    if (bytes != null) {
+      request.files.add(http.MultipartFile.fromBytes(
+        fileField,
+        bytes,
+        filename: filename ?? 'upload.bin',
+      ));
+    } else if (file != null) {
+      if (kIsWeb) {
+        final fileBytes = await file.readAsBytes();
+        request.files.add(http.MultipartFile.fromBytes(
+          fileField,
+          fileBytes,
+          filename: filename ?? file.path.split(RegExp(r'[/\\]')).last,
+        ));
+      } else {
+        request.files.add(await http.MultipartFile.fromPath(fileField, file.path, filename: filename));
+      }
+    }
+
+    final streamedResponse = await request.send().timeout(
+      const Duration(seconds: 45),
+      onTimeout: () => throw Exception('Upload file batas waktu habis (45 detik).'),
+    );
+    final response = await http.Response.fromStream(streamedResponse);
     return _handleResponse(response);
   }
 

@@ -1,11 +1,16 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
 import '../../models/chat_room_model.dart';
 import '../../providers/chat_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../core/theme/app_theme.dart';
+import '../../services/permission_service.dart';
 import 'widgets/chat_bubble.dart';
+import 'widgets/media_attachment_sheet.dart';
 
 class ChatRoomScreen extends StatefulWidget {
   final ChatRoomModel room;
@@ -32,7 +37,13 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ChatProvider>().openRoom(widget.room.id);
+      final auth = context.read<AuthProvider>();
+      final user = auth.currentUser;
+      final chat = context.read<ChatProvider>();
+      chat.openRoom(widget.room.id);
+      if (user != null) {
+        chat.syncOfflineMessages(user.id, user.name);
+      }
     });
   }
 
@@ -60,6 +71,136 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       currentUserId: user.id,
       currentUserName: user.name,
     );
+  }
+
+  Future<void> _openCameraDirectly() async {
+    final granted = await PermissionService.requestCameraPermission();
+    if (!granted) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Izin kamera diperlukan untuk mengambil foto langsung.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    try {
+      final picker = ImagePicker();
+      final photo = await picker.pickImage(source: ImageSource.camera, imageQuality: 85);
+      if (photo == null || !mounted) return;
+
+      final auth = context.read<AuthProvider>();
+      final user = auth.currentUser;
+      if (user == null) return;
+
+      HapticFeedback.mediumImpact();
+      await context.read<ChatProvider>().sendMediaMessage(
+        widget.room.id,
+        File(photo.path),
+        mediaType: 'image',
+        currentUserId: user.id,
+        currentUserName: user.name,
+        customFileName: photo.name,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal mengambil foto: $e'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  Future<void> _showAttachmentMenu() async {
+    final option = await MediaAttachmentSheet.show(context);
+    if (option == null || !mounted) return;
+
+    final auth = context.read<AuthProvider>();
+    final user = auth.currentUser;
+    if (user == null) return;
+
+    final chat = context.read<ChatProvider>();
+
+    switch (option) {
+      case MediaAttachmentType.camera:
+        await _openCameraDirectly();
+        break;
+
+      case MediaAttachmentType.gallery:
+        await PermissionService.requestStoragePermission();
+        try {
+          final picker = ImagePicker();
+          final photo = await picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+          if (photo == null || !mounted) return;
+
+          HapticFeedback.mediumImpact();
+          await chat.sendMediaMessage(
+            widget.room.id,
+            File(photo.path),
+            mediaType: 'image',
+            currentUserId: user.id,
+            currentUserName: user.name,
+            customFileName: photo.name,
+          );
+        } catch (e) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Gagal memilih foto: $e'), behavior: SnackBarBehavior.floating),
+          );
+        }
+        break;
+
+      case MediaAttachmentType.video:
+        await PermissionService.requestStoragePermission();
+        try {
+          final picker = ImagePicker();
+          final video = await picker.pickVideo(source: ImageSource.gallery);
+          if (video == null || !mounted) return;
+
+          HapticFeedback.mediumImpact();
+          await chat.sendMediaMessage(
+            widget.room.id,
+            File(video.path),
+            mediaType: 'video',
+            currentUserId: user.id,
+            currentUserName: user.name,
+            customFileName: video.name,
+          );
+        } catch (e) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Gagal memilih video: $e'), behavior: SnackBarBehavior.floating),
+          );
+        }
+        break;
+
+      case MediaAttachmentType.document:
+        await PermissionService.requestStoragePermission();
+        try {
+          final file = await FilePicker.pickFile();
+          if (file == null || file.path == null || !mounted) return;
+
+          HapticFeedback.mediumImpact();
+          await chat.sendMediaMessage(
+            widget.room.id,
+            File(file.path!),
+            mediaType: 'file',
+            currentUserId: user.id,
+            currentUserName: user.name,
+            customFileName: file.name,
+          );
+        } catch (e) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Gagal memilih berkas: $e'), behavior: SnackBarBehavior.floating),
+          );
+        }
+        break;
+    }
   }
 
   void _showFinancialShareDialog() {
@@ -303,6 +444,15 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                             message: msg,
                             isMe: isMe,
                             isGroup: isGroup,
+                            onDelete: isMe
+                                ? () {
+                                    chat.deleteMessage(
+                                      widget.room.id,
+                                      msg.id,
+                                      msg.metadata?['local_path'] as String?,
+                                    );
+                                  }
+                                : null,
                           );
                         },
                       ),
@@ -310,8 +460,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
           // Input bar
           Container(
             padding: EdgeInsets.only(
-              left: 12,
-              right: 12,
+              left: 6,
+              right: 10,
               top: 8,
               bottom: MediaQuery.of(context).viewInsets.bottom > 0 ? 8 : 24,
             ),
@@ -324,6 +474,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
               bottom: false,
               child: Row(
                 children: [
+                  // Financial Card Share Button
                   IconButton(
                     icon: Container(
                       padding: const EdgeInsets.all(6),
@@ -331,11 +482,38 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                         color: const Color(0xFF007AFF).withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.add_card_rounded, color: Color(0xFF007AFF), size: 20),
+                      child: const Icon(Icons.add_card_rounded, color: Color(0xFF007AFF), size: 19),
                     ),
                     tooltip: 'Bagikan Catatan Finansial',
                     onPressed: isPending ? null : _showFinancialShareDialog,
                   ),
+                  // Direct Camera Button
+                  IconButton(
+                    icon: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF34C759).withValues(alpha: 0.12),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.camera_alt_rounded, color: Color(0xFF34C759), size: 19),
+                    ),
+                    tooltip: 'Ambil Foto dari Kamera',
+                    onPressed: isPending ? null : _openCameraDirectly,
+                  ),
+                  // Media Attachment (Gallery, Video, Document) Button
+                  IconButton(
+                    icon: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF8E8E93).withValues(alpha: 0.12),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.attach_file_rounded, color: Color(0xFF636366), size: 19),
+                    ),
+                    tooltip: 'Kirim Lampiran Media',
+                    onPressed: isPending ? null : _showAttachmentMenu,
+                  ),
+                  // Text field
                   Expanded(
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -359,6 +537,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                     ),
                   ),
                   const SizedBox(width: 8),
+                  // Send button
                   Container(
                     decoration: BoxDecoration(
                       color: _canSend && !isPending ? const Color(0xFF007AFF) : Colors.grey.shade300,

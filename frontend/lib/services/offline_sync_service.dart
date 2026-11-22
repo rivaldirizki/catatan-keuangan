@@ -6,6 +6,7 @@ import '../models/offline_sync_item.dart';
 class OfflineSyncService {
   static const String _keyDashboardPrefix = 'offline_dashboard_cache_';
   static const String _keyQueuePrefix = 'offline_sync_queue_';
+  static const String _keyChatQueuePrefix = 'offline_chat_queue_';
 
   // In-memory fallback in case SharedPreferences hasn't loaded or in unit tests
   static final Map<String, String> _memoryStore = {};
@@ -107,6 +108,58 @@ class OfflineSyncService {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(key);
+    } catch (_) {}
+  }
+
+  // ======================== CHAT OFFLINE QUEUE ========================
+
+  static Future<List<Map<String, dynamic>>> getChatQueue(String userId) async {
+    final key = '$_keyChatQueuePrefix$userId';
+    String? raw = _memoryStore[key];
+    if (raw == null) {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        raw = prefs.getString(key);
+      } catch (_) {}
+    }
+
+    if (raw != null && raw.isNotEmpty) {
+      try {
+        final decoded = jsonDecode(raw);
+        if (decoded is List) {
+          return decoded.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+        }
+      } catch (_) {}
+    }
+    return [];
+  }
+
+  static Future<void> enqueueChatMessage(String userId, Map<String, dynamic> message) async {
+    final list = await getChatQueue(userId);
+    list.removeWhere((i) => i['temp_id'] == message['temp_id']);
+    list.add(message);
+
+    final key = '$_keyChatQueuePrefix$userId';
+    final serialized = jsonEncode(list);
+    _memoryStore[key] = serialized;
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(key, serialized);
+    } catch (_) {}
+  }
+
+  static Future<void> removeChatMessage(String userId, int tempId) async {
+    final list = await getChatQueue(userId);
+    list.removeWhere((i) => i['temp_id'] == tempId);
+
+    final key = '$_keyChatQueuePrefix$userId';
+    final serialized = jsonEncode(list);
+    _memoryStore[key] = serialized;
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(key, serialized);
     } catch (_) {}
   }
 }

@@ -1,46 +1,68 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
-import '../core/network/api_client.dart';
-import '../core/constants/api_constants.dart';
-import '../models/chat_room_model.dart';
-import '../models/chat_message_model.dart';
-import '../models/chat_invitation_model.dart';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
+import '../../models/chat_room_model.dart';
+import '../../models/chat_invitation_model.dart';
+import '../../models/chat_message_model.dart';
+import '../../core/network/api_client.dart';
+import '../../core/constants/api_constants.dart';
+import '../../services/offline_sync_service.dart';
+import '../../services/local_storage_service.dart';
 
-class ChatProvider extends ChangeNotifier {
+class ChatProvider with ChangeNotifier {
   final ApiClient apiClient;
 
   List<ChatRoomModel> _rooms = [];
   List<ChatInvitationModel> _pendingInvitations = [];
-  List<ChatMessageModel> _activeRoomMessages = [];
-  int? _activeRoomId;
   String? _myChatCode;
   bool _isLoading = false;
   bool _isSending = false;
   String? _errorMessage;
+
+  // Active room state
+  int? _activeRoomId;
+  List<ChatMessageModel> _activeRoomMessages = [];
   Timer? _pollingTimer;
 
   ChatProvider({required this.apiClient});
 
   List<ChatRoomModel> get rooms => _rooms;
   List<ChatInvitationModel> get pendingInvitations => _pendingInvitations;
-  List<ChatMessageModel> get activeRoomMessages => _activeRoomMessages;
-  int? get activeRoomId => _activeRoomId;
   String? get myChatCode => _myChatCode;
   bool get isLoading => _isLoading;
   bool get isSending => _isSending;
   String? get errorMessage => _errorMessage;
 
-  int get totalUnreadCount =>
-      _rooms.fold(0, (sum, r) => sum + r.unreadCount) + _pendingInvitations.length;
+  int? get activeRoomId => _activeRoomId;
+  List<ChatMessageModel> get activeRoomMessages => _activeRoomMessages;
+
+  List<ChatRoomModel> get familyRooms =>
+      _rooms.where((r) => r.isFamily).toList();
+
+  ChatRoomModel? get familyRoom {
+    try {
+      return _rooms.firstWhere((r) => r.isFamily);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  List<ChatRoomModel> get companyRooms =>
+      _rooms.where((r) => r.isCompany).toList();
+
+  ChatRoomModel? get companyRoom {
+    try {
+      return _rooms.firstWhere((r) => r.isCompany);
+    } catch (_) {
+      return null;
+    }
+  }
 
   List<ChatRoomModel> get directRooms =>
       _rooms.where((r) => r.isDirect).toList();
 
-  ChatRoomModel? get familyRoom =>
-      _rooms.cast<ChatRoomModel?>().firstWhere((r) => r?.isFamily == true, orElse: () => null);
-
-  ChatRoomModel? get companyRoom =>
-      _rooms.cast<ChatRoomModel?>().firstWhere((r) => r?.isCompany == true, orElse: () => null);
+  int get totalUnreadCount =>
+      _rooms.fold(0, (sum, room) => sum + room.unreadCount);
 
   void clearError() {
     _errorMessage = null;
@@ -214,7 +236,7 @@ class ChatProvider extends ChangeNotifier {
       message: text,
       messageType: messageType,
       metadata: metadata,
-      deliveryStatus: 'pending', // Red Clock initially
+      deliveryStatus: 'pending', // Red Clock ⏱️
       createdAt: DateTime.now().toIso8601String(),
     );
 
@@ -241,9 +263,179 @@ class ChatProvider extends ChangeNotifier {
     } catch (e) {
       // Mark as failed/offline (remains red clock pending)
       _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      await OfflineSyncService.enqueueChatMessage(currentUserId.toString(), {
+        'temp_id': tempId,
+        'room_id': roomId,
+        'message': text,
+        'message_type': messageType,
+        'metadata': metadata,
+        'user_id': currentUserId,
+        'sender_name': currentUserName,
+      });
       notifyListeners();
       return false;
     }
+  }
+
+  Future<bool> sendMediaMessage(
+    int roomId,
+    File sourceFile, {
+    required String mediaType, // 'image', 'video', 'file'
+    String? caption,
+    required int currentUserId,
+    required String currentUserName,
+    String? customFileName,
+  }) async {
+    final tempId = -DateTime.now().millisecondsSinceEpoch;
+
+    // 1. Immediately save media locally in user's phone storage (on native platforms)
+    final localPath = await LocalStorageService.saveMediaLocally(
+      sourceFile,
+      mediaType,
+      customFileName: customFileName,
+    );
+
+    final initialMetadata = {
+      'local_path': localPath,
+      'file_name': customFileName ?? sourceFile.path.split(RegExp(r'[/\\]')).last,
+      'file_size': await sourceFile.length(),
+      'mime_type': mediaType == 'image' ? 'image/jpeg' : (mediaType == 'video' ? 'video/mp4' : 'application/octet-stream'),
+    };
+
+    final tempMessage = ChatMessageModel(
+      id: tempId,
+      roomId: roomId,
+      userId: currentUserId,
+      senderName: currentUserName,
+      message: (caption != null && caption.trim().isNotEmpty)
+          ? caption.trim()
+          : (mediaType == 'image' ? 'Foto' : (mediaType == 'video' ? 'Video' : 'Dokumen')),
+      messageType: mediaType,
+      metadata: initialMetadata,
+      deliveryStatus: 'pending', // Red Clock ⏱️
+      createdAt: DateTime.now().toIso8601String(),
+    );
+
+    _activeRoomMessages.add(tempMessage);
+    notifyListeners();
+
+    try {
+      // 2. Upload file to backend
+      final uploadRes = await apiClient.postMultipart(
+        ApiConstants.chatUpload,
+        File(localPath),
+      );
+
+      final combinedMetadata = {
+        ...initialMetadata,
+        if (uploadRes is Map) ...Map<String, dynamic>.from(uploadRes),
+      };
+
+      // 3. Send message payload to room
+      final res = await apiClient.post(
+        ApiConstants.chatRoomMessages(roomId),
+        body: {
+          'message': tempMessage.message,
+          'message_type': mediaType,
+          'metadata': combinedMetadata,
+        },
+      );
+
+      final realMsg = ChatMessageModel.fromJson(Map<String, dynamic>.from(res as Map));
+      final idx = _activeRoomMessages.indexWhere((m) => m.id == tempId);
+      if (idx != -1) {
+        _activeRoomMessages[idx] = realMsg.copyWith(
+          metadata: {
+            ...realMsg.metadata ?? {},
+            'local_path': localPath,
+          },
+        );
+      }
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      await OfflineSyncService.enqueueChatMessage(currentUserId.toString(), {
+        'temp_id': tempId,
+        'room_id': roomId,
+        'message': tempMessage.message,
+        'message_type': mediaType,
+        'metadata': initialMetadata,
+        'user_id': currentUserId,
+        'sender_name': currentUserName,
+        'local_path': localPath,
+      });
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<void> syncOfflineMessages(int currentUserId, String currentUserName) async {
+    final queue = await OfflineSyncService.getChatQueue(currentUserId.toString());
+    if (queue.isEmpty) return;
+
+    for (final item in queue) {
+      final tempId = item['temp_id'] as int;
+      final roomId = item['room_id'] as int;
+      final text = item['message'] as String;
+      final messageType = (item['message_type'] as String?) ?? 'text';
+      final metadata = item['metadata'] != null ? Map<String, dynamic>.from(item['metadata'] as Map) : null;
+      final localPath = item['local_path'] as String?;
+
+      try {
+        Map<String, dynamic> finalMeta = metadata ?? {};
+        if (!kIsWeb && localPath != null && await File(localPath).exists()) {
+          final uploadRes = await apiClient.postMultipart(ApiConstants.chatUpload, File(localPath));
+          if (uploadRes is Map) {
+            finalMeta.addAll(Map<String, dynamic>.from(uploadRes));
+          }
+        }
+
+        final res = await apiClient.post(
+          ApiConstants.chatRoomMessages(roomId),
+          body: {
+            'message': text,
+            'message_type': messageType,
+            if (finalMeta.isNotEmpty) 'metadata': finalMeta,
+          },
+        );
+
+        final realMsg = ChatMessageModel.fromJson(Map<String, dynamic>.from(res as Map));
+        final idx = _activeRoomMessages.indexWhere((m) => m.id == tempId);
+        if (idx != -1) {
+          _activeRoomMessages[idx] = realMsg;
+        }
+        await OfflineSyncService.removeChatMessage(currentUserId.toString(), tempId);
+      } catch (_) {
+        // Still offline or failed, keep in queue
+        break;
+      }
+    }
+    notifyListeners();
+  }
+
+  Future<bool> deleteMessage(int roomId, int messageId, String? localPath) async {
+    // 1. Physically delete file from device local storage
+    if (localPath != null) {
+      await LocalStorageService.deleteLocalFile(localPath);
+    }
+
+    // 2. Remove from active messages list
+    _activeRoomMessages.removeWhere((m) => m.id == messageId);
+    notifyListeners();
+
+    // 3. If online message, delete from server database
+    if (messageId > 0) {
+      try {
+        await apiClient.delete(ApiConstants.chatMessageDelete(messageId));
+        return true;
+      } catch (e) {
+        _errorMessage = e.toString().replaceFirst('Exception: ', '');
+        notifyListeners();
+        return false;
+      }
+    }
+    return true;
   }
 
   Future<void> markRoomAsRead(int roomId, [int? messageId]) async {

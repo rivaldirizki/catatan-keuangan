@@ -6,9 +6,11 @@ import 'providers/auth_provider.dart';
 import 'providers/finance_provider.dart';
 import 'providers/chat_provider.dart';
 import 'screens/splash/splash_screen.dart';
+import 'services/notification_service.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await NotificationService.init();
   runApp(const FinanceApp());
 }
 

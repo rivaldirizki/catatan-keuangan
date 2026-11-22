@@ -74,11 +74,14 @@ export async function getPool() {
             room_id INT NOT NULL,
             user_id INT NOT NULL,
             message TEXT NOT NULL,
-            message_type ENUM('text', 'system', 'financial_share') DEFAULT 'text',
+            message_type ENUM('text', 'system', 'financial_share', 'image', 'video', 'file') DEFAULT 'text',
             metadata JSON NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
           );
         `);
+        try {
+          await initConn.query(`ALTER TABLE chat_messages MODIFY COLUMN message_type ENUM('text', 'system', 'financial_share', 'image', 'video', 'file') DEFAULT 'text';`);
+        } catch (_) {}
       } catch (_) {}
       await initConn.end();
 

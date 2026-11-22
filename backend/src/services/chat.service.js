@@ -1,4 +1,6 @@
 import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
 import { db } from '../config/database.js';
 
 function generateChatCode() {
@@ -418,5 +420,41 @@ export const ChatService = {
     );
 
     return { success: true, last_read_message_id: newLastRead };
+  },
+
+  async deleteMessage(messageId, userId) {
+    const msgs = await db.query('SELECT * FROM chat_messages WHERE id = ?', [messageId]);
+    if (!msgs || msgs.length === 0) {
+      throw new Error('Pesan tidak ditemukan.');
+    }
+    const msg = msgs[0];
+
+    // Must be the message author
+    if (Number(msg.user_id) !== Number(userId)) {
+      const err = new Error('Akses ditolak. Anda hanya dapat menghapus pesan Anda sendiri.');
+      err.status = 403;
+      throw err;
+    }
+
+    // If message has media metadata with file_url, delete physical file from server
+    if (msg.metadata) {
+      let meta = msg.metadata;
+      if (typeof meta === 'string') {
+        try { meta = JSON.parse(meta); } catch (_) {}
+      }
+      if (meta && meta.file_url) {
+        try {
+          const uploadsDir = path.resolve('backend/uploads');
+          const relPath = meta.file_url.replace(/^\/?uploads\//, '');
+          const absPath = path.join(uploadsDir, relPath);
+          if (fs.existsSync(absPath)) {
+            fs.unlinkSync(absPath);
+          }
+        } catch (_) {}
+      }
+    }
+
+    await db.query('DELETE FROM chat_messages WHERE id = ?', [messageId]);
+    return { success: true, deleted_message_id: Number(messageId) };
   }
 };

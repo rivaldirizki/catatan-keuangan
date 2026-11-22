@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import fs from 'fs';
 import path from 'path';
+import multer from 'multer';
 import { fileURLToPath } from 'url';
 import { AuthService } from './services/auth.service.js';
 import { FamilyService } from './services/family.service.js';
@@ -26,6 +27,29 @@ const joinLimiter = rateLimiter({ windowMs: 15 * 60 * 1000, max: 15, message: 'T
 
 app.use(cors());
 app.use(express.json());
+
+const uploadsChatDir = path.join(__dirname, '..', 'uploads', 'chat');
+if (!fs.existsSync(uploadsChatDir)) {
+  fs.mkdirSync(uploadsChatDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadsChatDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    const ext = path.extname(file.originalname) || '';
+    cb(null, `media-${uniqueSuffix}${ext}`);
+  }
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 50 * 1024 * 1024 }
+});
+
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 // Root endpoint for cPanel Node.js Selector availability check & landing
 app.get('/', (req, res) => {
@@ -607,6 +631,35 @@ app.post('/api/v1/chat/rooms/:id/read', authenticateJWT, async (req, res) => {
     res.json(result);
   } catch (err) {
     res.status(400).json({ error: err.message });
+  }
+});
+
+// Upload media file for chat
+app.post('/api/v1/chat/upload', authenticateJWT, upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'File tidak ditemukan atau format tidak didukung.' });
+    }
+    const fileUrl = `/uploads/chat/${req.file.filename}`;
+    res.status(201).json({
+      file_url: fileUrl,
+      file_name: req.file.originalname,
+      file_size: req.file.size,
+      mime_type: req.file.mimetype
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete a message and remove its server file if any
+app.delete('/api/v1/chat/messages/:id', authenticateJWT, async (req, res) => {
+  try {
+    const result = await ChatService.deleteMessage(Number(req.params.id), req.user.id);
+    res.json(result);
+  } catch (err) {
+    const statusCode = err.status || 400;
+    res.status(statusCode).json({ error: err.message });
   }
 });
 

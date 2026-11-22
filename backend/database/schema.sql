@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS users (
   role ENUM('user', 'admin') DEFAULT 'user',
   family_id INT NULL,
   company_id INT NULL,
+  chat_invite_code VARCHAR(20) NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (family_id) REFERENCES families(id) ON DELETE SET NULL,
   FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE SET NULL
@@ -149,6 +150,48 @@ CREATE TABLE IF NOT EXISTS transactions (
   FOREIGN KEY (destination_wallet_id) REFERENCES wallets(id) ON DELETE SET NULL,
   FOREIGN KEY (destination_saving_id) REFERENCES savings(id) ON DELETE SET NULL,
   FOREIGN KEY (debt_id) REFERENCES debts(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+-- 10. Chat Rooms Table
+CREATE TABLE IF NOT EXISTS chat_rooms (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  type ENUM('family', 'company', 'direct') NOT NULL,
+  family_id INT NULL,
+  company_id INT NULL,
+  name VARCHAR(255) NULL,
+  created_by INT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (family_id) REFERENCES families(id) ON DELETE CASCADE,
+  FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE CASCADE,
+  FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- 11. Chat Members Table
+CREATE TABLE IF NOT EXISTS chat_members (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  room_id INT NOT NULL,
+  user_id INT NOT NULL,
+  role ENUM('admin', 'member') DEFAULT 'member',
+  status ENUM('pending', 'accepted', 'rejected') DEFAULT 'accepted',
+  last_read_message_id INT NOT NULL DEFAULT 0,
+  last_read_at TIMESTAMP NULL,
+  joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (room_id) REFERENCES chat_rooms(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  UNIQUE KEY unique_room_user (room_id, user_id)
+) ENGINE=InnoDB;
+
+-- 12. Chat Messages Table
+CREATE TABLE IF NOT EXISTS chat_messages (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  room_id INT NOT NULL,
+  user_id INT NOT NULL,
+  message TEXT NOT NULL,
+  message_type ENUM('text', 'system', 'financial_share') DEFAULT 'text',
+  metadata JSON NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (room_id) REFERENCES chat_rooms(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 -- Seed Admin User (admin@gmail.com / alvian14)

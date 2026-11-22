@@ -6,9 +6,9 @@ class NotificationService {
   static final FlutterLocalNotificationsPlugin _notificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
-  static const String channelId = 'linc_chat_channel';
-  static const String channelName = 'Pesan & Informasi Dompet Linc';
-  static const String channelDesc = 'Notifikasi obrolan masuk dan catatan finansial';
+  static const String channelId = 'linc_chat_channel_v2';
+  static const String channelName = 'Pesan & Obrolan Dompet Linc';
+  static const String channelDesc = 'Notifikasi prioritas tinggi untuk pesan chat dan catatan finansial';
 
   static Future<void> init() async {
     // Guard against web where Platform and mobile notifications are unsupported
@@ -35,8 +35,10 @@ class NotificationService {
             channelId,
             channelName,
             description: channelDesc,
-            importance: Importance.high,
+            importance: Importance.max,
             enableVibration: true,
+            playSound: true,
+            showBadge: true,
           ),
         );
         await androidPlugin.requestNotificationsPermission();
@@ -57,9 +59,13 @@ class NotificationService {
       channelId,
       channelName,
       channelDescription: channelDesc,
-      importance: Importance.high,
-      priority: Priority.high,
+      importance: Importance.max,
+      priority: Priority.max,
       showWhen: true,
+      visibility: NotificationVisibility.public,
+      category: AndroidNotificationCategory.message,
+      enableVibration: true,
+      playSound: true,
     );
 
     const notificationDetails = NotificationDetails(android: androidDetails);

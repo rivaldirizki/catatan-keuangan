@@ -19,6 +19,7 @@ import '../debts/debts_screen.dart';
 import '../chat/chat_list_screen.dart';
 import '../../providers/chat_provider.dart';
 import '../../services/permission_service.dart';
+import '../../services/fcm_service.dart';
 import '../auth/login_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -65,6 +66,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
         auth.getCurrentCompany();
       }
       _checkAndPromptBackgroundPermission();
+      FcmService.syncToken(finance.apiClient);
     });
   }
 

@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "101524820081",
+    "project_number": "740578495079",
     "project_id": "dompet-linc",
-    "storage_bucket": "dompet-linc.appspot.com"
+    "storage_bucket": "dompet-linc.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:123456789012:android:9876543210fedcba",
+        "mobilesdk_app_id": "1:740578495079:android:7bc9b41bc3643a98baa2c2",
         "android_client_info": {
           "package_name": "com.example.finance_app"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDummyKeyForBuildVerification123456"
+          "current_key": "AIzaSyC8S1hgwT96ZrAeRu739GAUkGfGPxUPBqo"
         }
       ],
       "services": {

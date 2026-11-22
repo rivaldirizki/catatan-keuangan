@@ -120,21 +120,32 @@ class FcmService {
     }
   }
 
+  static Future<void> syncToken(ApiClient apiClient) async {
+    if (kIsWeb) return;
+    if (!Platform.isAndroid && !Platform.isIOS) return;
+    try {
+      final token = _cachedToken ?? await FirebaseMessaging.instance.getToken();
+      if (token != null && token.isNotEmpty) {
+        _cachedToken = token;
+        await _syncTokenToBackend(apiClient, token);
+      }
+    } catch (_) {}
+  }
+
   static Future<void> _syncTokenToBackend(ApiClient apiClient, String token) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final lastSyncedToken = prefs.getString('last_synced_fcm_token');
-      if (lastSyncedToken == token) return;
-
-      await apiClient.post(
+      final res = await apiClient.post(
         ApiConstants.userDeviceToken,
         body: {
           'fcm_token': token,
           'platform': Platform.isAndroid ? 'android' : (Platform.isIOS ? 'ios' : 'other'),
         },
       );
-      await prefs.setString('last_synced_fcm_token', token);
-      debugPrint('[FCM] Token successfully registered to backend API');
+      if (res is Map && res['success'] == true) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('last_synced_fcm_token', token);
+        debugPrint('[FCM] Token successfully registered to backend API');
+      }
     } catch (e) {
       debugPrint('[FCM] Failed to sync token to backend (will retry): $e');
     }

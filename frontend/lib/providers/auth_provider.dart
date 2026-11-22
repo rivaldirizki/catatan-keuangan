@@ -53,6 +53,8 @@ class AuthProvider extends ChangeNotifier {
         await prefs.setString('user_data', jsonEncode(res['user']));
       } catch (_) {}
 
+      FcmService.syncToken(apiClient);
+
       _isLoading = false;
       notifyListeners();
       return true;
@@ -86,6 +88,8 @@ class AuthProvider extends ChangeNotifier {
         await prefs.setString('user_data', jsonEncode(res['user']));
       } catch (_) {}
 
+      FcmService.syncToken(apiClient);
+
       _isLoading = false;
       notifyListeners();
       return true;
@@ -107,6 +111,7 @@ class AuthProvider extends ChangeNotifier {
         _currentUser = UserModel.fromJson(jsonDecode(savedUser) as Map<String, dynamic>);
         apiClient.setToken(_token);
         notifyListeners();
+        FcmService.syncToken(apiClient);
         // Refresh silently in background
         refreshUser();
         return true;

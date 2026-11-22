@@ -4,8 +4,11 @@ import { db } from '../src/config/database.js';
 import { AuthService } from '../src/services/auth.service.js';
 
 describe('Task 2: AuthService (TDD)', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     db.mock.reset();
+    try {
+      await db.query('DELETE FROM users WHERE email = ?', ['tasik@example.com']);
+    } catch (_) {}
   });
 
   it('should register a new user with hashed password and return JWT token', async () => {

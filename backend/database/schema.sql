@@ -194,6 +194,19 @@ CREATE TABLE IF NOT EXISTS chat_messages (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+-- 13. User Device Tokens Table (for FCM Push Notifications)
+CREATE TABLE IF NOT EXISTS user_device_tokens (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  fcm_token VARCHAR(500) NOT NULL,
+  platform VARCHAR(20) DEFAULT 'android',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  UNIQUE KEY unique_fcm_token (fcm_token),
+  INDEX idx_user_tokens (user_id)
+) ENGINE=InnoDB;
+
 -- Seed Admin User (admin@gmail.com / alvian14)
 INSERT INTO users (id, name, email, password_hash, role, family_id)
 VALUES (1, 'Admin Finance', 'admin@gmail.com', 'a1b2c3d4e5f67890:51bfa9b7929491be078f2da9091ab9351c8c19546d6b738e383b86f9e26d5d8792ea6f3fd4f9f88a1216cf1199b216f2781d6c87e2b337c6756565cd95b76e1e', 'admin', NULL)

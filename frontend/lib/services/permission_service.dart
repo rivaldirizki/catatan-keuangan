@@ -38,4 +38,27 @@ class PermissionService {
     final storageStatus = await Permission.storage.request();
     return storageStatus.isGranted;
   }
+
+  static Future<bool> requestBackgroundPermission() async {
+    if (kIsWeb) return true;
+    if (!Platform.isAndroid) return true;
+    try {
+      final status = await Permission.ignoreBatteryOptimizations.status;
+      if (status.isGranted) return true;
+      final res = await Permission.ignoreBatteryOptimizations.request();
+      return res.isGranted;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  static Future<bool> isBackgroundPermissionGranted() async {
+    if (kIsWeb) return true;
+    if (!Platform.isAndroid) return true;
+    try {
+      return await Permission.ignoreBatteryOptimizations.isGranted;
+    } catch (_) {
+      return true;
+    }
+  }
 }

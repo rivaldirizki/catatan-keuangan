@@ -6,6 +6,7 @@ import '../../providers/chat_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../models/chat_room_model.dart';
 import '../../core/theme/app_theme.dart';
+import '../../services/permission_service.dart';
 import 'widgets/invitation_card.dart';
 import 'chat_room_screen.dart';
 
@@ -20,6 +21,7 @@ class ChatListScreen extends StatefulWidget {
 
 class _ChatListScreenState extends State<ChatListScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  bool _isBgPermissionGranted = true;
 
   @override
   void initState() {
@@ -35,7 +37,15 @@ class _ChatListScreenState extends State<ChatListScreen> with SingleTickerProvid
         chat.startHeartbeat(auth.currentUser!.id);
       }
       chat.refreshAll();
+      _checkBgPermission();
     });
+  }
+
+  Future<void> _checkBgPermission() async {
+    final granted = await PermissionService.isBackgroundPermissionGranted();
+    if (mounted) {
+      setState(() => _isBgPermissionGranted = granted);
+    }
   }
 
   @override
@@ -437,6 +447,61 @@ class _ChatListScreenState extends State<ChatListScreen> with SingleTickerProvid
                 ],
               ),
             ),
+            if (!_isBgPermissionGranted)
+              Container(
+                margin: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF9E6),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: const Color(0xFFFFD56B), width: 0.8),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(7),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFFF9500),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.notifications_active_rounded, color: Colors.white, size: 17),
+                    ),
+                    const SizedBox(width: 10),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Izin Berjalan di Latar Belakang',
+                            style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: Color(0xFF1C1C1E)),
+                          ),
+                          SizedBox(height: 2),
+                          Text(
+                            'Aktifkan agar pesan masuk tetap memberi notifikasi saat aplikasi ditutup.',
+                            style: TextStyle(fontSize: 11, color: Color(0xFF636366), height: 1.25),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton(
+                      onPressed: () async {
+                        await PermissionService.requestBackgroundPermission();
+                        await _checkBgPermission();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFF9500),
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        minimumSize: const Size(60, 32),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      child: const Text('Aktifkan', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700)),
+                    ),
+                  ],
+                ),
+              ),
             Expanded(
               child: TabBarView(
                 controller: _tabController,

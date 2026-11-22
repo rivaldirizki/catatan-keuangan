@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/finance_provider.dart';
 import '../../core/theme/app_theme.dart';
@@ -16,6 +18,7 @@ import '../savings/savings_screen.dart';
 import '../debts/debts_screen.dart';
 import '../chat/chat_list_screen.dart';
 import '../../providers/chat_provider.dart';
+import '../../services/permission_service.dart';
 import '../auth/login_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -61,7 +64,60 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
       if (auth.currentUser?.companyId != null) {
         auth.getCurrentCompany();
       }
+      _checkAndPromptBackgroundPermission();
     });
+  }
+
+  Future<void> _checkAndPromptBackgroundPermission() async {
+    if (kIsWeb) return;
+    try {
+      final granted = await PermissionService.isBackgroundPermissionGranted();
+      if (!granted && mounted) {
+        final prefs = await SharedPreferences.getInstance();
+        final hasPrompted = prefs.getBool('prompted_bg_permission') ?? false;
+        if (!hasPrompted) {
+          await prefs.setBool('prompted_bg_permission', true);
+          if (!mounted) return;
+          showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: const Row(
+                children: [
+                  Icon(Icons.notifications_active_rounded, color: Color(0xFF007AFF)),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Text('Izin Latar Belakang', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+                  ),
+                ],
+              ),
+              content: const Text(
+                'Agar notifikasi obrolan dan pesan masuk tetap diterima secara realtime saat aplikasi berada di latar belakang atau layar terkunci, izinkan aplikasi berjalan di latar belakang.',
+                style: TextStyle(fontSize: 13.5, color: Color(0xFF3A3A3C), height: 1.35),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Nanti Saja', style: TextStyle(color: Color(0xFF8E8E93))),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    Navigator.pop(ctx);
+                    await PermissionService.requestBackgroundPermission();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF007AFF),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  child: const Text('Izinkan Sekarang', style: TextStyle(fontWeight: FontWeight.w700)),
+                ),
+              ],
+            ),
+          );
+        }
+      }
+    } catch (_) {}
   }
 
   @override

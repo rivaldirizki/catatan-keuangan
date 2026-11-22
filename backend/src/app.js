@@ -11,6 +11,7 @@ import { WalletService } from './services/wallet.service.js';
 import { TransactionService } from './services/transaction.service.js';
 import { SavingService } from './services/saving.service.js';
 import { DebtService } from './services/debt.service.js';
+import { ChatService } from './services/chat.service.js';
 import { authenticateJWT, requireAdmin } from './middleware/auth.middleware.js';
 import { rateLimiter } from './middleware/rate_limit.middleware.js';
 import { AdminController } from './controllers/admin.controller.js';
@@ -499,6 +500,110 @@ app.post('/api/v1/debts/:id/pay', authenticateJWT, async (req, res) => {
     const debtId = req.params.id;
     const { wallet_id, amount, date, notes } = req.body;
     const result = await DebtService.recordPayment(req.user.id, debtId, wallet_id, amount, date, notes);
+    res.json(result);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// ======================= CHAT ROUTES =======================
+// Get current user's chat invite code
+app.get('/api/v1/chat/my-code', authenticateJWT, async (req, res) => {
+  try {
+    const code = await ChatService.getUserChatCode(req.user.id);
+    res.json({ chat_invite_code: code });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get user's active chat rooms (pribadi, keluarga, perusahaan)
+app.get('/api/v1/chat/rooms', authenticateJWT, async (req, res) => {
+  try {
+    const user = await AuthService.getUserById(req.user.id);
+    const rooms = await ChatService.getUserRooms(user.id, user.family_id, user.company_id);
+    res.json(rooms);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get pending incoming chat invitations
+app.get('/api/v1/chat/invitations', authenticateJWT, async (req, res) => {
+  try {
+    const invitations = await ChatService.getPendingInvitations(req.user.id);
+    res.json(invitations);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Send a direct chat invite using target user's invite code
+app.post('/api/v1/chat/direct/invite', authenticateJWT, async (req, res) => {
+  try {
+    const { invite_code } = req.body;
+    const result = await ChatService.sendDirectInvite(req.user.id, invite_code);
+    res.status(201).json(result);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// Accept a chat invitation
+app.post('/api/v1/chat/invitations/:id/accept', authenticateJWT, async (req, res) => {
+  try {
+    const result = await ChatService.respondToInvitation(Number(req.params.id), req.user.id, 'accept');
+    res.json(result);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// Reject a chat invitation
+app.post('/api/v1/chat/invitations/:id/reject', authenticateJWT, async (req, res) => {
+  try {
+    const result = await ChatService.respondToInvitation(Number(req.params.id), req.user.id, 'reject');
+    res.json(result);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// Get messages in a room (supports ?after_id=X for polling)
+app.get('/api/v1/chat/rooms/:id/messages', authenticateJWT, async (req, res) => {
+  try {
+    const afterId = req.query.after_id ? Number(req.query.after_id) : null;
+    const messages = await ChatService.getRoomMessages(Number(req.params.id), req.user.id, afterId);
+    res.json(messages);
+  } catch (err) {
+    const statusCode = err.status || 400;
+    res.status(statusCode).json({ error: err.message });
+  }
+});
+
+// Send a message to a room
+app.post('/api/v1/chat/rooms/:id/messages', authenticateJWT, async (req, res) => {
+  try {
+    const { message, message_type, metadata } = req.body;
+    const result = await ChatService.sendMessage(
+      Number(req.params.id),
+      req.user.id,
+      message,
+      message_type || 'text',
+      metadata || null
+    );
+    res.status(201).json(result);
+  } catch (err) {
+    const statusCode = err.status || 400;
+    res.status(statusCode).json({ error: err.message });
+  }
+});
+
+// Mark room messages as read
+app.post('/api/v1/chat/rooms/:id/read', authenticateJWT, async (req, res) => {
+  try {
+    const { message_id } = req.body;
+    const result = await ChatService.markRoomAsRead(Number(req.params.id), req.user.id, message_id);
     res.json(result);
   } catch (err) {
     res.status(400).json({ error: err.message });

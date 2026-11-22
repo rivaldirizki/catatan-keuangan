@@ -41,9 +41,44 @@ export async function getPool() {
         await initConn.query(`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS project_id INT NULL AFTER company_id;`);
         await initConn.query(`ALTER TABLE debts ADD COLUMN IF NOT EXISTS company_id INT NULL AFTER family_id;`);
         await initConn.query(`ALTER TABLE debts ADD COLUMN IF NOT EXISTS installments_count INT NOT NULL DEFAULT 1 AFTER remaining_amount;`);
+        await initConn.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS chat_invite_code VARCHAR(20) NULL;`);
         try {
           await initConn.query(`ALTER TABLE debts MODIFY COLUMN scope ENUM('personal', 'family', 'company') DEFAULT 'personal';`);
         } catch (_) {}
+        await initConn.query(`
+          CREATE TABLE IF NOT EXISTS chat_rooms (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            type ENUM('family', 'company', 'direct') NOT NULL,
+            family_id INT NULL,
+            company_id INT NULL,
+            name VARCHAR(255) NULL,
+            created_by INT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          );
+        `);
+        await initConn.query(`
+          CREATE TABLE IF NOT EXISTS chat_members (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            room_id INT NOT NULL,
+            user_id INT NOT NULL,
+            role ENUM('admin', 'member') DEFAULT 'member',
+            status ENUM('pending', 'accepted', 'rejected') DEFAULT 'accepted',
+            last_read_message_id INT NOT NULL DEFAULT 0,
+            last_read_at TIMESTAMP NULL,
+            joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          );
+        `);
+        await initConn.query(`
+          CREATE TABLE IF NOT EXISTS chat_messages (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            room_id INT NOT NULL,
+            user_id INT NOT NULL,
+            message TEXT NOT NULL,
+            message_type ENUM('text', 'system', 'financial_share') DEFAULT 'text',
+            metadata JSON NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          );
+        `);
       } catch (_) {}
       await initConn.end();
 
@@ -72,7 +107,10 @@ class MockDatabase {
       categories: [],
       transactions: [],
       savings: [],
-      debts: []
+      debts: [],
+      chat_rooms: [],
+      chat_members: [],
+      chat_messages: []
     };
     this.autoIncrement = {
       users: 1,
@@ -83,7 +121,10 @@ class MockDatabase {
       categories: 1,
       transactions: 1,
       savings: 1,
-      debts: 1
+      debts: 1,
+      chat_rooms: 1,
+      chat_members: 1,
+      chat_messages: 1
     };
     this.seedDefaultCategories();
   }
@@ -135,7 +176,12 @@ class MockDatabase {
       }
       const columns = insertMatch[2].split(',').map(c => c.trim().replace(/[`"']/g, ''));
       const id = this.autoIncrement[table]++;
-      const row = { id };
+      const row = { id, created_at: new Date().toISOString() };
+      if (table === 'chat_members') {
+        row.last_read_message_id = 0;
+        row.status = 'accepted';
+        row.joined_at = new Date().toISOString();
+      }
       columns.forEach((col, idx) => {
         row[col] = params[idx] !== undefined ? params[idx] : null;
       });
@@ -206,18 +252,59 @@ class MockDatabase {
         let paramIdx = 0;
         const conditions = whereClause.split(/\s+AND\s+/i);
         for (const cond of conditions) {
+          const gteMatch = cond.match(/(?:[a-zA-Z0-9_]+\.)?([a-zA-Z0-9_]+)\s*>=\s*\?/);
+          if (gteMatch) {
+            const col = gteMatch[1];
+            const val = params[paramIdx++];
+            rows = rows.filter(r => Number(r[col]) >= Number(val));
+            continue;
+          }
+          const gtMatch = cond.match(/(?:[a-zA-Z0-9_]+\.)?([a-zA-Z0-9_]+)\s*>\s*\?/);
+          if (gtMatch) {
+            const col = gtMatch[1];
+            const val = params[paramIdx++];
+            rows = rows.filter(r => Number(r[col]) > Number(val));
+            continue;
+          }
+          const neqMatch = cond.match(/(?:[a-zA-Z0-9_]+\.)?([a-zA-Z0-9_]+)\s*(?:!=|<>)\s*\?/);
+          if (neqMatch) {
+            const col = neqMatch[1];
+            const val = params[paramIdx++];
+            rows = rows.filter(r => String(r[col]) !== String(val));
+            continue;
+          }
           const eqMatch = cond.match(/(?:[a-zA-Z0-9_]+\.)?([a-zA-Z0-9_]+)\s*=\s*\?/);
           if (eqMatch) {
             const col = eqMatch[1];
             const val = params[paramIdx++];
             rows = rows.filter(r => String(r[col]) === String(val));
+            continue;
           }
           const nullMatch = cond.match(/(?:[a-zA-Z0-9_]+\.)?([a-zA-Z0-9_]+)\s+IS\s+NULL/i);
           if (nullMatch) {
             const col = nullMatch[1];
             rows = rows.filter(r => r[col] === null || r[col] === undefined);
+            continue;
           }
         }
+      }
+
+      if (selectMatch[5]) {
+        const orderClause = selectMatch[5].trim();
+        const desc = /DESC/i.test(orderClause);
+        const colMatch = orderClause.match(/(?:[a-zA-Z0-9_]+\.)?([a-zA-Z0-9_]+)/);
+        if (colMatch) {
+          const col = colMatch[1];
+          rows.sort((a, b) => {
+            if (a[col] < b[col]) return desc ? 1 : -1;
+            if (a[col] > b[col]) return desc ? -1 : 1;
+            return 0;
+          });
+        }
+      }
+      if (selectMatch[6]) {
+        const limit = Number(selectMatch[6]);
+        rows = rows.slice(0, limit);
       }
       return rows;
     }
@@ -228,22 +315,39 @@ class MockDatabase {
       const whereClause = updateMatch[3].trim();
       const rows = this.tables[table] || [];
       const setParts = updateMatch[2].split(',').map(s => s.trim());
+      const setParamCount = setParts.filter(p => p.includes('?')).length;
+      const setVals = params.slice(0, setParamCount);
+      const whereVals = params.slice(setParamCount);
       
-      const eqMatch = whereClause.match(/(?:[a-zA-Z0-9_]+\.)?([a-zA-Z0-9_]+)\s*=\s*\?/i);
+      const whereConditions = whereClause.split(/\s+AND\s+/i);
       let affected = 0;
-      if (eqMatch) {
-        const whereCol = eqMatch[1].toLowerCase();
-        const whereVal = params[params.length - 1];
-        rows.forEach(row => {
-          if (String(row[whereCol]) === String(whereVal)) {
-            setParts.forEach((part, idx) => {
-              const col = part.split('=')[0].trim().replace(/[`"']/g, '');
-              row[col] = params[idx];
-            });
-            affected++;
+      rows.forEach(row => {
+        let match = true;
+        let wIdx = 0;
+        for (const cond of whereConditions) {
+          const m = cond.match(/(?:[a-zA-Z0-9_]+\.)?([a-zA-Z0-9_]+)\s*=\s*\?/i);
+          if (m) {
+            const col = m[1].toLowerCase();
+            const val = whereVals[wIdx++];
+            if (String(row[col]) !== String(val)) {
+              match = false;
+              break;
+            }
           }
-        });
-      }
+        }
+        if (match) {
+          let sIdx = 0;
+          setParts.forEach(part => {
+            const col = part.split('=')[0].trim().replace(/[`"']/g, '');
+            if (part.includes('?')) {
+              row[col] = setVals[sIdx++];
+            } else if (/NOW\(\)|CURRENT_TIMESTAMP/i.test(part)) {
+              row[col] = new Date().toISOString();
+            }
+          });
+          affected++;
+        }
+      });
       return { affectedRows: affected };
     }
 

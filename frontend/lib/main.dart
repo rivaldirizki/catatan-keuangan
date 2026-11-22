@@ -4,6 +4,7 @@ import 'core/theme/app_theme.dart';
 import 'core/network/api_client.dart';
 import 'providers/auth_provider.dart';
 import 'providers/finance_provider.dart';
+import 'providers/chat_provider.dart';
 import 'screens/splash/splash_screen.dart';
 
 void main() {
@@ -23,6 +24,7 @@ class FinanceApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider(apiClient: client)),
         ChangeNotifierProvider(create: (_) => FinanceProvider(apiClient: client)),
+        ChangeNotifierProvider(create: (_) => ChatProvider(apiClient: client)),
       ],
       child: MaterialApp(
         title: 'Dompet Linc',

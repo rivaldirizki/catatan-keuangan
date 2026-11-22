@@ -218,4 +218,77 @@ describe('Task 6: Express App & REST API Integration (TDD)', () => {
     assert.strictEqual(Number(detailRes.body.current_income), 20000000);
     assert.strictEqual(detailRes.body.transactions.length, 1);
   });
+
+  it('should support chat workflows via REST API', async () => {
+    const client = request(app);
+
+    // Register 2 users: Sender and Receiver
+    const rand = Math.floor(Math.random() * 90000) + 10000;
+    const u1 = await client.send('POST', '/api/v1/auth/register', {
+      body: { name: 'Chatter1', email: `chatter1_${rand}@test.com`, password: 'password123' }
+    });
+    const u2 = await client.send('POST', '/api/v1/auth/register', {
+      body: { name: 'Chatter2', email: `chatter2_${rand}@test.com`, password: 'password123' }
+    });
+    const token1 = u1.body.token;
+    const token2 = u2.body.token;
+
+    // Get Chatter2's chat invite code
+    const codeRes = await client.send('GET', '/api/v1/chat/my-code', {
+      headers: { 'authorization': `Bearer ${token2}` }
+    });
+    assert.strictEqual(codeRes.status, 200);
+    const chatter2Code = codeRes.body.chat_invite_code;
+    assert.ok(chatter2Code.startsWith('CHAT-'));
+
+    // Chatter1 invites Chatter2
+    const inviteRes = await client.send('POST', '/api/v1/chat/direct/invite', {
+      headers: { 'authorization': `Bearer ${token1}` },
+      body: { invite_code: chatter2Code }
+    });
+    assert.strictEqual(inviteRes.status, 201);
+    const roomId = inviteRes.body.room_id;
+    const invitationId = inviteRes.body.invitation_id;
+
+    // Chatter2 checks invitations
+    const invList = await client.send('GET', '/api/v1/chat/invitations', {
+      headers: { 'authorization': `Bearer ${token2}` }
+    });
+    assert.strictEqual(invList.status, 200);
+    assert.ok(invList.body.some(inv => inv.id === invitationId));
+
+    // Chatter2 accepts invitation
+    const acceptRes = await client.send('POST', `/api/v1/chat/invitations/${invitationId}/accept`, {
+      headers: { 'authorization': `Bearer ${token2}` }
+    });
+    assert.strictEqual(acceptRes.status, 200);
+    assert.strictEqual(acceptRes.body.success, true);
+
+    // Chatter1 sends message
+    const msgRes = await client.send('POST', `/api/v1/chat/rooms/${roomId}/messages`, {
+      headers: { 'authorization': `Bearer ${token1}` },
+      body: { message: 'Halo dari Chatter1!', message_type: 'text' }
+    });
+    assert.strictEqual(msgRes.status, 201);
+    assert.strictEqual(msgRes.body.delivery_status, 'sent');
+
+    // Chatter1 checks messages -> 1 sent
+    const msgs1 = await client.send('GET', `/api/v1/chat/rooms/${roomId}/messages`, {
+      headers: { 'authorization': `Bearer ${token1}` }
+    });
+    assert.strictEqual(msgs1.status, 200);
+    assert.strictEqual(msgs1.body[0].delivery_status, 'sent');
+
+    // Chatter2 reads messages
+    await client.send('POST', `/api/v1/chat/rooms/${roomId}/read`, {
+      headers: { 'authorization': `Bearer ${token2}` },
+      body: { message_id: msgRes.body.id }
+    });
+
+    // Chatter1 checks messages again -> now read (centang 2 biru)
+    const msgsAfterRead = await client.send('GET', `/api/v1/chat/rooms/${roomId}/messages`, {
+      headers: { 'authorization': `Bearer ${token1}` }
+    });
+    assert.strictEqual(msgsAfterRead.body[0].delivery_status, 'read');
+  });
 });

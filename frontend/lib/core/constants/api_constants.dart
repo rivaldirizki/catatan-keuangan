@@ -49,6 +49,16 @@ class ApiConstants {
   static const String debtReminders = '/debts/reminders';
   static String debtPay(int id) => '/debts/$id/pay';
 
+  // Chat
+  static const String chatMyCode = '/chat/my-code';
+  static const String chatRooms = '/chat/rooms';
+  static const String chatInvitations = '/chat/invitations';
+  static const String chatDirectInvite = '/chat/direct/invite';
+  static String chatInvitationAccept(int id) => '/chat/invitations/$id/accept';
+  static String chatInvitationReject(int id) => '/chat/invitations/$id/reject';
+  static String chatRoomMessages(int id) => '/chat/rooms/$id/messages';
+  static String chatRoomRead(int id) => '/chat/rooms/$id/read';
+
   // Admin
   static const String adminDashboard = '/admin/dashboard';
 }

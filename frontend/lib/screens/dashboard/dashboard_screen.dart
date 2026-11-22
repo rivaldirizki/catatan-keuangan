@@ -14,6 +14,8 @@ import '../../widgets/family_switcher.dart';
 import '../history/history_screen.dart';
 import '../savings/savings_screen.dart';
 import '../debts/debts_screen.dart';
+import '../chat/chat_list_screen.dart';
+import '../../providers/chat_provider.dart';
 import '../auth/login_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -52,6 +54,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         finance.setCurrentUserId(auth.currentUser!.id.toString());
       }
       finance.fetchDashboard();
+      context.read<ChatProvider>().refreshAll();
       if (auth.currentUser?.companyId != null) {
         auth.getCurrentCompany();
       }
@@ -1888,6 +1891,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 const SavingsScreen(isEmbedded: true),
                 const DebtsScreen(isEmbedded: true),
+                const ChatListScreen(isEmbedded: true),
               ],
             ),
           ),
@@ -1945,6 +1949,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   },
                   isFamilyView: isFamily,
                   isCompanyView: isCompany,
+                ),
+                _buildNavItem(
+                  4,
+                  Icons.chat_bubble_outline_rounded,
+                  'Pesan',
+                  () {
+                    setState(() => _currentTab = 4);
+                  },
+                  isFamilyView: isFamily,
+                  isCompanyView: isCompany,
+                  badgeCount: context.watch<ChatProvider>().totalUnreadCount,
                 ),
               ],
             ),
@@ -3897,11 +3912,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   // ======================= HELPER: NAV ITEM =======================
-  Widget _buildNavItem(int index, IconData icon, String label, VoidCallback onTap, {bool isFamilyView = false, bool isCompanyView = false}) {
+  Widget _buildNavItem(int index, IconData icon, String label, VoidCallback onTap, {bool isFamilyView = false, bool isCompanyView = false, int badgeCount = 0}) {
     final isSelected = _currentTab == index;
     final activeColor = isCompanyView
         ? const Color(0xFF1C1C1E)
         : (isFamilyView ? const Color(0xFFEE4D2D) : const Color(0xFF118EEA));
+
+    Widget iconWidget = Icon(
+      icon,
+      size: 21,
+      color: isSelected ? activeColor : AppTheme.textSecondary,
+    );
+
+    if (badgeCount > 0) {
+      iconWidget = Badge.count(
+        count: badgeCount,
+        backgroundColor: const Color(0xFFFF3B30),
+        child: iconWidget,
+      );
+    }
 
     return Expanded(
       child: GestureDetector(
@@ -3915,11 +3944,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                icon,
-                size: 21,
-                color: isSelected ? activeColor : AppTheme.textSecondary,
-              ),
+              iconWidget,
               const SizedBox(height: 3),
               Text(
                 label,

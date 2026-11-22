@@ -164,6 +164,29 @@ class MockDatabase {
       }
       const whereClause = selectMatch[4];
       if (whereClause) {
+        if (table === 'wallets') {
+          if (whereClause.includes('company_id = ?') && whereClause.includes('scope = "company"') && whereClause.includes('user_id = ?')) {
+            const cmpId = params[0];
+            const usrId = params[1];
+            return rows.filter(r => (String(r.company_id) === String(cmpId) && r.scope === 'company') || String(r.user_id) === String(usrId));
+          }
+          if (whereClause.includes('company_id = ?') && whereClause.includes('scope = "company"')) {
+            const cmpId = params[0];
+            return rows.filter(r => String(r.company_id) === String(cmpId) && r.scope === 'company');
+          }
+          if (whereClause.includes('family_id = ?') && whereClause.includes('scope = "family"') && whereClause.includes('user_id = ?')) {
+            const famId = params[0];
+            const usrId = params[1];
+            return rows.filter(r => (String(r.family_id) === String(famId) && r.scope === 'family') || String(r.user_id) === String(usrId));
+          }
+        }
+        if (table === 'transactions') {
+          if ((whereClause.includes('t.company_id = ?') || whereClause.includes('company_id = ?')) && (whereClause.includes('t.user_id = ?') || whereClause.includes('user_id = ?'))) {
+            const cmpId = params[0];
+            const usrId = params[1];
+            return rows.filter(r => (String(r.company_id) === String(cmpId) && r.scope === 'company') || String(r.user_id) === String(usrId));
+          }
+        }
         if (table === 'debts') {
           if (whereClause.includes('family_id = ?') && whereClause.includes('scope = "family"')) {
             const famId = params[0];

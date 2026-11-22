@@ -297,8 +297,9 @@ app.patch('/api/v1/projects/:id/status', authenticateJWT, async (req, res) => {
 app.get('/api/v1/wallets', authenticateJWT, async (req, res) => {
   try {
     const user = await AuthService.getUserById(req.user.id);
-    const familyView = req.query.familyView === 'true';
-    const wallets = await WalletService.getWallets(user.id, user.family_id, familyView);
+    const familyView = req.query.familyView === 'true' || req.query.viewMode === 'family';
+    const companyView = req.query.companyView === 'true' || req.query.viewMode === 'company';
+    const wallets = await WalletService.getWallets(user.id, user.family_id, familyView, user.company_id, companyView);
     res.json(wallets);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -309,7 +310,10 @@ app.post('/api/v1/wallets', authenticateJWT, async (req, res) => {
   try {
     const { name, balance, scope } = req.body;
     const user = await AuthService.getUserById(req.user.id);
-    const wallet = await WalletService.createWallet(user.id, name, balance || 0, scope || 'personal', user.family_id);
+    const targetScope = scope || 'personal';
+    const familyId = targetScope === 'family' ? user.family_id : null;
+    const companyId = targetScope === 'company' ? user.company_id : null;
+    const wallet = await WalletService.createWallet(user.id, name, balance || 0, targetScope, familyId, companyId);
     res.status(201).json(wallet);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -338,8 +342,9 @@ app.get('/api/v1/categories', authenticateJWT, async (req, res) => {
 app.get('/api/v1/transactions', authenticateJWT, async (req, res) => {
   try {
     const user = await AuthService.getUserById(req.user.id);
-    const familyView = req.query.familyView === 'true';
-    const transactions = await TransactionService.getTransactions(user.id, user.family_id, familyView, req.query);
+    const familyView = req.query.familyView === 'true' || req.query.viewMode === 'family';
+    const companyView = req.query.companyView === 'true' || req.query.viewMode === 'company';
+    const transactions = await TransactionService.getTransactions(user.id, user.family_id, familyView, req.query, user.company_id, companyView);
     res.json(transactions);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -349,8 +354,9 @@ app.get('/api/v1/transactions', authenticateJWT, async (req, res) => {
 app.get('/api/v1/transactions/summary', authenticateJWT, async (req, res) => {
   try {
     const user = await AuthService.getUserById(req.user.id);
-    const familyView = req.query.familyView === 'true';
-    const summary = await TransactionService.getSummary(user.id, user.family_id, familyView);
+    const familyView = req.query.familyView === 'true' || req.query.viewMode === 'family';
+    const companyView = req.query.companyView === 'true' || req.query.viewMode === 'company';
+    const summary = await TransactionService.getSummary(user.id, user.family_id, familyView, user.company_id, companyView);
     res.json(summary);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -360,9 +366,10 @@ app.get('/api/v1/transactions/summary', authenticateJWT, async (req, res) => {
 app.post('/api/v1/transactions/income', authenticateJWT, async (req, res) => {
   try {
     const { wallet_id, category_id, amount, date, notes, isFamily } = req.body;
+    const isCompany = req.body.isCompany === true || req.body.scope === 'company' || req.query.viewMode === 'company';
     const idempotencyKey = req.body.idempotency_key || req.headers['x-idempotency-key'] || null;
     const user = await AuthService.getUserById(req.user.id);
-    const result = await TransactionService.recordIncome(user.id, wallet_id, category_id, amount, date || new Date().toISOString().split('T')[0], notes, isFamily, user.family_id, idempotencyKey);
+    const result = await TransactionService.recordIncome(user.id, wallet_id, category_id, amount, date || new Date().toISOString().split('T')[0], notes, isFamily, user.family_id, idempotencyKey, user.company_id, isCompany);
     res.status(result.already_processed ? 200 : 201).json(result);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -372,9 +379,10 @@ app.post('/api/v1/transactions/income', authenticateJWT, async (req, res) => {
 app.post('/api/v1/transactions/expense', authenticateJWT, async (req, res) => {
   try {
     const { wallet_id, category_id, amount, date, notes, isFamily } = req.body;
+    const isCompany = req.body.isCompany === true || req.body.scope === 'company' || req.query.viewMode === 'company';
     const idempotencyKey = req.body.idempotency_key || req.headers['x-idempotency-key'] || null;
     const user = await AuthService.getUserById(req.user.id);
-    const result = await TransactionService.recordExpense(user.id, wallet_id, category_id, amount, date || new Date().toISOString().split('T')[0], notes, isFamily, user.family_id, idempotencyKey);
+    const result = await TransactionService.recordExpense(user.id, wallet_id, category_id, amount, date || new Date().toISOString().split('T')[0], notes, isFamily, user.family_id, idempotencyKey, user.company_id, isCompany);
     res.status(result.already_processed ? 200 : 201).json(result);
   } catch (err) {
     res.status(400).json({ error: err.message });

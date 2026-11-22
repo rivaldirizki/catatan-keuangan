@@ -121,14 +121,27 @@ export const ProjectService = {
       }
       const project = projects[0];
 
-      // 2. Verify wallet
+      // 2. Verify wallet & authorization
       const wallets = await trx.query('SELECT * FROM wallets WHERE id = ?', [wallet_id]);
       if (!wallets || wallets.length === 0) {
         throw new Error('Dompet / Rekening tidak ditemukan');
       }
       const wallet = wallets[0];
-      const walletBalance = Number(wallet.balance) || 0;
+      const isCompanyWallet = String(wallet.company_id) === String(companyId) && wallet.scope === 'company';
+      const isPersonalWallet = String(wallet.user_id) === String(userId);
 
+      if (!isCompanyWallet && !isPersonalWallet) {
+        throw new Error('Akses ditolak: Dompet bukan milik pribadi Anda atau kas perusahaan ini');
+      }
+
+      let finalNotes = notes ? notes.trim() : '';
+      if (!isCompanyWallet && type === 'expense') {
+        if (!finalNotes.includes('Talangan Pribadi')) {
+          finalNotes = finalNotes ? `${finalNotes} (Talangan Pribadi)` : 'Talangan Pribadi';
+        }
+      }
+
+      const walletBalance = Number(wallet.balance) || 0;
       let newWalletBalance = walletBalance;
       let newProjectIncome = Number(project.current_income) || 0;
       let newProjectExpense = Number(project.current_expense) || 0;
@@ -157,7 +170,7 @@ export const ProjectService = {
       const insertRes = await trx.query(
         `INSERT INTO transactions (user_id, company_id, project_id, wallet_id, category_id, type, amount, transaction_date, notes, scope)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'company')`,
-        [userId, companyId, projectId, wallet_id, category_id, type, parsedAmount, txDate, notes]
+        [userId, companyId, projectId, wallet_id, category_id, type, parsedAmount, txDate, finalNotes]
       );
 
       return {
@@ -165,8 +178,10 @@ export const ProjectService = {
         project_id: projectId,
         company_id: companyId,
         wallet_id: wallet_id,
+        funding_source: isCompanyWallet ? 'company' : 'personal',
         type,
         amount: parsedAmount,
+        notes: finalNotes,
         wallet_balance: newWalletBalance,
         project_income: newProjectIncome,
         project_expense: newProjectExpense

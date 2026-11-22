@@ -2,7 +2,7 @@ import { db } from '../config/database.js';
 import { WalletService } from './wallet.service.js';
 
 export const TransactionService = {
-  async recordIncome(userId, walletId, categoryId, amount, date, notes = '', isFamily = false, familyId = null, idempotencyKey = null) {
+  async recordIncome(userId, walletId, categoryId, amount, date, notes = '', isFamily = false, familyId = null, idempotencyKey = null, companyId = null, isCompany = false) {
     const numAmount = Number(amount);
     if (!Number.isFinite(numAmount) || numAmount <= 0) throw new Error('Amount must be greater than 0');
     const wallet = await WalletService.getWalletById(walletId);
@@ -10,8 +10,9 @@ export const TransactionService = {
 
     const isOwner = wallet.user_id === userId;
     const isFamilyWallet = isFamily && familyId && wallet.family_id === familyId && wallet.scope === 'family';
-    if (!isOwner && !isFamilyWallet) {
-      throw new Error('Akses ditolak: Dompet bukan milik Anda atau keluarga Anda');
+    const isCompanyWallet = isCompany && companyId && wallet.company_id === companyId && wallet.scope === 'company';
+    if (!isOwner && !isFamilyWallet && !isCompanyWallet) {
+      throw new Error('Akses ditolak: Dompet bukan milik Anda atau organisasi Anda');
     }
 
     if (idempotencyKey) {
@@ -37,10 +38,10 @@ export const TransactionService = {
     }
 
     return await db.transaction(async (trx) => {
-      const scope = isFamily ? 'family' : 'personal';
+      const scope = isCompany ? 'company' : (isFamily ? 'family' : 'personal');
       const insertRes = await trx.query(
-        'INSERT INTO transactions (user_id, family_id, wallet_id, category_id, type, amount, transaction_date, notes, destination_wallet_id, destination_saving_id, debt_id, scope, idempotency_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [userId, familyId, walletId, categoryId, 'income', numAmount, date, notes, null, null, null, scope, idempotencyKey]
+        'INSERT INTO transactions (user_id, family_id, company_id, wallet_id, category_id, type, amount, transaction_date, notes, destination_wallet_id, destination_saving_id, debt_id, scope, idempotency_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [userId, isFamily ? familyId : null, isCompany ? companyId : null, walletId, categoryId, 'income', numAmount, date, notes, null, null, null, scope, idempotencyKey]
       );
 
       const newBalance = Number(wallet.balance) + numAmount;
@@ -59,7 +60,7 @@ export const TransactionService = {
     });
   },
 
-  async recordExpense(userId, walletId, categoryId, amount, date, notes = '', isFamily = false, familyId = null, idempotencyKey = null) {
+  async recordExpense(userId, walletId, categoryId, amount, date, notes = '', isFamily = false, familyId = null, idempotencyKey = null, companyId = null, isCompany = false) {
     const numAmount = Number(amount);
     if (!Number.isFinite(numAmount) || numAmount <= 0) throw new Error('Amount must be greater than 0');
     const wallet = await WalletService.getWalletById(walletId);
@@ -67,8 +68,9 @@ export const TransactionService = {
 
     const isOwner = wallet.user_id === userId;
     const isFamilyWallet = isFamily && familyId && wallet.family_id === familyId && wallet.scope === 'family';
-    if (!isOwner && !isFamilyWallet) {
-      throw new Error('Akses ditolak: Dompet bukan milik Anda atau keluarga Anda');
+    const isCompanyWallet = isCompany && companyId && wallet.company_id === companyId && wallet.scope === 'company';
+    if (!isOwner && !isFamilyWallet && !isCompanyWallet) {
+      throw new Error('Akses ditolak: Dompet bukan milik Anda atau organisasi Anda');
     }
 
     if (Number(wallet.balance) < numAmount) {
@@ -98,10 +100,15 @@ export const TransactionService = {
     }
 
     return await db.transaction(async (trx) => {
-      const scope = isFamily ? 'family' : 'personal';
+      const scope = isCompany ? 'company' : (isFamily ? 'family' : 'personal');
+      let finalNotes = notes ? notes.trim() : '';
+      if (isCompany && !isCompanyWallet && !finalNotes.includes('Talangan Pribadi')) {
+        finalNotes = finalNotes ? `${finalNotes} (Talangan Pribadi)` : 'Talangan Pribadi';
+      }
+
       const insertRes = await trx.query(
-        'INSERT INTO transactions (user_id, family_id, wallet_id, category_id, type, amount, transaction_date, notes, destination_wallet_id, destination_saving_id, debt_id, scope, idempotency_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [userId, familyId, walletId, categoryId, 'expense', numAmount, date, notes, null, null, null, scope, idempotencyKey]
+        'INSERT INTO transactions (user_id, family_id, company_id, wallet_id, category_id, type, amount, transaction_date, notes, destination_wallet_id, destination_saving_id, debt_id, scope, idempotency_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [userId, isFamily ? familyId : null, isCompany ? companyId : null, walletId, categoryId, 'expense', numAmount, date, finalNotes, null, null, null, scope, idempotencyKey]
       );
 
       const newBalance = Number(wallet.balance) - numAmount;
@@ -178,11 +185,14 @@ export const TransactionService = {
     });
   },
 
-  async getTransactions(userId, familyId = null, familyView = false, filters = {}) {
+  async getTransactions(userId, familyId = null, familyView = false, filters = {}, companyId = null, companyView = false) {
     let sql = 'SELECT t.*, u.name as user_name, c.name as category_name, c.color as category_color, c.icon as category_icon FROM transactions t LEFT JOIN users u ON t.user_id = u.id LEFT JOIN categories c ON t.category_id = c.id WHERE ';
     const params = [];
 
-    if (familyView && familyId) {
+    if (companyView && companyId) {
+      sql += '((t.company_id = ? AND t.scope = "company") OR t.user_id = ?)';
+      params.push(companyId, userId);
+    } else if (familyView && familyId) {
       sql += '((t.family_id = ? AND t.scope = "family") OR t.user_id = ?)';
       params.push(familyId, userId);
     } else {
@@ -239,8 +249,8 @@ export const TransactionService = {
     };
   },
 
-  async getSummary(userId, familyId = null, familyView = false) {
-    const transactions = await this.getTransactions(userId, familyId, familyView);
+  async getSummary(userId, familyId = null, familyView = false, companyId = null, companyView = false) {
+    const transactions = await this.getTransactions(userId, familyId, familyView, {}, companyId, companyView);
     let totalIncome = 0;
     let totalExpense = 0;
 
@@ -249,7 +259,7 @@ export const TransactionService = {
       if (tx.type === 'expense' || tx.type === 'saving_deposit') totalExpense += Number(tx.amount);
     }
 
-    const wallets = await WalletService.getWallets(userId, familyId, familyView);
+    const wallets = await WalletService.getWallets(userId, familyId, familyView, companyId, companyView);
     const totalBalance = wallets.reduce((acc, w) => acc + Number(w.balance), 0);
 
     return {

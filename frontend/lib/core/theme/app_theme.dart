@@ -29,6 +29,7 @@ class AppTheme {
   static const Color shopeeOrange = Color(0xFFEE4D2D); // Mode Keluarga: ShopeePay Sunset Orange
   static const Color familyPurple = Color(0xFFEE4D2D); // Primary family accent
   static const Color companyObsidian = Color(0xFF1C1C1E); // Mode Perusahaan: Obsidian Titanium Black
+  static const Color companyTeal = Color(0xFF0D9488); // Mode Perusahaan accent teal
   static const Color incomeGreen = Color(0xFF34C759);
   static const Color expenseRed = Color(0xFFFF3B30);
   static const Color warningOrange = Color(0xFFFF9500);

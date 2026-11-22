@@ -83,4 +83,55 @@ describe('Task 3: ProjectService (TDD)', () => {
       });
     }, /saldo dompet tidak mencukupi|insufficient/i);
   });
+
+  it('should support personal wallet funding for project expense and auto-tag as Talangan Pribadi', async () => {
+    const ceo = await AuthService.register('CEO', 'ceo4@biz.com', 'secret123');
+    const comp = await CompanyService.createCompany(ceo.user.id, 'Talangan Co');
+    const personalWallet = await WalletService.createWallet(ceo.user.id, 'BCA Pribadi CEO', 5000000, 'personal');
+
+    const proj = await ProjectService.createProject(comp.id, ceo.user.id, {
+      name: 'Expo Booth Project',
+      target_budget: 20000000
+    });
+
+    // Expense using personal wallet (talangan)
+    const result = await ProjectService.recordTransaction(ceo.user.id, comp.id, proj.id, {
+      wallet_id: personalWallet.id,
+      type: 'expense',
+      amount: 1500000,
+      notes: 'Beli banner & merchandise'
+    });
+
+    assert.strictEqual(result.funding_source, 'personal');
+    assert.ok(result.notes.includes('Talangan Pribadi'));
+
+    const projDetails = await ProjectService.getProjectById(comp.id, proj.id);
+    assert.strictEqual(Number(projDetails.current_expense), 1500000);
+    assert.ok(projDetails.transactions[0].notes.includes('Talangan Pribadi'));
+
+    // Personal wallet was deducted
+    const updatedPersonalWallet = await WalletService.getWalletById(personalWallet.id);
+    assert.strictEqual(Number(updatedPersonalWallet.balance), 3500000);
+  });
+
+  it('should reject wallet from unauthorized user or different company', async () => {
+    const ceo = await AuthService.register('CEO', 'ceo5@biz.com', 'secret123');
+    const comp = await CompanyService.createCompany(ceo.user.id, 'Comp A');
+    const stranger = await AuthService.register('Stranger', 'stranger@biz.com', 'secret123');
+    const strangerWallet = await WalletService.createWallet(stranger.user.id, 'Dompet Orang Lain', 5000000, 'personal');
+
+    const proj = await ProjectService.createProject(comp.id, ceo.user.id, {
+      name: 'Secret Project',
+      target_budget: 10000000
+    });
+
+    await assert.rejects(async () => {
+      await ProjectService.recordTransaction(ceo.user.id, comp.id, proj.id, {
+        wallet_id: strangerWallet.id,
+        type: 'expense',
+        amount: 500000,
+        notes: 'Trying to spend stranger money'
+      });
+    }, /akses ditolak|bukan milik/i);
+  });
 });

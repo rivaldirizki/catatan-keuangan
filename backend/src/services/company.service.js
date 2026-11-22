@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import { db } from '../config/database.js';
+import { WalletService } from './wallet.service.js';
 
 function generateInviteCode() {
   return crypto.randomBytes(4).toString('hex').toUpperCase(); // 8 characters
@@ -17,6 +18,9 @@ export const CompanyService = {
 
     // Link creator to company
     await db.query('UPDATE users SET company_id = ? WHERE id = ?', [companyId, userId]);
+
+    // Create default company wallet
+    await WalletService.createWallet(userId, 'Kas Operasional Perusahaan', 0, 'company', null, companyId);
 
     return {
       id: companyId,

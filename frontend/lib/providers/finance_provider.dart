@@ -397,6 +397,7 @@ class FinanceProvider extends ChangeNotifier {
     required String date,
     String notes = '',
     bool isFamily = false,
+    bool isCompany = false,
     int? categoryId,
   }) async {
     final idempotencyKey = OfflineSyncService.generateIdempotencyKey();
@@ -407,6 +408,8 @@ class FinanceProvider extends ChangeNotifier {
       'date': date,
       'notes': notes,
       'isFamily': isFamily,
+      'isCompany': isCompany,
+      'scope': isCompany ? 'company' : (isFamily ? 'family' : 'personal'),
       'idempotency_key': idempotencyKey,
     };
 
@@ -461,7 +464,7 @@ class FinanceProvider extends ChangeNotifier {
       amount: amount,
       transactionDate: date,
       notes: notes.isNotEmpty ? '$notes (Offline)' : '(Offline)',
-      scope: isFamily ? 'family' : 'personal',
+      scope: isCompany ? 'company' : (isFamily ? 'family' : 'personal'),
     );
     _transactions = [optTx, ..._transactions];
 
@@ -477,6 +480,7 @@ class FinanceProvider extends ChangeNotifier {
     required String date,
     String notes = '',
     bool isFamily = false,
+    bool isCompany = false,
     int? categoryId,
   }) async {
     final idempotencyKey = OfflineSyncService.generateIdempotencyKey();
@@ -487,6 +491,8 @@ class FinanceProvider extends ChangeNotifier {
       'date': date,
       'notes': notes,
       'isFamily': isFamily,
+      'isCompany': isCompany,
+      'scope': isCompany ? 'company' : (isFamily ? 'family' : 'personal'),
       'idempotency_key': idempotencyKey,
     };
 
@@ -541,7 +547,7 @@ class FinanceProvider extends ChangeNotifier {
       amount: amount,
       transactionDate: date,
       notes: notes.isNotEmpty ? '$notes (Offline)' : '(Offline)',
-      scope: isFamily ? 'family' : 'personal',
+      scope: isCompany ? 'company' : (isFamily ? 'family' : 'personal'),
     );
     _transactions = [optTx, ..._transactions];
 

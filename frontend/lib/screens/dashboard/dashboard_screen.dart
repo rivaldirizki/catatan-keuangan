@@ -98,6 +98,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final notesController = TextEditingController();
     String type = 'expense';
     bool isFamily = isFamilyPreselected || finance.isFamilyView;
+    bool isCompany = finance.isCompanyView;
+    String fundingSource = isCompany
+        ? (finance.wallets.any((w) => w.scope == 'company') ? 'company' : 'personal')
+        : (isFamily ? 'family' : 'personal');
     int? selectedWalletId = finance.wallets.isNotEmpty ? finance.wallets.first.id : null;
     int? selectedCategoryId = finance.expenseCategories.isNotEmpty
         ? finance.expenseCategories.first.id
@@ -114,7 +118,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
             if (selectedCategoryId != null && !currentCategories.any((c) => c.id == selectedCategoryId)) {
               selectedCategoryId = currentCategories.isNotEmpty ? currentCategories.first.id : null;
             }
-            final accentColor = isFamily ? const Color(0xFFEE4D2D) : const Color(0xFF118EEA);
+            final companyWallets = finance.wallets.where((w) => w.scope == 'company').toList();
+            final personalWallets = finance.wallets.where((w) => w.scope != 'company').toList();
+            final availableWallets = isCompany
+                ? (fundingSource == 'company'
+                    ? (companyWallets.isNotEmpty ? companyWallets : finance.wallets)
+                    : (personalWallets.isNotEmpty ? personalWallets : finance.wallets))
+                : finance.wallets;
+            if (availableWallets.isNotEmpty && !availableWallets.any((w) => w.id == selectedWalletId)) {
+              selectedWalletId = availableWallets.first.id;
+            }
+            final accentColor = isCompany
+                ? AppTheme.companyTeal
+                : (isFamily ? const Color(0xFFEE4D2D) : const Color(0xFF118EEA));
 
             return Container(
               decoration: const BoxDecoration(
@@ -149,14 +165,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         child: Row(
                           children: [
                             Icon(
-                              isFamily ? Icons.family_restroom_rounded : Icons.edit_note_rounded,
-                              color: isFamily ? AppTheme.familyPurple : AppTheme.iosBlue,
+                              isCompany
+                                  ? Icons.business_center_rounded
+                                  : (isFamily ? Icons.family_restroom_rounded : Icons.edit_note_rounded),
+                              color: isCompany
+                                  ? AppTheme.companyTeal
+                                  : (isFamily ? AppTheme.familyPurple : AppTheme.iosBlue),
                               size: 22,
                             ),
                             const SizedBox(width: 8),
                             Flexible(
                               child: Text(
-                                isFamily ? 'Catat Finansial Keluarga' : 'Catat Transaksi Pribadi',
+                                isCompany
+                                    ? 'Catat Finansial Perusahaan'
+                                    : (isFamily ? 'Catat Finansial Keluarga' : 'Catat Transaksi Pribadi'),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
@@ -298,19 +320,142 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   const SizedBox(height: 16),
 
+                  // Funding Source Switcher (for Company Mode)
+                  if (isCompany) ...[
+                    Container(
+                      padding: const EdgeInsets.all(2.5),
+                      margin: const EdgeInsets.only(bottom: 12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF2F2F7),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () {
+                                HapticFeedback.selectionClick();
+                                setModalState(() {
+                                  fundingSource = 'company';
+                                  if (companyWallets.isNotEmpty) {
+                                    selectedWalletId = companyWallets.first.id;
+                                  }
+                                });
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 7),
+                                decoration: BoxDecoration(
+                                  color: fundingSource == 'company' ? Colors.white : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(8),
+                                  boxShadow: fundingSource == 'company'
+                                      ? [
+                                          BoxShadow(
+                                            color: Colors.black.withValues(alpha: 0.08),
+                                            blurRadius: 3,
+                                            offset: const Offset(0, 1),
+                                          ),
+                                        ]
+                                      : null,
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.business_center_rounded,
+                                      size: 13,
+                                      color: fundingSource == 'company' ? AppTheme.companyTeal : AppTheme.textSecondary,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'Kas Perusahaan',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: fundingSource == 'company' ? FontWeight.w700 : FontWeight.w500,
+                                        color: fundingSource == 'company' ? AppTheme.companyTeal : AppTheme.textSecondary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () {
+                                HapticFeedback.selectionClick();
+                                setModalState(() {
+                                  fundingSource = 'personal';
+                                  if (personalWallets.isNotEmpty) {
+                                    selectedWalletId = personalWallets.first.id;
+                                  }
+                                });
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 7),
+                                decoration: BoxDecoration(
+                                  color: fundingSource == 'personal' ? Colors.white : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(8),
+                                  boxShadow: fundingSource == 'personal'
+                                      ? [
+                                          BoxShadow(
+                                            color: Colors.black.withValues(alpha: 0.08),
+                                            blurRadius: 3,
+                                            offset: const Offset(0, 1),
+                                          ),
+                                        ]
+                                      : null,
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.account_balance_wallet_rounded,
+                                      size: 13,
+                                      color: fundingSource == 'personal' ? AppTheme.iosBlue : AppTheme.textSecondary,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'Talangan Pribadi',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: fundingSource == 'personal' ? FontWeight.w700 : FontWeight.w500,
+                                        color: fundingSource == 'personal' ? AppTheme.iosBlue : AppTheme.textSecondary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+
                   // Wallet selector
                   DropdownButtonFormField<int>(
-                    initialValue: selectedWalletId,
+                    initialValue: availableWallets.any((w) => w.id == selectedWalletId)
+                        ? selectedWalletId
+                        : (availableWallets.isNotEmpty ? availableWallets.first.id : null),
                     decoration: InputDecoration(
-                      labelText: 'Pilih Dompet / Rekening',
+                      labelText: isCompany
+                          ? (fundingSource == 'company' ? 'Pilih Rekening Kas Perusahaan' : 'Pilih Dompet Talangan Pribadi')
+                          : 'Pilih Dompet / Rekening',
                       labelStyle: const TextStyle(fontSize: 13, color: AppTheme.textSecondary),
                       prefixIcon: const Icon(Icons.account_balance_wallet_outlined, size: 20),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
                       filled: true,
                       fillColor: const Color(0xFFF2F2F7),
                     ),
-                    items: finance.wallets.map((w) {
-                      return DropdownMenuItem(value: w.id, child: Text(w.name));
+                    items: availableWallets.map((w) {
+                      final isComp = w.scope == 'company';
+                      final label = isCompany
+                          ? '${isComp ? "🏢 [Kas Perusahaan]" : "👤 [Dompet Pribadi]"} ${w.name} (${_formatRupiah(w.balance)})'
+                          : '${w.name} (${_formatRupiah(w.balance)})';
+                      return DropdownMenuItem(
+                        value: w.id,
+                        child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+                      );
                     }).toList(),
                     onChanged: (val) => setModalState(() => selectedWalletId = val),
                   ),
@@ -443,6 +588,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           date: date,
                           notes: notesController.text,
                           isFamily: isFamily,
+                          isCompany: isCompany,
                           categoryId: selectedCategoryId,
                         );
                       } else {
@@ -452,6 +598,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           date: date,
                           notes: notesController.text,
                           isFamily: isFamily,
+                          isCompany: isCompany,
                           categoryId: selectedCategoryId,
                         );
                       }
@@ -5053,8 +5200,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
       return;
     }
 
+    final hasCompanyWallets = finance.wallets.any((w) => w.scope == 'company');
+    String fundingSource = hasCompanyWallets ? 'company' : 'personal';
     int selectedProjectId = preselectedProject?.id ?? finance.projects.first.id;
-    int selectedWalletId = finance.wallets.isNotEmpty ? finance.wallets.first.id : 1;
+    int? selectedWalletId = finance.wallets.isNotEmpty ? finance.wallets.first.id : null;
+    int? selectedCategoryId = finance.incomeCategories.isNotEmpty ? finance.incomeCategories.first.id : null;
     String selectedType = 'income'; // 'income' or 'expense'
     final amountCtrl = TextEditingController();
     final notesCtrl = TextEditingController();
@@ -5068,6 +5218,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setModalState) {
           final isIncome = selectedType == 'income';
+          final currentCategories = isIncome ? finance.incomeCategories : finance.expenseCategories;
+          if (selectedCategoryId != null && !currentCategories.any((c) => c.id == selectedCategoryId)) {
+            selectedCategoryId = currentCategories.isNotEmpty ? currentCategories.first.id : null;
+          }
+          final companyWallets = finance.wallets.where((w) => w.scope == 'company').toList();
+          final personalWallets = finance.wallets.where((w) => w.scope != 'company').toList();
+          final availableWallets = fundingSource == 'company'
+              ? (companyWallets.isNotEmpty ? companyWallets : finance.wallets)
+              : (personalWallets.isNotEmpty ? personalWallets : finance.wallets);
+          if (availableWallets.isNotEmpty && !availableWallets.any((w) => w.id == selectedWalletId)) {
+            selectedWalletId = availableWallets.first.id;
+          }
 
           return Container(
             decoration: const BoxDecoration(
@@ -5255,6 +5417,122 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 const SizedBox(height: 10),
 
+                // Funding Source Switcher: Kas Perusahaan vs Talangan Pribadi
+                const Text(
+                  'Sumber Dana Transaksi',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
+                ),
+                const SizedBox(height: 6),
+                Container(
+                  padding: const EdgeInsets.all(2.5),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF2F2F7),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppTheme.iosDivider, width: 0.8),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            HapticFeedback.selectionClick();
+                            setModalState(() {
+                              fundingSource = 'company';
+                              if (companyWallets.isNotEmpty) {
+                                selectedWalletId = companyWallets.first.id;
+                              }
+                            });
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 7),
+                            decoration: BoxDecoration(
+                              color: fundingSource == 'company' ? Colors.white : Colors.transparent,
+                              borderRadius: BorderRadius.circular(8),
+                              boxShadow: fundingSource == 'company'
+                                  ? [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(alpha: 0.08),
+                                        blurRadius: 3,
+                                        offset: const Offset(0, 1),
+                                      ),
+                                    ]
+                                  : null,
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.business_center_rounded,
+                                  size: 13,
+                                  color: fundingSource == 'company' ? AppTheme.companyTeal : AppTheme.textSecondary,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Kas Perusahaan',
+                                  style: TextStyle(
+                                    fontSize: 11.5,
+                                    fontWeight: fundingSource == 'company' ? FontWeight.w700 : FontWeight.w500,
+                                    color: fundingSource == 'company' ? AppTheme.companyTeal : AppTheme.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            HapticFeedback.selectionClick();
+                            setModalState(() {
+                              fundingSource = 'personal';
+                              if (personalWallets.isNotEmpty) {
+                                selectedWalletId = personalWallets.first.id;
+                              }
+                            });
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 7),
+                            decoration: BoxDecoration(
+                              color: fundingSource == 'personal' ? Colors.white : Colors.transparent,
+                              borderRadius: BorderRadius.circular(8),
+                              boxShadow: fundingSource == 'personal'
+                                  ? [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(alpha: 0.08),
+                                        blurRadius: 3,
+                                        offset: const Offset(0, 1),
+                                      ),
+                                    ]
+                                  : null,
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.account_balance_wallet_rounded,
+                                  size: 13,
+                                  color: fundingSource == 'personal' ? AppTheme.iosBlue : AppTheme.textSecondary,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Talangan Pribadi',
+                                  style: TextStyle(
+                                    fontSize: 11.5,
+                                    fontWeight: fundingSource == 'personal' ? FontWeight.w700 : FontWeight.w500,
+                                    color: fundingSource == 'personal' ? AppTheme.iosBlue : AppTheme.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 10),
+
                 // Dropdown Pilih Dompet Rekening
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -5265,17 +5543,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton<int>(
-                      value: selectedWalletId,
+                      value: availableWallets.any((w) => w.id == selectedWalletId)
+                          ? selectedWalletId
+                          : (availableWallets.isNotEmpty ? availableWallets.first.id : null),
                       isExpanded: true,
                       icon: const Icon(Icons.arrow_drop_down_rounded, color: AppTheme.textSecondary),
-                      items: finance.wallets.map((w) {
+                      items: availableWallets.map((w) {
+                        final isComp = w.scope == 'company';
                         return DropdownMenuItem<int>(
                           value: w.id,
                           child: Text(
-                            'Rekening: ${w.name} (${_formatRupiah(w.balance)})',
+                            '${isComp ? "🏢 [Kas Perusahaan]" : "👤 [Dompet Pribadi]"} ${w.name} (${_formatRupiah(w.balance)})',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontSize: 13, color: AppTheme.textPrimary),
+                            style: const TextStyle(fontSize: 12.5, color: AppTheme.textPrimary),
                           ),
                         );
                       }).toList(),
@@ -5288,6 +5569,83 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ),
                 const SizedBox(height: 10),
+
+                // Category Selector (Kategori Analisa)
+                if (currentCategories.isNotEmpty) ...[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Kategori Analisa',
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
+                      ),
+                      if (selectedCategoryId != null)
+                        Text(
+                          currentCategories.firstWhere((c) => c.id == selectedCategoryId, orElse: () => currentCategories.first).name,
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w700,
+                            color: isIncome ? AppTheme.incomeGreen : AppTheme.expenseRed,
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  SizedBox(
+                    height: 38,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: currentCategories.length,
+                      separatorBuilder: (_, __) => const SizedBox(width: 8),
+                      itemBuilder: (ctx, idx) {
+                        final cat = currentCategories[idx];
+                        final isSelected = cat.id == selectedCategoryId;
+                        return GestureDetector(
+                          onTap: () {
+                            HapticFeedback.selectionClick();
+                            setModalState(() => selectedCategoryId = cat.id);
+                          },
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 180),
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? (isIncome ? AppTheme.incomeGreen : AppTheme.expenseRed)
+                                  : const Color(0xFFF2F2F7),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: isSelected
+                                    ? (isIncome ? AppTheme.incomeGreen : AppTheme.expenseRed)
+                                    : Colors.transparent,
+                                width: 1.2,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  cat.iconData,
+                                  size: 13,
+                                  color: isSelected ? Colors.white : cat.colorValue,
+                                ),
+                                const SizedBox(width: 5),
+                                Text(
+                                  cat.name,
+                                  style: TextStyle(
+                                    fontSize: 11.5,
+                                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                                    color: isSelected ? Colors.white : AppTheme.textPrimary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                ],
 
                 // Input Nominal
                 Container(
@@ -5341,8 +5699,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ? null
                       : () async {
                           final amount = int.tryParse(amountCtrl.text.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
-                          if (amount <= 0) {
-                            setModalState(() => errorText = 'Nominal harus lebih dari 0');
+                          if (amount <= 0 || selectedWalletId == null) {
+                            setModalState(() => errorText = 'Nominal dan rekening harus diisi dengan benar');
                             return;
                           }
 
@@ -5354,7 +5712,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           final messenger = ScaffoldMessenger.of(context);
                           final success = await finance.recordProjectTransaction(
                             projectId: selectedProjectId,
-                            walletId: selectedWalletId,
+                            walletId: selectedWalletId!,
+                            categoryId: selectedCategoryId,
                             type: selectedType,
                             amount: amount,
                             notes: notesCtrl.text.trim().isNotEmpty ? notesCtrl.text.trim() : null,

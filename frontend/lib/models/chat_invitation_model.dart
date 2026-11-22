@@ -6,6 +6,9 @@ class ChatInvitationModel {
   final String inviterEmail;
   final String createdAt;
 
+  String get senderName => inviterName;
+  String get senderEmail => inviterEmail;
+
   const ChatInvitationModel({
     required this.id,
     required this.roomId,

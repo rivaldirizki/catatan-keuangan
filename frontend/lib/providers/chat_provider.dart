@@ -8,6 +8,7 @@ import '../../core/network/api_client.dart';
 import '../../core/constants/api_constants.dart';
 import '../../services/offline_sync_service.dart';
 import '../../services/local_storage_service.dart';
+import '../../services/notification_service.dart';
 
 class ChatProvider with ChangeNotifier {
   final ApiClient apiClient;
@@ -18,6 +19,13 @@ class ChatProvider with ChangeNotifier {
   bool _isLoading = false;
   bool _isSending = false;
   String? _errorMessage;
+
+  // Real-time Heartbeat & Background notifications state
+  bool isAppInBackground = false;
+  int? _currentUserId;
+  final Set<int> _notifiedMessageIds = {};
+  final Set<int> _notifiedInvitationIds = {};
+  Timer? _heartbeatTimer;
 
   // Active room state
   int? _activeRoomId;
@@ -168,6 +176,77 @@ class ChatProvider with ChangeNotifier {
     }
   }
 
+  void startHeartbeat(int currentUserId) {
+    _currentUserId = currentUserId;
+    _heartbeatTimer?.cancel();
+    _heartbeatTimer = Timer.periodic(const Duration(milliseconds: 1500), (_) async {
+      await _heartbeatTick();
+    });
+  }
+
+  void stopHeartbeat() {
+    _heartbeatTimer?.cancel();
+    _heartbeatTimer = null;
+  }
+
+  Future<void> _heartbeatTick() async {
+    if (_currentUserId == null) return;
+
+    try {
+      // 1. If inside an active room, fetch room messages
+      if (_activeRoomId != null) {
+        await fetchRoomMessages(_activeRoomId!, isPoll: true);
+      }
+
+      // 2. Fetch rooms in background (silent poll)
+      final res = await apiClient.get(ApiConstants.chatRooms);
+      if (res is List) {
+        final newRooms = res
+            .map((e) => ChatRoomModel.fromJson(Map<String, dynamic>.from(e as Map)))
+            .toList();
+
+        for (final r in newRooms) {
+          if (r.id != _activeRoomId && r.unreadCount > 0) {
+            final oldMatch = _rooms.where((o) => o.id == r.id).toList();
+            final oldUnread = oldMatch.isNotEmpty ? oldMatch.first.unreadCount : 0;
+            final notifyKey = r.id * 100000 + r.unreadCount;
+            if (r.unreadCount > oldUnread && !_notifiedMessageIds.contains(notifyKey)) {
+              _notifiedMessageIds.add(notifyKey);
+              NotificationService.showNotification(
+                id: r.id,
+                title: r.name,
+                body: r.lastMessage ?? 'Pesan baru masuk',
+              );
+            }
+          }
+        }
+        _rooms = newRooms;
+      }
+
+      // 3. Fetch invitations in background (silent poll)
+      final invRes = await apiClient.get(ApiConstants.chatInvitations);
+      if (invRes is List) {
+        final newInvs = invRes
+            .map((e) => ChatInvitationModel.fromJson(Map<String, dynamic>.from(e as Map)))
+            .toList();
+
+        for (final inv in newInvs) {
+          if (!_notifiedInvitationIds.contains(inv.id)) {
+            _notifiedInvitationIds.add(inv.id);
+            NotificationService.showNotification(
+              id: inv.id + 900000,
+              title: 'Undangan Obrolan Baru',
+              body: '${inv.inviterName} (${inv.inviterEmail}) mengundang Anda mengobrol.',
+            );
+          }
+        }
+        _pendingInvitations = newInvs;
+      }
+
+      notifyListeners();
+    } catch (_) {}
+  }
+
   void openRoom(int roomId) {
     _activeRoomId = roomId;
     _activeRoomMessages = [];
@@ -179,11 +258,12 @@ class ChatProvider with ChangeNotifier {
     });
 
     _pollingTimer?.cancel();
-    _pollingTimer = Timer.periodic(const Duration(seconds: 3), (_) {
+    _pollingTimer = Timer.periodic(const Duration(milliseconds: 1500), (_) {
       if (_activeRoomId == roomId) {
         fetchRoomMessages(roomId, isPoll: true);
       } else {
         _pollingTimer?.cancel();
+        _pollingTimer = null;
       }
     });
   }
@@ -204,13 +284,34 @@ class ChatProvider with ChangeNotifier {
             .map((e) => ChatMessageModel.fromJson(Map<String, dynamic>.from(e as Map)))
             .toList();
 
-        // Update messages if list changed or poll
+        // Check for new incoming messages from other users
+        if (_activeRoomMessages.isNotEmpty && messages.isNotEmpty) {
+          final lastKnownId = _activeRoomMessages.last.id;
+          final newIncoming = messages.where((m) => m.id > lastKnownId && m.userId != _currentUserId).toList();
+          for (final msg in newIncoming) {
+            if (!_notifiedMessageIds.contains(msg.id)) {
+              _notifiedMessageIds.add(msg.id);
+              if (isAppInBackground) {
+                NotificationService.showNotification(
+                  id: msg.id,
+                  title: msg.senderName,
+                  body: msg.messageType == 'image'
+                      ? '📷 Foto'
+                      : (msg.messageType == 'video'
+                          ? '🎥 Video'
+                          : (msg.messageType == 'file' ? '📎 Dokumen' : msg.message)),
+                );
+              }
+            }
+          }
+        }
+
         _activeRoomMessages = messages;
         _isLoading = false;
         notifyListeners();
 
-        // If active room has incoming messages, mark read
-        if (!isPoll && messages.isNotEmpty) {
+        // ALWAYS mark room as read when messages exist so receipts update in real-time!
+        if (messages.isNotEmpty) {
           markRoomAsRead(roomId, messages.last.id);
         }
       }

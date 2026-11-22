@@ -31,6 +31,9 @@ class _ChatListScreenState extends State<ChatListScreen> with SingleTickerProvid
       if (auth.currentUser?.chatInviteCode != null) {
         chat.fetchMyChatCode(auth.currentUser!.chatInviteCode);
       }
+      if (auth.currentUser != null) {
+        chat.startHeartbeat(auth.currentUser!.id);
+      }
       chat.refreshAll();
     });
   }

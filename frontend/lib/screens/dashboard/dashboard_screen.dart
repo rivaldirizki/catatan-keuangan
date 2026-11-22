@@ -25,7 +25,7 @@ class DashboardScreen extends StatefulWidget {
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
+class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingObserver {
   int _currentTab = 0;
   bool _isBalanceVisible = true;
   int? _selectedMemberFilterId; // null = semua anggota
@@ -47,14 +47,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final auth = context.read<AuthProvider>();
       final finance = context.read<FinanceProvider>();
+      final chat = context.read<ChatProvider>();
       if (auth.currentUser != null) {
         finance.setCurrentUserId(auth.currentUser!.id.toString());
+        chat.startHeartbeat(auth.currentUser!.id);
       }
       finance.fetchDashboard();
-      context.read<ChatProvider>().refreshAll();
+      chat.refreshAll();
       if (auth.currentUser?.companyId != null) {
         auth.getCurrentCompany();
       }
@@ -62,7 +65,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (!mounted) return;
+    final chat = context.read<ChatProvider>();
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.hidden) {
+      chat.isAppInBackground = true;
+    } else if (state == AppLifecycleState.resumed) {
+      chat.isAppInBackground = false;
+      chat.refreshAll();
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _onboardingNameController.dispose();
     _onboardingCodeController.dispose();
     _onboardingCompanyNameController.dispose();

@@ -39,6 +39,7 @@ class NotificationService {
             enableVibration: true,
           ),
         );
+        await androidPlugin.requestNotificationsPermission();
       }
     }
   }

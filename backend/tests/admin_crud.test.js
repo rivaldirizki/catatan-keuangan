@@ -60,6 +60,10 @@ describe('Admin CRUD API Test Suite', () => {
   before(async () => {
     if (db.mock) db.mock.reset();
 
+    try {
+      await db.query('DELETE FROM users WHERE email IN (?, ?, ?)', ['admin.master@finance.com', 'staff@finance.com', 'budi.crud@example.com']);
+    } catch (_) {}
+
     // Register admin user
     const adminUser = await AuthService.register('Super Admin', 'admin.master@finance.com', 'adminPass123', 'admin');
     adminToken = adminUser.token;

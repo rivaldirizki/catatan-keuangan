@@ -26,7 +26,12 @@ class _ChatListScreenState extends State<ChatListScreen> with SingleTickerProvid
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ChatProvider>().refreshAll();
+      final auth = context.read<AuthProvider>();
+      final chat = context.read<ChatProvider>();
+      if (auth.currentUser?.chatInviteCode != null) {
+        chat.fetchMyChatCode(auth.currentUser!.chatInviteCode);
+      }
+      chat.refreshAll();
     });
   }
 
@@ -37,6 +42,15 @@ class _ChatListScreenState extends State<ChatListScreen> with SingleTickerProvid
   }
 
   void _copyCode(String code) {
+    if (code.isEmpty || code == '...' || code == 'Memuat...') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Kode chat sedang dimuat, silakan tunggu sebentar...'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
     Clipboard.setData(ClipboardData(text: code));
     HapticFeedback.lightImpact();
     ScaffoldMessenger.of(context).showSnackBar(
@@ -267,7 +281,7 @@ class _ChatListScreenState extends State<ChatListScreen> with SingleTickerProvid
   Widget build(BuildContext context) {
     final chat = context.watch<ChatProvider>();
     final auth = context.watch<AuthProvider>();
-    final myCode = chat.myChatCode ?? '...';
+    final myCode = chat.myChatCode ?? auth.currentUser?.chatInviteCode ?? 'Memuat...';
 
     final directRooms = chat.directRooms;
     final familyRoom = chat.familyRoom;

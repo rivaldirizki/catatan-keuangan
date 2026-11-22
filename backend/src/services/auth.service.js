@@ -48,6 +48,10 @@ export function verifyToken(token) {
   }
 }
 
+export function generateChatCode() {
+  return 'CHAT-' + crypto.randomBytes(4).toString('hex').toUpperCase();
+}
+
 export const AuthService = {
   async register(name, email, password, role = 'user') {
     const existing = await db.query('SELECT id FROM users WHERE email = ?', [email.toLowerCase().trim()]);
@@ -56,9 +60,10 @@ export const AuthService = {
     }
 
     const passwordHash = hashPassword(password);
+    const chatInviteCode = generateChatCode();
     const insertRes = await db.query(
-      'INSERT INTO users (name, email, password_hash, role, family_id) VALUES (?, ?, ?, ?, ?)',
-      [name.trim(), email.toLowerCase().trim(), passwordHash, role, null]
+      'INSERT INTO users (name, email, password_hash, role, family_id, chat_invite_code) VALUES (?, ?, ?, ?, ?, ?)',
+      [name.trim(), email.toLowerCase().trim(), passwordHash, role, null, chatInviteCode]
     );
 
     const user = {
@@ -67,7 +72,8 @@ export const AuthService = {
       email: email.toLowerCase().trim(),
       role,
       family_id: null,
-      company_id: null
+      company_id: null,
+      chat_invite_code: chatInviteCode
     };
 
     // Auto-create default wallet (Kas Tunai) for new user
@@ -92,13 +98,20 @@ export const AuthService = {
       throw new Error('Invalid email or password');
     }
 
+    let chatInviteCode = user.chat_invite_code;
+    if (!chatInviteCode) {
+      chatInviteCode = generateChatCode();
+      await db.query('UPDATE users SET chat_invite_code = ? WHERE id = ?', [chatInviteCode, user.id]);
+    }
+
     const userSafe = {
       id: user.id,
       name: user.name,
       email: user.email,
       role: user.role,
       family_id: user.family_id,
-      company_id: user.company_id
+      company_id: user.company_id,
+      chat_invite_code: chatInviteCode
     };
 
     const token = generateToken({ id: user.id, email: user.email, role: user.role, family_id: user.family_id, company_id: user.company_id });
@@ -106,7 +119,13 @@ export const AuthService = {
   },
 
   async getUserById(id) {
-    const users = await db.query('SELECT id, name, email, role, family_id, company_id, created_at FROM users WHERE id = ?', [id]);
-    return users && users.length > 0 ? users[0] : null;
+    const users = await db.query('SELECT id, name, email, role, family_id, company_id, chat_invite_code, created_at FROM users WHERE id = ?', [id]);
+    if (!users || users.length === 0) return null;
+    const user = users[0];
+    if (!user.chat_invite_code) {
+      user.chat_invite_code = generateChatCode();
+      await db.query('UPDATE users SET chat_invite_code = ? WHERE id = ?', [user.chat_invite_code, user.id]);
+    }
+    return user;
   }
 };

@@ -1,4 +1,5 @@
 import mysql from 'mysql2/promise';
+import crypto from 'node:crypto';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -42,6 +43,17 @@ export async function getPool() {
         await initConn.query(`ALTER TABLE debts ADD COLUMN IF NOT EXISTS company_id INT NULL AFTER family_id;`);
         await initConn.query(`ALTER TABLE debts ADD COLUMN IF NOT EXISTS installments_count INT NOT NULL DEFAULT 1 AFTER remaining_amount;`);
         await initConn.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS chat_invite_code VARCHAR(20) NULL;`);
+        try {
+          const [nullUsers] = await initConn.query('SELECT id FROM users WHERE chat_invite_code IS NULL OR chat_invite_code = ""');
+          if (Array.isArray(nullUsers)) {
+            for (const u of nullUsers) {
+              if (u && u.id) {
+                const randomCode = 'CHAT-' + crypto.randomBytes(4).toString('hex').toUpperCase();
+                await initConn.query('UPDATE users SET chat_invite_code = ? WHERE id = ?', [randomCode, u.id]);
+              }
+            }
+          }
+        } catch (_) {}
         try {
           await initConn.query(`ALTER TABLE debts MODIFY COLUMN scope ENUM('personal', 'family', 'company') DEFAULT 'personal';`);
         } catch (_) {}

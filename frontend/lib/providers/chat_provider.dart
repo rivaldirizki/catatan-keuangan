@@ -69,7 +69,11 @@ class ChatProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> fetchMyChatCode() async {
+  Future<void> fetchMyChatCode([String? fallbackCode]) async {
+    if (fallbackCode != null && fallbackCode.isNotEmpty && _myChatCode == null) {
+      _myChatCode = fallbackCode;
+      notifyListeners();
+    }
     try {
       final res = await apiClient.get(ApiConstants.chatMyCode);
       if (res is Map && res['chat_invite_code'] != null) {

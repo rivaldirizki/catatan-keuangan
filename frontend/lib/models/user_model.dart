@@ -5,6 +5,7 @@ class UserModel {
   final String role;
   final int? familyId;
   final int? companyId;
+  final String? chatInviteCode;
 
   const UserModel({
     required this.id,
@@ -13,6 +14,7 @@ class UserModel {
     required this.role,
     this.familyId,
     this.companyId,
+    this.chatInviteCode,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -23,6 +25,7 @@ class UserModel {
       role: (json['role'] as String?) ?? 'user',
       familyId: json['family_id'] != null ? json['family_id'] as int : null,
       companyId: json['company_id'] != null ? json['company_id'] as int : null,
+      chatInviteCode: json['chat_invite_code'] as String?,
     );
   }
 
@@ -34,6 +37,7 @@ class UserModel {
       'role': role,
       'family_id': familyId,
       'company_id': companyId,
+      'chat_invite_code': chatInviteCode,
     };
   }
 }

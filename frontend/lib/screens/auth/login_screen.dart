@@ -273,7 +273,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   // Bottom Small Brand Attribution
                   Text(
-                    'Sistem by Linc 2026',
+                    'Sistem by Rivaldi Rizki Alvian',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 11.5,

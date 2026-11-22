@@ -50,7 +50,7 @@ app.get('/', (req, res) => {
       <a href="/admin" class="btn">Buka Admin Console</a>
       <a href="/health" class="btn" style="background: #F1F5F9; color: #334155;">Cek Health API</a>
     </div>
-    <div class="footer">Sistem by Linc 2026</div>
+    <div class="footer">Sistem by Rivaldi Rizki Alvian</div>
   </div>
 </body>
 </html>`);

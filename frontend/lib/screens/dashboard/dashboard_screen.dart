@@ -1406,7 +1406,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                   const SizedBox(height: 12),
                   const Text(
-                    'Sistem by Linc 2026',
+                    'Sistem by Rivaldi Rizki Alvian',
                     style: TextStyle(fontSize: 11, color: AppTheme.textSecondary, fontWeight: FontWeight.w500),
                   ),
                 ],
@@ -1822,7 +1822,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             const SizedBox(height: 6),
             Text(
-              'Sistem by Linc 2026',
+              'Sistem by Rivaldi Rizki Alvian',
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w500,

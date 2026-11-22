@@ -5,6 +5,7 @@ import '../core/network/api_client.dart';
 import '../core/constants/api_constants.dart';
 import '../models/user_model.dart';
 import '../models/company_model.dart';
+import '../services/fcm_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   final ApiClient apiClient;
@@ -242,6 +243,10 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> logout() async {
+    try {
+      await FcmService.unregisterToken(apiClient);
+    } catch (_) {}
+
     _currentUser = null;
     _currentCompany = null;
     _companyMembers = [];

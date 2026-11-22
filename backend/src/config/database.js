@@ -94,6 +94,18 @@ export async function getPool() {
         try {
           await initConn.query(`ALTER TABLE chat_messages MODIFY COLUMN message_type ENUM('text', 'system', 'financial_share', 'image', 'video', 'file') DEFAULT 'text';`);
         } catch (_) {}
+        await initConn.query(`
+          CREATE TABLE IF NOT EXISTS user_device_tokens (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NOT NULL,
+            fcm_token VARCHAR(500) NOT NULL,
+            platform VARCHAR(20) DEFAULT 'android',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            UNIQUE KEY unique_fcm_token (fcm_token),
+            INDEX idx_user_tokens (user_id)
+          );
+        `);
       } catch (_) {}
       await initConn.end();
 
@@ -125,7 +137,8 @@ class MockDatabase {
       debts: [],
       chat_rooms: [],
       chat_members: [],
-      chat_messages: []
+      chat_messages: [],
+      user_device_tokens: []
     };
     this.autoIncrement = {
       users: 1,
@@ -139,7 +152,8 @@ class MockDatabase {
       debts: 1,
       chat_rooms: 1,
       chat_members: 1,
-      chat_messages: 1
+      chat_messages: 1,
+      user_device_tokens: 1
     };
     this.seedDefaultCategories();
   }
@@ -200,6 +214,13 @@ class MockDatabase {
       columns.forEach((col, idx) => {
         row[col] = params[idx] !== undefined ? params[idx] : null;
       });
+      if (table === 'user_device_tokens') {
+        const existingIdx = this.tables[table].findIndex(r => r.fcm_token === row.fcm_token);
+        if (existingIdx !== -1) {
+          this.tables[table][existingIdx] = { ...this.tables[table][existingIdx], ...row, id: this.tables[table][existingIdx].id };
+          return { insertId: this.tables[table][existingIdx].id, affectedRows: 1 };
+        }
+      }
       this.tables[table].push(row);
       return { insertId: id, affectedRows: 1 };
     }

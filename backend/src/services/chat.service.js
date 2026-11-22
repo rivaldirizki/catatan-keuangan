@@ -2,6 +2,7 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { db } from '../config/database.js';
+import { fcmService } from './fcm.service.js';
 
 function generateChatCode() {
   return 'CHAT-' + crypto.randomBytes(4).toString('hex').toUpperCase();
@@ -153,6 +154,29 @@ export const ChatService = {
       'INSERT INTO chat_members (room_id, user_id, role, status) VALUES (?, ?, ?, ?)',
       [roomId, targetUser.id, 'member', 'pending']
     );
+
+    // Trigger FCM Push Notification to invited user asynchronously
+    (async () => {
+      try {
+        const tokens = await fcmService.getUserTokens([targetUser.id]);
+        if (tokens.length > 0) {
+          const senderUsers = await db.query('SELECT name FROM users WHERE id = ?', [senderUserId]);
+          const senderName = senderUsers && senderUsers.length > 0 ? senderUsers[0].name : 'Seseorang';
+          await fcmService.sendMulticastNotification({
+            tokens,
+            title: 'Undangan Obrolan Baru',
+            body: `${senderName} mengundang Anda untuk mengobrol di Dompet Linc.`,
+            data: {
+              type: 'chat_invitation',
+              inviter_id: senderUserId.toString(),
+              inviter_name: senderName,
+            }
+          });
+        }
+      } catch (fcmErr) {
+        console.warn('[FCM] Push send error in sendDirectInvite:', fcmErr.message);
+      }
+    })();
 
     return {
       room_id: roomId,
@@ -383,6 +407,42 @@ export const ChatService = {
 
     const users = await db.query('SELECT id, name FROM users WHERE id = ?', [userId]);
     const senderName = users && users.length > 0 ? users[0].name : 'Pengguna';
+
+    // Trigger FCM Push Notification to other room members asynchronously
+    (async () => {
+      try {
+        const otherMembers = await db.query(
+          'SELECT user_id FROM chat_members WHERE room_id = ? AND user_id != ? AND status = "accepted"',
+          [roomId, userId]
+        );
+        if (otherMembers && otherMembers.length > 0) {
+          const recipientIds = otherMembers.map(m => m.user_id);
+          const tokens = await fcmService.getUserTokens(recipientIds);
+          if (tokens.length > 0) {
+            let notificationBody = cleanMsg;
+            if (messageType === 'image') notificationBody = '📷 Mengirim foto';
+            else if (messageType === 'video') notificationBody = '🎥 Mengirim video';
+            else if (messageType === 'file') notificationBody = '📎 Mengirim dokumen';
+
+            await fcmService.sendMulticastNotification({
+              tokens,
+              title: room.type === 'direct' ? senderName : `${room.name || 'Grup'} - ${senderName}`,
+              body: notificationBody,
+              data: {
+                type: 'chat_message',
+                room_id: roomId.toString(),
+                message_id: messageId.toString(),
+                sender_id: userId.toString(),
+                sender_name: senderName,
+                message_type: messageType,
+              }
+            });
+          }
+        }
+      } catch (fcmErr) {
+        console.warn('[FCM] Push send error in sendMessage:', fcmErr.message);
+      }
+    })();
 
     return {
       id: messageId,

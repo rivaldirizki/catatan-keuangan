@@ -1,4 +1,4 @@
-﻿node_modules/
+node_modules/
 .env
 database/finance.sqlite
 .superpowers/
@@ -6,3 +6,4 @@ database/finance.sqlite
 build/
 .flutter-plugins
 .flutter-plugins-dependencies
+backend/config/firebase-service-account.json

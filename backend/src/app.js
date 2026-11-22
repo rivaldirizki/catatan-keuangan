@@ -13,6 +13,7 @@ import { TransactionService } from './services/transaction.service.js';
 import { SavingService } from './services/saving.service.js';
 import { DebtService } from './services/debt.service.js';
 import { ChatService } from './services/chat.service.js';
+import { fcmService } from './services/fcm.service.js';
 import { authenticateJWT, requireAdmin } from './middleware/auth.middleware.js';
 import { rateLimiter } from './middleware/rate_limit.middleware.js';
 import { AdminController } from './controllers/admin.controller.js';
@@ -660,6 +661,33 @@ app.delete('/api/v1/chat/messages/:id', authenticateJWT, async (req, res) => {
   } catch (err) {
     const statusCode = err.status || 400;
     res.status(statusCode).json({ error: err.message });
+  }
+});
+
+// ======================= FCM DEVICE TOKEN ROUTES =======================
+app.post('/api/v1/users/device-token', authenticateJWT, async (req, res) => {
+  try {
+    const { fcm_token, platform } = req.body;
+    if (!fcm_token) {
+      return res.status(400).json({ error: 'fcm_token is required' });
+    }
+    await fcmService.registerDeviceToken(req.user.id, fcm_token, platform || 'android');
+    res.json({ success: true, message: 'Token perangkat FCM berhasil didaftarkan.' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/v1/users/device-token', authenticateJWT, async (req, res) => {
+  try {
+    const { fcm_token } = req.body;
+    if (!fcm_token) {
+      return res.status(400).json({ error: 'fcm_token is required' });
+    }
+    await fcmService.unregisterDeviceToken(fcm_token);
+    res.json({ success: true, message: 'Token perangkat FCM berhasil dihapus.' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 

@@ -50,6 +50,7 @@ class ApiConstants {
   static String debtPay(int id) => '/debts/$id/pay';
 
   // Chat
+  static const String userDeviceToken = '/users/device-token';
   static const String chatMyCode = '/chat/my-code';
   static const String chatRooms = '/chat/rooms';
   static const String chatInvitations = '/chat/invitations';

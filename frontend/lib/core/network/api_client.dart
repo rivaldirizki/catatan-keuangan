@@ -64,9 +64,13 @@ class ApiClient {
     return _handleResponse(response);
   }
 
-  Future<dynamic> delete(String endpoint) async {
+  Future<dynamic> delete(String endpoint, {Map<String, dynamic>? body}) async {
     final uri = Uri.parse('$baseUrl$endpoint');
-    final response = await http.delete(uri, headers: _headers()).timeout(
+    final response = await http.delete(
+      uri,
+      headers: _headers(),
+      body: body != null ? jsonEncode(body) : null,
+    ).timeout(
       timeoutDuration,
       onTimeout: () => throw Exception('Koneksi internet lambat atau batas waktu habis (15 detik).'),
     );

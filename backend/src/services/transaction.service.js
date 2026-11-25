@@ -38,10 +38,18 @@ export const TransactionService = {
     }
 
     return await db.transaction(async (trx) => {
+      let validCategoryId = null;
+      if (categoryId) {
+        const catRows = await trx.query('SELECT id FROM categories WHERE id = ?', [Number(categoryId)]);
+        if (catRows && catRows.length > 0) {
+          validCategoryId = Number(categoryId);
+        }
+      }
+
       const scope = isCompany ? 'company' : (isFamily ? 'family' : 'personal');
       const insertRes = await trx.query(
         'INSERT INTO transactions (user_id, family_id, company_id, wallet_id, category_id, type, amount, transaction_date, notes, destination_wallet_id, destination_saving_id, debt_id, scope, idempotency_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [userId, isFamily ? familyId : null, isCompany ? companyId : null, walletId, categoryId, 'income', numAmount, date, notes, null, null, null, scope, idempotencyKey]
+        [userId, isFamily ? familyId : null, isCompany ? companyId : null, walletId, validCategoryId, 'income', numAmount, date, notes, null, null, null, scope, idempotencyKey]
       );
 
       const newBalance = Number(wallet.balance) + numAmount;
@@ -106,9 +114,17 @@ export const TransactionService = {
         finalNotes = finalNotes ? `${finalNotes} (Talangan Pribadi)` : 'Talangan Pribadi';
       }
 
+      let validCategoryId = null;
+      if (categoryId) {
+        const catRows = await trx.query('SELECT id FROM categories WHERE id = ?', [Number(categoryId)]);
+        if (catRows && catRows.length > 0) {
+          validCategoryId = Number(categoryId);
+        }
+      }
+
       const insertRes = await trx.query(
         'INSERT INTO transactions (user_id, family_id, company_id, wallet_id, category_id, type, amount, transaction_date, notes, destination_wallet_id, destination_saving_id, debt_id, scope, idempotency_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [userId, isFamily ? familyId : null, isCompany ? companyId : null, walletId, categoryId, 'expense', numAmount, date, finalNotes, null, null, null, scope, idempotencyKey]
+        [userId, isFamily ? familyId : null, isCompany ? companyId : null, walletId, validCategoryId, 'expense', numAmount, date, finalNotes, null, null, null, scope, idempotencyKey]
       );
 
       const newBalance = Number(wallet.balance) - numAmount;

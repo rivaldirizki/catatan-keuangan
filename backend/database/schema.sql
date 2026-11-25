@@ -219,15 +219,17 @@ ON DUPLICATE KEY UPDATE name = VALUES(name);
 
 -- Seed Default Categories
 INSERT INTO categories (id, user_id, name, type, color, icon) VALUES
-(1, NULL, 'Gaji', 'income', '#10B981', 'briefcase'),
-(2, NULL, 'Investasi & Usaha', 'income', '#059669', 'trending-up'),
-(3, NULL, 'Bonus & Hadiah', 'income', '#3B82F6', 'gift'),
-(4, NULL, 'Makanan & Minuman', 'expense', '#EF4444', 'utensils'),
-(5, NULL, 'Transportasi', 'expense', '#F59E0B', 'car'),
-(6, NULL, 'Tagihan & Utilitas', 'expense', '#6366F1', 'receipt'),
-(7, NULL, 'Belanja Kebutuhan', 'expense', '#EC4899', 'shopping-bag'),
-(8, NULL, 'Kesehatan', 'expense', '#14B8A6', 'heart-pulse'),
-(9, NULL, 'Pendidikan', 'expense', '#8B5CF6', 'graduation-cap'),
-(10, NULL, 'Hiburan', 'expense', '#F97316', 'gamepad-2'),
-(11, NULL, 'Lain-lain', 'expense', '#64748B', 'tag')
+(1, NULL, 'Makanan & Minuman', 'expense', '#EF4444', 'utensils'),
+(2, NULL, 'Transportasi', 'expense', '#F97316', 'car'),
+(3, NULL, 'Tagihan & Utilitas', 'expense', '#EAB308', 'receipt'),
+(4, NULL, 'Belanja & Kebutuhan', 'expense', '#EC4899', 'shopping-bag'),
+(5, NULL, 'Kesehatan & Medis', 'expense', '#14B8A6', 'heart-pulse'),
+(6, NULL, 'Pendidikan', 'expense', '#3B82F6', 'graduation-cap'),
+(7, NULL, 'Hiburan & Gaya Hidup', 'expense', '#8B5CF6', 'gamepad-2'),
+(8, NULL, 'Lain-lain', 'expense', '#6B7280', 'tag'),
+(9, NULL, 'Gaji Pokok', 'income', '#10B981', 'briefcase'),
+(10, NULL, 'Investasi & Dividen', 'income', '#06B6D4', 'trending-up'),
+(11, NULL, 'Bonus & THR', 'income', '#F59E0B', 'gift'),
+(12, NULL, 'Pendapatan Usaha', 'income', '#6366F1', 'store'),
+(13, NULL, 'Lain-lain', 'income', '#6B7280', 'tag')
 ON DUPLICATE KEY UPDATE name = VALUES(name), type = VALUES(type), color = VALUES(color), icon = VALUES(icon);

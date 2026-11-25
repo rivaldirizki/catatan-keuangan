@@ -752,10 +752,22 @@ export const AdminController = {
         }
       }
 
-      const catId = category_id ? Number(category_id) : null;
+      let catId = null;
+      if (category_id) {
+        const catRows = await db.query('SELECT id FROM categories WHERE id = ?', [Number(category_id)]);
+        if (catRows && catRows.length > 0) {
+          catId = Number(category_id);
+        }
+      }
       const famId = family_id ? Number(family_id) : null;
-      const compId = company_id ? Number(company_id) : null;
-      const targetScope = ['personal', 'family', 'company'].includes(scope) ? scope : 'personal';
+      let compId = company_id ? Number(company_id) : null;
+      if (projId && !compId) {
+        const projRows = await db.query('SELECT company_id FROM projects WHERE id = ?', [projId]);
+        if (projRows && projRows.length > 0 && projRows[0].company_id) {
+          compId = projRows[0].company_id;
+        }
+      }
+      const targetScope = ['personal', 'family', 'company'].includes(scope) ? scope : (compId ? 'company' : (famId ? 'family' : 'personal'));
 
       const result = await db.query(
         'INSERT INTO transactions (user_id, family_id, company_id, project_id, wallet_id, category_id, type, amount, transaction_date, notes, scope) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
@@ -792,7 +804,14 @@ export const AdminController = {
       const newAmount = amount !== undefined ? Number(amount) : Number(oldTx.amount);
       const newDate = transaction_date || oldTx.transaction_date;
       const newNotes = notes !== undefined ? notes : oldTx.notes;
-      const newCatId = category_id !== undefined ? (category_id ? Number(category_id) : null) : oldTx.category_id;
+      let newCatId = null;
+      const targetCatId = category_id !== undefined ? (category_id ? Number(category_id) : null) : oldTx.category_id;
+      if (targetCatId) {
+        const catRows = await db.query('SELECT id FROM categories WHERE id = ?', [Number(targetCatId)]);
+        if (catRows && catRows.length > 0) {
+          newCatId = Number(targetCatId);
+        }
+      }
       const newScope = scope || oldTx.scope;
       const newProjId = project_id !== undefined ? (project_id ? Number(project_id) : null) : oldTx.project_id;
 

@@ -134,4 +134,37 @@ describe('Task 3: ProjectService (TDD)', () => {
       });
     }, /akses ditolak|bukan milik/i);
   });
+
+  it('should gracefully handle valid and non-existent category_id without foreign key errors', async () => {
+    const ceo = await AuthService.register('CEO', 'ceo6@biz.com', 'secret123');
+    const comp = await CompanyService.createCompany(ceo.user.id, 'Studio Kreatif');
+    const wallet = await WalletService.createWallet(ceo.user.id, 'Kas Usaha', 10000000);
+    const proj = await ProjectService.createProject(comp.id, ceo.user.id, {
+      name: 'Project Branding',
+      target_budget: 15000000
+    });
+
+    // Valid category (id: 12 - Pendapatan Usaha)
+    const tx1 = await ProjectService.recordTransaction(ceo.user.id, comp.id, proj.id, {
+      wallet_id: wallet.id,
+      category_id: 12,
+      type: 'income',
+      amount: 5000000,
+      notes: 'Pembayaran Termin 1'
+    });
+    assert.ok(tx1.id);
+
+    // Non-existent category (e.g. 9999) - should gracefully fallback to null without throwing
+    const tx2 = await ProjectService.recordTransaction(ceo.user.id, comp.id, proj.id, {
+      wallet_id: wallet.id,
+      category_id: 9999,
+      type: 'income',
+      amount: 2500000,
+      notes: 'Pembayaran Termin 2 dengan kategori tak dikenal'
+    });
+    assert.ok(tx2.id);
+
+    const projDetails = await ProjectService.getProjectById(comp.id, proj.id);
+    assert.strictEqual(Number(projDetails.current_income), 7500000);
+  });
 });

@@ -58,6 +58,65 @@ export async function getPool() {
           await initConn.query(`ALTER TABLE debts MODIFY COLUMN scope ENUM('personal', 'family', 'company') DEFAULT 'personal';`);
         } catch (_) {}
         await initConn.query(`
+          CREATE TABLE IF NOT EXISTS companies (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(150) NOT NULL,
+            invite_code VARCHAR(20) NOT NULL UNIQUE,
+            created_by INT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
+          ) ENGINE=InnoDB;
+        `);
+        await initConn.query(`
+          CREATE TABLE IF NOT EXISTS projects (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            company_id INT NOT NULL,
+            created_by INT NOT NULL,
+            name VARCHAR(150) NOT NULL,
+            description TEXT NULL,
+            target_budget BIGINT NOT NULL DEFAULT 0,
+            current_income BIGINT NOT NULL DEFAULT 0,
+            current_expense BIGINT NOT NULL DEFAULT 0,
+            status ENUM('active', 'completed', 'on_hold') DEFAULT 'active',
+            start_date DATE NULL,
+            end_date DATE NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE CASCADE,
+            FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
+          ) ENGINE=InnoDB;
+        `);
+        await initConn.query(`
+          CREATE TABLE IF NOT EXISTS categories (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NULL,
+            name VARCHAR(100) NOT NULL,
+            type ENUM('income', 'expense') NOT NULL,
+            color VARCHAR(20) DEFAULT '#6B7280',
+            icon VARCHAR(50) DEFAULT 'tag',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+          ) ENGINE=InnoDB;
+        `);
+        try {
+          await initConn.query(`
+            INSERT INTO categories (id, user_id, name, type, color, icon) VALUES
+            (1, NULL, 'Makanan & Minuman', 'expense', '#EF4444', 'utensils'),
+            (2, NULL, 'Transportasi', 'expense', '#F97316', 'car'),
+            (3, NULL, 'Tagihan & Utilitas', 'expense', '#EAB308', 'receipt'),
+            (4, NULL, 'Belanja & Kebutuhan', 'expense', '#EC4899', 'shopping-bag'),
+            (5, NULL, 'Kesehatan & Medis', 'expense', '#14B8A6', 'heart-pulse'),
+            (6, NULL, 'Pendidikan', 'expense', '#3B82F6', 'graduation-cap'),
+            (7, NULL, 'Hiburan & Gaya Hidup', 'expense', '#8B5CF6', 'gamepad-2'),
+            (8, NULL, 'Lain-lain', 'expense', '#6B7280', 'tag'),
+            (9, NULL, 'Gaji Pokok', 'income', '#10B981', 'briefcase'),
+            (10, NULL, 'Investasi & Dividen', 'income', '#06B6D4', 'trending-up'),
+            (11, NULL, 'Bonus & THR', 'income', '#F59E0B', 'gift'),
+            (12, NULL, 'Pendapatan Usaha', 'income', '#6366F1', 'store'),
+            (13, NULL, 'Lain-lain', 'income', '#6B7280', 'tag')
+            ON DUPLICATE KEY UPDATE name = VALUES(name), type = VALUES(type), color = VALUES(color), icon = VALUES(icon);
+          `);
+        } catch (_) {}
+        await initConn.query(`
           CREATE TABLE IF NOT EXISTS chat_rooms (
             id INT AUTO_INCREMENT PRIMARY KEY,
             type ENUM('family', 'company', 'direct') NOT NULL,
@@ -160,19 +219,21 @@ class MockDatabase {
 
   seedDefaultCategories() {
     this.tables.categories = [
-      { id: 1, user_id: null, name: 'Gaji', type: 'income', color: '#10B981', icon: 'briefcase' },
-      { id: 2, user_id: null, name: 'Investasi & Usaha', type: 'income', color: '#059669', icon: 'trending-up' },
-      { id: 3, user_id: null, name: 'Bonus & Hadiah', type: 'income', color: '#3B82F6', icon: 'gift' },
-      { id: 4, user_id: null, name: 'Makanan & Minuman', type: 'expense', color: '#EF4444', icon: 'utensils' },
-      { id: 5, user_id: null, name: 'Transportasi', type: 'expense', color: '#F59E0B', icon: 'car' },
-      { id: 6, user_id: null, name: 'Tagihan & Utilitas', type: 'expense', color: '#6366F1', icon: 'receipt' },
-      { id: 7, user_id: null, name: 'Belanja Kebutuhan', type: 'expense', color: '#EC4899', icon: 'shopping-bag' },
-      { id: 8, user_id: null, name: 'Kesehatan', type: 'expense', color: '#14B8A6', icon: 'heart-pulse' },
-      { id: 9, user_id: null, name: 'Pendidikan', type: 'expense', color: '#8B5CF6', icon: 'graduation-cap' },
-      { id: 10, user_id: null, name: 'Hiburan', type: 'expense', color: '#F97316', icon: 'gamepad-2' },
-      { id: 11, user_id: null, name: 'Lain-lain', type: 'expense', color: '#64748B', icon: 'tag' }
+      { id: 1, user_id: null, name: 'Makanan & Minuman', type: 'expense', color: '#EF4444', icon: 'utensils' },
+      { id: 2, user_id: null, name: 'Transportasi', type: 'expense', color: '#F97316', icon: 'car' },
+      { id: 3, user_id: null, name: 'Tagihan & Utilitas', type: 'expense', color: '#EAB308', icon: 'receipt' },
+      { id: 4, user_id: null, name: 'Belanja & Kebutuhan', type: 'expense', color: '#EC4899', icon: 'shopping-bag' },
+      { id: 5, user_id: null, name: 'Kesehatan & Medis', type: 'expense', color: '#14B8A6', icon: 'heart-pulse' },
+      { id: 6, user_id: null, name: 'Pendidikan', type: 'expense', color: '#3B82F6', icon: 'graduation-cap' },
+      { id: 7, user_id: null, name: 'Hiburan & Gaya Hidup', type: 'expense', color: '#8B5CF6', icon: 'gamepad-2' },
+      { id: 8, user_id: null, name: 'Lain-lain', type: 'expense', color: '#6B7280', icon: 'tag' },
+      { id: 9, user_id: null, name: 'Gaji Pokok', type: 'income', color: '#10B981', icon: 'briefcase' },
+      { id: 10, user_id: null, name: 'Investasi & Dividen', type: 'income', color: '#06B6D4', icon: 'trending-up' },
+      { id: 11, user_id: null, name: 'Bonus & THR', type: 'income', color: '#F59E0B', icon: 'gift' },
+      { id: 12, user_id: null, name: 'Pendapatan Usaha', type: 'income', color: '#6366F1', icon: 'store' },
+      { id: 13, user_id: null, name: 'Lain-lain', type: 'income', color: '#6B7280', icon: 'tag' }
     ];
-    this.autoIncrement.categories = 12;
+    this.autoIncrement.categories = 14;
   }
 
   hasTable(tableName) {

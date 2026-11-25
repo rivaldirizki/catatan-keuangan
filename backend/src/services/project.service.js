@@ -166,11 +166,20 @@ export const ProjectService = {
         [newProjectIncome, newProjectExpense, projectId]
       );
 
+      // 3. Verify category exists if provided (prevent foreign key constraint failure)
+      let validCategoryId = null;
+      if (category_id) {
+        const catRows = await trx.query('SELECT id FROM categories WHERE id = ?', [Number(category_id)]);
+        if (catRows && catRows.length > 0) {
+          validCategoryId = Number(category_id);
+        }
+      }
+
       // Record transaction
       const insertRes = await trx.query(
         `INSERT INTO transactions (user_id, company_id, project_id, wallet_id, category_id, type, amount, transaction_date, notes, scope)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'company')`,
-        [userId, companyId, projectId, wallet_id, category_id, type, parsedAmount, txDate, finalNotes]
+        [userId, companyId, projectId, wallet_id, validCategoryId, type, parsedAmount, txDate, finalNotes]
       );
 
       return {

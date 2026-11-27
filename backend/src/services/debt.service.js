@@ -17,7 +17,7 @@ function computeDueStatus(debt, today = new Date().toISOString().split('T')[0]) 
 }
 
 export const DebtService = {
-  async createDebt(userId, type, personName, amount, dueDate, notes = '', scope = 'personal', familyId = null, companyId = null, installmentsCount = 1, idempotencyKey = null) {
+  async createDebt(userId, type, personName, amount, dueDate, notes = '', scope = 'personal', familyId = null, companyId = null, installmentsCount = 1, idempotencyKey = null, invoiceDate = null) {
     const numAmount = Number(amount);
     if (numAmount <= 0) throw new Error('Debt amount must be greater than 0');
     if (!['payable', 'receivable'].includes(type)) {
@@ -42,6 +42,7 @@ export const DebtService = {
           remaining_amount: Number(d.remaining_amount),
           installments_count: Number(d.installments_count || 1),
           installment_amount: Math.round(Number(d.total_amount) / Math.max(1, Number(d.installments_count || 1))),
+          invoice_date: d.invoice_date || null,
           due_date: d.due_date,
           status: d.status,
           scope: d.scope,
@@ -56,10 +57,11 @@ export const DebtService = {
     const targetScope = ['personal', 'family', 'company'].includes(scope) ? scope : 'personal';
     const famId = targetScope === 'family' ? familyId : null;
     const compId = targetScope === 'company' ? companyId : null;
+    const invDate = invoiceDate || null;
 
     const insertRes = await db.query(
-      'INSERT INTO debts (user_id, family_id, company_id, type, person_name, total_amount, remaining_amount, installments_count, due_date, status, scope, notes, idempotency_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [userId, famId, compId, type, personName.trim(), numAmount, numAmount, numInstallments, dueDate, 'unpaid', targetScope, notes || '', idempotencyKey]
+      'INSERT INTO debts (user_id, family_id, company_id, type, person_name, total_amount, remaining_amount, installments_count, invoice_date, due_date, status, scope, notes, idempotency_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [userId, famId, compId, type, personName.trim(), numAmount, numAmount, numInstallments, invDate, dueDate, 'unpaid', targetScope, notes || '', idempotencyKey]
     );
 
     return {
@@ -73,6 +75,7 @@ export const DebtService = {
       remaining_amount: numAmount,
       installments_count: numInstallments,
       installment_amount: Math.round(numAmount / numInstallments),
+      invoice_date: invDate,
       due_date: dueDate,
       status: 'unpaid',
       scope: targetScope,
@@ -264,5 +267,45 @@ export const DebtService = {
         new_wallet_balance: newWalletBal
       };
     });
+  },
+
+  async getCompanyCapitalInvestments(companyId) {
+    const rows = await db.query(
+      'SELECT * FROM debts WHERE company_id = ? AND scope = ? AND type = ? ORDER BY due_date ASC, id ASC',
+      [companyId, 'company', 'payable']
+    );
+
+    let totalTransferred = 0;
+    let totalRemaining = 0;
+
+    const items = (rows || []).map((d, idx) => {
+      const total = Number(d.total_amount) || 0;
+      const remaining = Number(d.remaining_amount) || 0;
+      totalTransferred += total;
+      totalRemaining += remaining;
+
+      return {
+        row_number: idx + 1,
+        id: d.id,
+        person_name: d.person_name,
+        description: d.notes ? `${d.person_name} - ${d.notes}` : d.person_name,
+        notes: d.notes || '',
+        invoice_date: d.invoice_date || null,
+        total_amount: total,
+        remaining_amount: remaining,
+        due_date: d.due_date,
+        status: d.status,
+        computed_status: computeDueStatus(d)
+      };
+    });
+
+    return {
+      summary: {
+        total_capital_transferred: totalTransferred,
+        total_capital_remaining: totalRemaining,
+        total_capital_repaid: Math.max(0, totalTransferred - totalRemaining)
+      },
+      items
+    };
   }
 };

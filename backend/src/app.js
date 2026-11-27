@@ -319,6 +319,73 @@ app.patch('/api/v1/projects/:id/status', authenticateJWT, async (req, res) => {
   }
 });
 
+app.put('/api/v1/projects/:id', authenticateJWT, async (req, res) => {
+  try {
+    const user = await AuthService.getUserById(req.user.id);
+    if (!user || !user.company_id) {
+      return res.status(400).json({ error: 'Pengguna belum terhubung ke perusahaan' });
+    }
+    const result = await ProjectService.updateProject(user.company_id, Number(req.params.id), req.body);
+    res.json(result);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.patch('/api/v1/projects/:id/payment-status', authenticateJWT, async (req, res) => {
+  try {
+    const user = await AuthService.getUserById(req.user.id);
+    if (!user || !user.company_id) {
+      return res.status(400).json({ error: 'Pengguna belum terhubung ke perusahaan' });
+    }
+    const { payment_status } = req.body;
+    const result = await ProjectService.updatePaymentStatus(user.company_id, Number(req.params.id), payment_status);
+    res.json(result);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// Company Financial Reports (Cashflow Ledger, Outstanding Projects, Capital Investments)
+app.get('/api/v1/company/cashflow-ledger', authenticateJWT, async (req, res) => {
+  try {
+    const user = await AuthService.getUserById(req.user.id);
+    if (!user || !user.company_id) {
+      return res.json({ summary: { total_cash_in: 0, total_cash_out: 0, final_balance: 0 }, entries: [] });
+    }
+    const ledger = await TransactionService.getCompanyCashflowLedger(user.company_id);
+    res.json(ledger);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/v1/company/outstanding-projects', authenticateJWT, async (req, res) => {
+  try {
+    const user = await AuthService.getUserById(req.user.id);
+    if (!user || !user.company_id) {
+      return res.json({ summary: { total_billing: 0, total_fee_management: 0, total_ppn: 0, total_pph: 0, total_netto: 0, total_paid_netto: 0, total_unpaid_netto: 0, paid_count: 0, unpaid_count: 0 }, items: [] });
+    }
+    const data = await ProjectService.getOutstandingProjects(user.company_id);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/v1/company/capital-investments', authenticateJWT, async (req, res) => {
+  try {
+    const user = await AuthService.getUserById(req.user.id);
+    if (!user || !user.company_id) {
+      return res.json({ summary: { total_capital_transferred: 0, total_capital_remaining: 0, total_capital_repaid: 0 }, items: [] });
+    }
+    const data = await DebtService.getCompanyCapitalInvestments(user.company_id);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ======================= WALLETS ROUTES =======================
 app.get('/api/v1/wallets', authenticateJWT, async (req, res) => {
   try {
@@ -494,7 +561,7 @@ app.get('/api/v1/debts/reminders', authenticateJWT, async (req, res) => {
 
 app.post('/api/v1/debts', authenticateJWT, async (req, res) => {
   try {
-    const { type, person_name, amount, due_date, notes, scope, installments_count } = req.body;
+    const { type, person_name, amount, due_date, notes, scope, installments_count, invoice_date } = req.body;
     const idempotencyKey = req.body.idempotency_key || req.headers['x-idempotency-key'] || null;
     const user = await AuthService.getUserById(req.user.id);
     const targetScope = scope || 'personal';
@@ -512,7 +579,8 @@ app.post('/api/v1/debts', authenticateJWT, async (req, res) => {
       famId,
       compId,
       installments_count || 1,
-      idempotencyKey
+      idempotencyKey,
+      invoice_date || null
     );
     res.status(debt.already_processed ? 200 : 201).json(debt);
   } catch (err) {

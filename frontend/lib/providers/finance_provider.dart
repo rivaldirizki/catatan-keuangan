@@ -34,6 +34,22 @@ class FinanceProvider extends ChangeNotifier {
   List<Map<String, dynamic>> _familyMembers = [];
   FamilyModel? _currentFamily;
   List<ProjectModel> _projects = [];
+  Map<String, dynamic> _companyCashflowSummary = {'total_cash_in': 0, 'total_cash_out': 0, 'final_balance': 0};
+  List<Map<String, dynamic>> _companyCashflowEntries = [];
+  Map<String, dynamic> _outstandingSummary = {
+    'total_billing': 0,
+    'total_fee_management': 0,
+    'total_ppn': 0,
+    'total_pph': 0,
+    'total_netto': 0,
+    'total_paid_netto': 0,
+    'total_unpaid_netto': 0,
+    'paid_count': 0,
+    'unpaid_count': 0,
+  };
+  List<Map<String, dynamic>> _outstandingProjects = [];
+  Map<String, dynamic> _capitalSummary = {'total_capital_transferred': 0, 'total_capital_remaining': 0, 'total_capital_repaid': 0};
+  List<Map<String, dynamic>> _capitalInvestments = [];
 
   static final List<CategoryModel> defaultCategories = [
     const CategoryModel(id: 1, name: 'Makanan & Minuman', type: 'expense', color: '#EF4444', icon: 'utensils'),
@@ -106,6 +122,12 @@ class FinanceProvider extends ChangeNotifier {
   List<Map<String, dynamic>> get familyMembers => _familyMembers;
   FamilyModel? get currentFamily => _currentFamily;
   List<ProjectModel> get projects => _projects;
+  Map<String, dynamic> get companyCashflowSummary => _companyCashflowSummary;
+  List<Map<String, dynamic>> get companyCashflowEntries => _companyCashflowEntries;
+  Map<String, dynamic> get outstandingSummary => _outstandingSummary;
+  List<Map<String, dynamic>> get outstandingProjects => _outstandingProjects;
+  Map<String, dynamic> get capitalSummary => _capitalSummary;
+  List<Map<String, dynamic>> get capitalInvestments => _capitalInvestments;
 
   int get totalBalance => _totalBalance;
   int get totalIncome => _totalIncome;
@@ -229,11 +251,15 @@ class FinanceProvider extends ChangeNotifier {
         _currentFamily = null;
       }
 
-      // 7. Projects if company view
+      // 7. Projects & Reports if company view
       if (isCompanyView) {
         await fetchProjectsInternal();
+        await fetchCompanyReportsInternal();
       } else {
         _projects = [];
+        _companyCashflowEntries = [];
+        _outstandingProjects = [];
+        _capitalInvestments = [];
       }
 
       // Save complete snapshot to local storage
@@ -311,7 +337,33 @@ class FinanceProvider extends ChangeNotifier {
 
   Future<void> fetchProjects() async {
     await fetchProjectsInternal();
+    await fetchCompanyReportsInternal();
     notifyListeners();
+  }
+
+  Future<void> fetchCompanyReportsInternal() async {
+    try {
+      final results = await Future.wait([
+        apiClient.get(ApiConstants.companyCashflowLedger),
+        apiClient.get(ApiConstants.companyOutstandingProjects),
+        apiClient.get(ApiConstants.companyCapitalInvestments),
+      ]);
+      if (results[0] is Map<String, dynamic>) {
+        final cash = results[0] as Map<String, dynamic>;
+        _companyCashflowSummary = (cash['summary'] as Map<String, dynamic>?) ?? _companyCashflowSummary;
+        _companyCashflowEntries = ((cash['entries'] as List<dynamic>?) ?? []).cast<Map<String, dynamic>>();
+      }
+      if (results[1] is Map<String, dynamic>) {
+        final out = results[1] as Map<String, dynamic>;
+        _outstandingSummary = (out['summary'] as Map<String, dynamic>?) ?? _outstandingSummary;
+        _outstandingProjects = ((out['items'] as List<dynamic>?) ?? []).cast<Map<String, dynamic>>();
+      }
+      if (results[2] is Map<String, dynamic>) {
+        final cap = results[2] as Map<String, dynamic>;
+        _capitalSummary = (cap['summary'] as Map<String, dynamic>?) ?? _capitalSummary;
+        _capitalInvestments = ((cap['items'] as List<dynamic>?) ?? []).cast<Map<String, dynamic>>();
+      }
+    } catch (_) {}
   }
 
   Future<bool> createProject({
@@ -320,6 +372,15 @@ class FinanceProvider extends ChangeNotifier {
     int targetBudget = 0,
     String? startDate,
     String? endDate,
+    String? invoiceNumber,
+    int billingAmount = 0,
+    double feeManagementPercent = 0,
+    int feeManagement = 0,
+    double ppnPercent = 0,
+    int ppnAmount = 0,
+    double pphPercent = 0,
+    int pphAmount = 0,
+    String paymentStatus = 'unpaid',
   }) async {
     try {
       await apiClient.post(ApiConstants.projects, body: {
@@ -328,6 +389,41 @@ class FinanceProvider extends ChangeNotifier {
         'target_budget': targetBudget,
         'start_date': startDate,
         'end_date': endDate,
+        'invoice_number': invoiceNumber?.trim(),
+        'billing_amount': billingAmount,
+        'fee_management_percent': feeManagementPercent,
+        'fee_management': feeManagement,
+        'ppn_percent': ppnPercent,
+        'ppn_amount': ppnAmount,
+        'pph_percent': pphPercent,
+        'pph_amount': pphAmount,
+        'payment_status': paymentStatus,
+      });
+      await fetchProjects();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> updateProject(int projectId, Map<String, dynamic> data) async {
+    try {
+      await apiClient.put(ApiConstants.projectUpdate(projectId), body: data);
+      await fetchProjects();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> updateProjectPaymentStatus(int projectId, String paymentStatus) async {
+    try {
+      await apiClient.patch(ApiConstants.projectPaymentStatus(projectId), body: {
+        'payment_status': paymentStatus,
       });
       await fetchProjects();
       return true;
@@ -644,6 +740,7 @@ class FinanceProvider extends ChangeNotifier {
     String notes = '',
     String scope = 'personal',
     int installmentsCount = 1,
+    String? invoiceDate,
   }) async {
     final idempotencyKey = OfflineSyncService.generateIdempotencyKey();
     final body = {
@@ -654,6 +751,7 @@ class FinanceProvider extends ChangeNotifier {
       'notes': notes,
       'scope': scope,
       'installments_count': installmentsCount,
+      if (invoiceDate != null && invoiceDate.isNotEmpty) 'invoice_date': invoiceDate,
       'idempotency_key': idempotencyKey,
     };
 

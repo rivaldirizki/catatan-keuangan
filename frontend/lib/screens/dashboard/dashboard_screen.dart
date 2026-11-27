@@ -31,6 +31,7 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingObserver {
   int _currentTab = 0;
+  int _companySubTab = 0; // 0: Proyek, 1: Arus Kas, 2: Outstanding, 3: Modal (Hutang)
   bool _isBalanceVisible = true;
   int? _selectedMemberFilterId; // null = semua anggota
 
@@ -4775,8 +4776,32 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
 
+            // 2b. SUB-TAB NAVIGATOR RUANG PERUSAHAAN
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _buildCompanySubTabChip(0, 'Proyek', Icons.folder_copy_rounded),
+                  const SizedBox(width: 8),
+                  _buildCompanySubTabChip(1, 'Arus Kas', Icons.account_balance_wallet_rounded),
+                  const SizedBox(width: 8),
+                  _buildCompanySubTabChip(2, 'Outstanding', Icons.receipt_long_rounded),
+                  const SizedBox(width: 8),
+                  _buildCompanySubTabChip(3, 'Modal (Hutang)', Icons.handshake_rounded),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            if (_companySubTab == 1) ...[
+              _buildCompanyCashflowLedgerSection(finance),
+            ] else if (_companySubTab == 2) ...[
+              _buildCompanyOutstandingProjectsSection(finance),
+            ] else if (_companySubTab == 3) ...[
+              _buildCompanyCapitalInvestmentsSection(finance),
+            ] else ...[
             // 3. DAFTAR PROYEK PERUSAHAAN
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -5079,6 +5104,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                   );
                 },
               ),
+            ], // end if (_companySubTab == 0)
             const SizedBox(height: 12),
             _buildBrandFooter(),
           ],
@@ -5087,11 +5113,756 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
     );
   }
 
-  // ======================= MODAL: BUAT PROYEK =======================
+  Widget _buildCompanySubTabChip(int index, String label, IconData icon) {
+    final isSelected = _companySubTab == index;
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.selectionClick();
+        setState(() => _companySubTab = index);
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF1C1C1E) : Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? const Color(0xFF1C1C1E) : const Color(0xFFE2E8F0),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 14, color: isSelected ? Colors.white : AppTheme.textSecondary),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                color: isSelected ? Colors.white : AppTheme.textPrimary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ======================= SECTION: CATATAN ARUS KAS PERUSAHAAN =======================
+  Widget _buildCompanyCashflowLedgerSection(FinanceProvider finance) {
+    final summary = finance.companyCashflowSummary;
+    final entries = finance.companyCashflowEntries;
+    final totalIn = int.tryParse(summary['total_cash_in']?.toString() ?? '0') ?? 0;
+    final totalOut = int.tryParse(summary['total_cash_out']?.toString() ?? '0') ?? 0;
+    final finalBal = int.tryParse(summary['final_balance']?.toString() ?? '0') ?? 0;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Row(
+          children: [
+            Icon(Icons.account_balance_wallet_rounded, size: 18, color: Color(0xFF1C1C1E)),
+            SizedBox(width: 6),
+            Text(
+              'Catatan Arus Kas Perusahaan',
+              style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            Expanded(
+              child: _buildMiniKpiTile('Total Kas Masuk', '+ ${_formatRupiah(totalIn)}', AppTheme.incomeGreen),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _buildMiniKpiTile('Total Kas Keluar', '- ${_formatRupiah(totalOut)}', AppTheme.expenseRed),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _buildMiniKpiTile('Balance Akhir', _formatRupiah(finalBal), const Color(0xFF1C1C1E)),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        if (entries.isEmpty)
+          _buildEmptyReportBox('Belum ada mutasi arus kas perusahaan.')
+        else
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: DataTable(
+                headingRowHeight: 40,
+                dataRowMinHeight: 42,
+                dataRowMaxHeight: 58,
+                columnSpacing: 16,
+                headingRowColor: WidgetStateProperty.all(const Color(0xFFF8FAFC)),
+                columns: const [
+                  DataColumn(label: Text('No', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700))),
+                  DataColumn(label: Text('No Invoice / Nama Project', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700))),
+                  DataColumn(label: Text('Deskripsi (Kegiatan)', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700))),
+                  DataColumn(label: Text('Kas Masuk', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700)), numeric: true),
+                  DataColumn(label: Text('Kas Keluar', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700)), numeric: true),
+                  DataColumn(label: Text('Balance', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700)), numeric: true),
+                ],
+                rows: entries.map((e) {
+                  final rowNo = e['row_number']?.toString() ?? '-';
+                  final invProj = e['invoice_or_project']?.toString() ?? 'Operasional Umum';
+                  final desc = e['description']?.toString() ?? '-';
+                  final cashIn = int.tryParse(e['cash_in']?.toString() ?? '0') ?? 0;
+                  final cashOut = int.tryParse(e['cash_out']?.toString() ?? '0') ?? 0;
+                  final bal = int.tryParse(e['balance']?.toString() ?? '0') ?? 0;
+
+                  return DataRow(cells: [
+                    DataCell(Text(rowNo, style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600))),
+                    DataCell(ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 160),
+                      child: Text(invProj, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600)),
+                    )),
+                    DataCell(ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 180),
+                      child: Text(desc, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11.5)),
+                    )),
+                    DataCell(Text(
+                      cashIn > 0 ? '+${_formatRupiah(cashIn)}' : '-',
+                      style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: cashIn > 0 ? AppTheme.incomeGreen : AppTheme.textSecondary),
+                    )),
+                    DataCell(Text(
+                      cashOut > 0 ? '-${_formatRupiah(cashOut)}' : '-',
+                      style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: cashOut > 0 ? AppTheme.expenseRed : AppTheme.textSecondary),
+                    )),
+                    DataCell(Text(
+                      _formatRupiah(bal),
+                      style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800, color: bal >= 0 ? const Color(0xFF1C1C1E) : AppTheme.expenseRed),
+                    )),
+                  ]);
+                }).toList(),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  // ======================= SECTION: OUTSTANDING PROJECT =======================
+  Widget _buildCompanyOutstandingProjectsSection(FinanceProvider finance) {
+    final summary = finance.outstandingSummary;
+    final items = finance.outstandingProjects;
+    final totalBilling = int.tryParse(summary['total_billing']?.toString() ?? '0') ?? 0;
+    final totalNetto = int.tryParse(summary['total_netto']?.toString() ?? '0') ?? 0;
+    final totalUnpaid = int.tryParse(summary['total_unpaid_netto']?.toString() ?? '0') ?? 0;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Row(
+              children: [
+                Icon(Icons.receipt_long_rounded, size: 18, color: Color(0xFF1C1C1E)),
+                SizedBox(width: 6),
+                Text(
+                  'Outstanding Project',
+                  style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                ),
+              ],
+            ),
+            GestureDetector(
+              onTap: () => _showCreateProjectModal(context),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(color: const Color(0xFF1C1C1E), borderRadius: BorderRadius.circular(8)),
+                child: const Text('+ Tagihan Proyek', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            Expanded(child: _buildMiniKpiTile('Total Tagihan', _formatRupiah(totalBilling), const Color(0xFF1C1C1E))),
+            const SizedBox(width: 8),
+            Expanded(child: _buildMiniKpiTile('Total Netto', _formatRupiah(totalNetto), AppTheme.incomeGreen)),
+            const SizedBox(width: 8),
+            Expanded(child: _buildMiniKpiTile('Belum Lunas', _formatRupiah(totalUnpaid), AppTheme.expenseRed)),
+          ],
+        ),
+        const SizedBox(height: 12),
+        if (items.isEmpty)
+          _buildEmptyReportBox('Belum ada data proyek & tagihan.')
+        else
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: DataTable(
+                headingRowHeight: 40,
+                dataRowMinHeight: 44,
+                dataRowMaxHeight: 62,
+                columnSpacing: 14,
+                headingRowColor: WidgetStateProperty.all(const Color(0xFFF8FAFC)),
+                columns: const [
+                  DataColumn(label: Text('No', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700))),
+                  DataColumn(label: Text('No Invoice & Nama Project', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700))),
+                  DataColumn(label: Text('Deskripsi', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700))),
+                  DataColumn(label: Text('Nilai Tagihan', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700)), numeric: true),
+                  DataColumn(label: Text('Fee Mgmt', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700)), numeric: true),
+                  DataColumn(label: Text('PPN', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700)), numeric: true),
+                  DataColumn(label: Text('PPh', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700)), numeric: true),
+                  DataColumn(label: Text('Netto', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700)), numeric: true),
+                  DataColumn(label: Text('Keterangan', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700))),
+                  DataColumn(label: Text('Aksi', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700))),
+                ],
+                rows: items.map((item) {
+                  final id = item['id'] as int;
+                  final rowNo = item['row_number']?.toString() ?? '-';
+                  final invName = item['invoice_and_name']?.toString() ?? '-';
+                  final desc = item['description']?.toString() ?? '-';
+                  final billing = int.tryParse(item['billing_amount']?.toString() ?? '0') ?? 0;
+                  final fee = int.tryParse(item['fee_management']?.toString() ?? '0') ?? 0;
+                  final ppn = int.tryParse(item['ppn_amount']?.toString() ?? '0') ?? 0;
+                  final pph = int.tryParse(item['pph_amount']?.toString() ?? '0') ?? 0;
+                  final netto = int.tryParse(item['netto_amount']?.toString() ?? '0') ?? 0;
+                  final isPaid = item['payment_status'] == 'paid';
+
+                  return DataRow(cells: [
+                    DataCell(Text(rowNo, style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600))),
+                    DataCell(ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 160),
+                      child: Text(invName, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700)),
+                    )),
+                    DataCell(ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 150),
+                      child: Text(desc, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11.5)),
+                    )),
+                    DataCell(Text(_formatRupiah(billing), style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600))),
+                    DataCell(Text(_formatRupiah(fee), style: const TextStyle(fontSize: 11.5, color: AppTheme.textSecondary))),
+                    DataCell(Text(_formatRupiah(ppn), style: const TextStyle(fontSize: 11.5, color: AppTheme.textSecondary))),
+                    DataCell(Text(_formatRupiah(pph), style: const TextStyle(fontSize: 11.5, color: AppTheme.textSecondary))),
+                    DataCell(Text(_formatRupiah(netto), style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800, color: AppTheme.incomeGreen))),
+                    DataCell(
+                      GestureDetector(
+                        onTap: () async {
+                          final nextStatus = isPaid ? 'unpaid' : 'paid';
+                          await finance.updateProjectPaymentStatus(id, nextStatus);
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: isPaid ? AppTheme.incomeGreen.withValues(alpha: 0.14) : AppTheme.expenseRed.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            isPaid ? 'Lunas' : 'Belum Lunas',
+                            style: TextStyle(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w700,
+                              color: isPaid ? AppTheme.incomeGreen : AppTheme.expenseRed,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      IconButton(
+                        icon: const Icon(Icons.edit_rounded, size: 16, color: Color(0xFF1C1C1E)),
+                        tooltip: 'Edit Tagihan',
+                        onPressed: () {
+                          final proj = finance.projects.firstWhere((p) => p.id == id);
+                          _showEditProjectBillingModal(context, proj);
+                        },
+                      ),
+                    ),
+                  ]);
+                }).toList(),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  // ======================= SECTION: RINCIAN PENANAMAN MODAL (HUTANG) =======================
+  Widget _buildCompanyCapitalInvestmentsSection(FinanceProvider finance) {
+    final summary = finance.capitalSummary;
+    final items = finance.capitalInvestments;
+    final totalTransferred = int.tryParse(summary['total_capital_transferred']?.toString() ?? '0') ?? 0;
+    final totalRemaining = int.tryParse(summary['total_capital_remaining']?.toString() ?? '0') ?? 0;
+    final totalRepaid = int.tryParse(summary['total_capital_repaid']?.toString() ?? '0') ?? 0;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Expanded(
+              child: Row(
+                children: [
+                  Icon(Icons.handshake_rounded, size: 18, color: Color(0xFF1C1C1E)),
+                  SizedBox(width: 6),
+                  Flexible(
+                    child: Text(
+                      'Rincian Penanaman Modal (Hutang)',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            GestureDetector(
+              onTap: () => _showCreateCapitalInvestmentModal(context),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(color: const Color(0xFF1C1C1E), borderRadius: BorderRadius.circular(8)),
+                child: const Text('+ Modal Baru', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            Expanded(child: _buildMiniKpiTile('Total Modal Masuk', _formatRupiah(totalTransferred), const Color(0xFF1C1C1E))),
+            const SizedBox(width: 8),
+            Expanded(child: _buildMiniKpiTile('Sudah Dikembalikan', _formatRupiah(totalRepaid), AppTheme.incomeGreen)),
+            const SizedBox(width: 8),
+            Expanded(child: _buildMiniKpiTile('Sisa Hutang Modal', _formatRupiah(totalRemaining), AppTheme.expenseRed)),
+          ],
+        ),
+        const SizedBox(height: 12),
+        if (items.isEmpty)
+          _buildEmptyReportBox('Belum ada catatan penanaman modal / hutang perusahaan.')
+        else
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: DataTable(
+                headingRowHeight: 40,
+                dataRowMinHeight: 44,
+                dataRowMaxHeight: 60,
+                columnSpacing: 16,
+                headingRowColor: WidgetStateProperty.all(const Color(0xFFF8FAFC)),
+                columns: const [
+                  DataColumn(label: Text('No', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700))),
+                  DataColumn(label: Text('Deskripsi', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700))),
+                  DataColumn(label: Text('Tgl Terbit Invoice', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700))),
+                  DataColumn(label: Text('Total Modal Ditransfer', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700)), numeric: true),
+                  DataColumn(label: Text('Deadline Pengembalian', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700))),
+                  DataColumn(label: Text('Sisa & Status', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700))),
+                ],
+                rows: items.map((item) {
+                  final rowNo = item['row_number']?.toString() ?? '-';
+                  final desc = item['description']?.toString() ?? '-';
+                  final invDate = item['invoice_date']?.toString().split('T')[0] ?? '-';
+                  final total = int.tryParse(item['total_amount']?.toString() ?? '0') ?? 0;
+                  final remaining = int.tryParse(item['remaining_amount']?.toString() ?? '0') ?? 0;
+                  final dueDate = item['due_date']?.toString().split('T')[0] ?? '-';
+                  final status = item['computed_status']?.toString() ?? 'unpaid';
+                  final isPaid = status == 'paid' || remaining <= 0;
+
+                  return DataRow(cells: [
+                    DataCell(Text(rowNo, style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600))),
+                    DataCell(ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 180),
+                      child: Text(desc, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600)),
+                    )),
+                    DataCell(Text(invDate, style: const TextStyle(fontSize: 11.5))),
+                    DataCell(Text(_formatRupiah(total), style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700))),
+                    DataCell(Text(dueDate, style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: status == 'overdue' ? AppTheme.expenseRed : AppTheme.textPrimary))),
+                    DataCell(
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: isPaid ? AppTheme.incomeGreen.withValues(alpha: 0.14) : AppTheme.expenseRed.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          isPaid ? 'Lunas' : 'Sisa ${_formatRupiah(remaining)}',
+                          style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, color: isPaid ? AppTheme.incomeGreen : AppTheme.expenseRed),
+                        ),
+                      ),
+                    ),
+                  ]);
+                }).toList(),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildMiniKpiTile(String label, String value, Color valueColor) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
+          const SizedBox(height: 4),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(value, style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800, color: valueColor)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyReportBox(String message) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Center(
+        child: Text(message, style: const TextStyle(fontSize: 12.5, color: AppTheme.textSecondary)),
+      ),
+    );
+  }
+
+  // ======================= MODAL: BUAT / EDIT PROYEK & TAGIHAN =======================
   void _showCreateProjectModal(BuildContext context) {
-    final nameCtrl = TextEditingController();
+    _showProjectFormModal(context);
+  }
+
+  void _showEditProjectBillingModal(BuildContext context, ProjectModel project) {
+    _showProjectFormModal(context, existing: project);
+  }
+
+  void _showProjectFormModal(BuildContext context, {ProjectModel? existing}) {
+    final isEdit = existing != null;
+    final invoiceCtrl = TextEditingController(text: existing?.invoiceNumber ?? '');
+    final nameCtrl = TextEditingController(text: existing?.name ?? '');
+    final descCtrl = TextEditingController(text: existing?.description ?? '');
+    final budgetCtrl = TextEditingController(text: (existing?.targetBudget ?? 0) > 0 ? existing!.targetBudget.toString() : '');
+    final billingCtrl = TextEditingController(text: (existing?.billingAmount ?? 0) > 0 ? existing!.billingAmount.toString() : '');
+    final feePctCtrl = TextEditingController(text: (existing?.feeManagementPercent ?? 0) > 0 ? existing!.feeManagementPercent.toString() : '');
+    final ppnPctCtrl = TextEditingController(text: (existing?.ppnPercent ?? 0) > 0 ? existing!.ppnPercent.toString() : '');
+    final pphPctCtrl = TextEditingController(text: (existing?.pphPercent ?? 0) > 0 ? existing!.pphPercent.toString() : '');
+    String paymentStatus = existing?.paymentStatus ?? 'unpaid';
+    bool isSaving = false;
+    String? errorText;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setModalState) {
+          final billingVal = int.tryParse(billingCtrl.text.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+          final feePct = double.tryParse(feePctCtrl.text.replaceAll(',', '.')) ?? 0;
+          final ppnPct = double.tryParse(ppnPctCtrl.text.replaceAll(',', '.')) ?? 0;
+          final pphPct = double.tryParse(pphPctCtrl.text.replaceAll(',', '.')) ?? 0;
+          final feeVal = ((billingVal * feePct) / 100).round();
+          final ppnVal = ((billingVal * ppnPct) / 100).round();
+          final pphVal = ((billingVal * pphPct) / 100).round();
+          final nettoPreview = (billingVal - feeVal - ppnVal - pphVal).clamp(0, billingVal);
+
+          return Container(
+            constraints: BoxConstraints(maxHeight: MediaQuery.of(ctx).size.height * 0.9),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
+              left: 20,
+              right: 20,
+              top: 12,
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 36,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: 18),
+                      decoration: BoxDecoration(color: const Color(0xFFD1D1D6), borderRadius: BorderRadius.circular(2.5)),
+                    ),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        isEdit ? 'Edit Proyek & Tagihan' : 'Buat Proyek Baru',
+                        style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: AppTheme.textPrimary, letterSpacing: -0.3),
+                      ),
+                      GestureDetector(
+                        onTap: () => Navigator.pop(ctx),
+                        child: Container(
+                          padding: const EdgeInsets.all(5),
+                          decoration: const BoxDecoration(color: Color(0xFFF2F2F7), shape: BoxShape.circle),
+                          child: const Icon(Icons.close_rounded, size: 16, color: AppTheme.textSecondary),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+
+                  if (errorText != null) ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      margin: const EdgeInsets.only(bottom: 12),
+                      decoration: BoxDecoration(
+                        color: AppTheme.expenseRed.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: AppTheme.expenseRed.withValues(alpha: 0.25), width: 0.8),
+                      ),
+                      child: Text(errorText!, style: const TextStyle(color: AppTheme.expenseRed, fontSize: 12, fontWeight: FontWeight.w500)),
+                    ),
+                  ],
+
+                  _buildCompactInput(invoiceCtrl, 'No. Invoice (contoh: INV/2026/001)', Icons.confirmation_number_outlined),
+                  const SizedBox(height: 10),
+                  _buildCompactInput(nameCtrl, 'Nama Proyek *', Icons.folder_outlined),
+                  const SizedBox(height: 10),
+                  _buildCompactInput(descCtrl, 'Deskripsi kegiatan / proyek (opsional)', Icons.notes_rounded, maxLines: 2),
+                  const SizedBox(height: 10),
+                  _buildCompactInput(budgetCtrl, 'Target Anggaran / Budget (Rp)', Icons.account_balance_wallet_outlined, isNumber: true),
+                  const SizedBox(height: 10),
+                  _buildCompactInput(
+                    billingCtrl,
+                    'Nilai Tagihan Outstanding (Rp)',
+                    Icons.request_quote_outlined,
+                    isNumber: true,
+                    onChanged: (_) => setModalState(() {}),
+                  ),
+                  const SizedBox(height: 10),
+
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildCompactInput(
+                          feePctCtrl,
+                          'Fee Mgmt (%)',
+                          Icons.percent_rounded,
+                          isNumber: true,
+                          onChanged: (_) => setModalState(() {}),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _buildCompactInput(
+                          ppnPctCtrl,
+                          'PPN (%)',
+                          Icons.percent_rounded,
+                          isNumber: true,
+                          onChanged: (_) => setModalState(() {}),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _buildCompactInput(
+                          pphPctCtrl,
+                          'PPh (%)',
+                          Icons.percent_rounded,
+                          isNumber: true,
+                          onChanged: (_) => setModalState(() {}),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+
+                  if (billingVal > 0)
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      margin: const EdgeInsets.only(bottom: 10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text('Potongan Fee / PPN / PPh:', style: TextStyle(fontSize: 11.5, color: AppTheme.textSecondary)),
+                              Text('- ${_formatRupiah(feeVal + ppnVal + pphVal)}', style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppTheme.expenseRed)),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text('Estimasi Netto Diterima:', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700)),
+                              Text(_formatRupiah(nettoPreview), style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800, color: AppTheme.incomeGreen)),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+
+                  Row(
+                    children: [
+                      const Text('Status Pelunasan:', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600)),
+                      const Spacer(),
+                      ChoiceChip(
+                        label: const Text('Belum Lunas', style: TextStyle(fontSize: 11.5)),
+                        selected: paymentStatus == 'unpaid',
+                        onSelected: (_) => setModalState(() => paymentStatus = 'unpaid'),
+                      ),
+                      const SizedBox(width: 8),
+                      ChoiceChip(
+                        label: const Text('Lunas', style: TextStyle(fontSize: 11.5)),
+                        selected: paymentStatus == 'paid',
+                        onSelected: (_) => setModalState(() => paymentStatus = 'paid'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  ElevatedButton(
+                    onPressed: isSaving
+                        ? null
+                        : () async {
+                            final name = nameCtrl.text.trim();
+                            if (name.isEmpty) {
+                              setModalState(() => errorText = 'Nama proyek tidak boleh kosong');
+                              return;
+                            }
+                            final budget = int.tryParse(budgetCtrl.text.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+
+                            setModalState(() {
+                              isSaving = true;
+                              errorText = null;
+                            });
+
+                            final messenger = ScaffoldMessenger.of(context);
+                            final finance = context.read<FinanceProvider>();
+                            final bool success;
+                            if (isEdit) {
+                              success = await finance.updateProject(existing.id, {
+                                'invoice_number': invoiceCtrl.text.trim().isNotEmpty ? invoiceCtrl.text.trim() : null,
+                                'name': name,
+                                'description': descCtrl.text.trim().isNotEmpty ? descCtrl.text.trim() : null,
+                                'target_budget': budget,
+                                'billing_amount': billingVal,
+                                'fee_management_percent': feePct,
+                                'ppn_percent': ppnPct,
+                                'pph_percent': pphPct,
+                                'payment_status': paymentStatus,
+                              });
+                            } else {
+                              success = await finance.createProject(
+                                invoiceNumber: invoiceCtrl.text.trim().isNotEmpty ? invoiceCtrl.text.trim() : null,
+                                name: name,
+                                description: descCtrl.text.trim().isNotEmpty ? descCtrl.text.trim() : null,
+                                targetBudget: budget,
+                                billingAmount: billingVal,
+                                feeManagementPercent: feePct,
+                                ppnPercent: ppnPct,
+                                pphPercent: pphPct,
+                                paymentStatus: paymentStatus,
+                              );
+                            }
+
+                            if (success && mounted) {
+                              if (ctx.mounted) Navigator.pop(ctx);
+                              messenger.showSnackBar(
+                                SnackBar(
+                                  content: Text(isEdit ? 'Proyek "$name" diperbarui!' : 'Proyek "$name" berhasil dibuat!'),
+                                  backgroundColor: const Color(0xFF1C1C1E),
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            } else if (mounted) {
+                              setModalState(() {
+                                isSaving = false;
+                                errorText = finance.errorMessage ?? 'Gagal menyimpan proyek';
+                              });
+                            }
+                          },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF1C1C1E),
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size(double.infinity, 46),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: isSaving
+                        ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                        : Text(isEdit ? 'Simpan Perubahan' : 'Simpan Proyek', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildCompactInput(
+    TextEditingController ctrl,
+    String hint,
+    IconData icon, {
+    bool isNumber = false,
+    int maxLines = 1,
+    ValueChanged<String>? onChanged,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.iosBg,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.iosDivider, width: 0.8),
+      ),
+      child: TextField(
+        controller: ctrl,
+        keyboardType: isNumber ? const TextInputType.numberWithOptions(decimal: true) : TextInputType.text,
+        maxLines: maxLines,
+        onChanged: onChanged,
+        style: const TextStyle(fontSize: 13.5),
+        decoration: InputDecoration(
+          hintText: hint,
+          hintStyle: const TextStyle(color: AppTheme.textSecondary, fontSize: 12.5),
+          prefixIcon: Icon(icon, size: 17, color: const Color(0xFF1C1C1E)),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+        ),
+      ),
+    );
+  }
+
+  // ======================= MODAL: TAMBAH PENANAMAN MODAL (HUTANG) =======================
+  void _showCreateCapitalInvestmentModal(BuildContext context) {
+    final investorCtrl = TextEditingController();
     final descCtrl = TextEditingController();
-    final budgetCtrl = TextEditingController();
+    final amountCtrl = TextEditingController();
+    final invoiceDateCtrl = TextEditingController(text: DateTime.now().toIso8601String().split('T')[0]);
+    final dueDateCtrl = TextEditingController(text: DateTime.now().add(const Duration(days: 30)).toIso8601String().split('T')[0]);
     bool isSaving = false;
     String? errorText;
 
@@ -5112,174 +5883,91 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
               right: 20,
               top: 12,
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Center(
-                  child: Container(
-                    width: 36,
-                    height: 4,
-                    margin: const EdgeInsets.only(bottom: 18),
-                    decoration: BoxDecoration(color: const Color(0xFFD1D1D6), borderRadius: BorderRadius.circular(2.5)),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 36,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: 18),
+                      decoration: BoxDecoration(color: const Color(0xFFD1D1D6), borderRadius: BorderRadius.circular(2.5)),
+                    ),
                   ),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Buat Proyek Baru',
-                      style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: AppTheme.textPrimary, letterSpacing: -0.3),
-                    ),
-                    GestureDetector(
-                      onTap: () => Navigator.pop(ctx),
-                      child: Container(
-                        padding: const EdgeInsets.all(5),
-                        decoration: const BoxDecoration(color: Color(0xFFF2F2F7), shape: BoxShape.circle),
-                        child: const Icon(Icons.close_rounded, size: 16, color: AppTheme.textSecondary),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Catat Penanaman Modal', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+                      GestureDetector(
+                        onTap: () => Navigator.pop(ctx),
+                        child: const Icon(Icons.close_rounded, size: 20, color: AppTheme.textSecondary),
                       ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  if (errorText != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Text(errorText!, style: const TextStyle(color: AppTheme.expenseRed, fontSize: 12)),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  'Daftarkan proyek baru untuk melacak pemasukan dan pengeluaran secara mandiri.',
-                  style: TextStyle(fontSize: 12, color: AppTheme.textSecondary, height: 1.35),
-                ),
-                const SizedBox(height: 16),
-
-                if (errorText != null) ...[
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    margin: const EdgeInsets.only(bottom: 12),
-                    decoration: BoxDecoration(
-                      color: AppTheme.expenseRed.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: AppTheme.expenseRed.withValues(alpha: 0.25), width: 0.8),
+                  _buildCompactInput(investorCtrl, 'Sumber Modal / Nama Investor *', Icons.person_outline_rounded),
+                  const SizedBox(height: 10),
+                  _buildCompactInput(descCtrl, 'Deskripsi Penanaman Modal *', Icons.description_outlined),
+                  const SizedBox(height: 10),
+                  _buildCompactInput(amountCtrl, 'Total Modal yang di Transfer (Rp) *', Icons.attach_money_rounded, isNumber: true),
+                  const SizedBox(height: 10),
+                  _buildCompactInput(invoiceDateCtrl, 'Tanggal Terbit Invoice (YYYY-MM-DD)', Icons.date_range_rounded),
+                  const SizedBox(height: 10),
+                  _buildCompactInput(dueDateCtrl, 'Deadline Pengembalian (YYYY-MM-DD) *', Icons.event_available_rounded),
+                  const SizedBox(height: 18),
+                  ElevatedButton(
+                    onPressed: isSaving
+                        ? null
+                        : () async {
+                            final investor = investorCtrl.text.trim();
+                            final amount = int.tryParse(amountCtrl.text.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+                            final due = dueDateCtrl.text.trim();
+                            if (investor.isEmpty || amount <= 0 || due.isEmpty) {
+                              setModalState(() => errorText = 'Sumber modal, nominal, dan deadline wajib diisi');
+                              return;
+                            }
+                            setModalState(() {
+                              isSaving = true;
+                              errorText = null;
+                            });
+                            final finance = context.read<FinanceProvider>();
+                            final ok = await finance.createDebt(
+                              type: 'payable',
+                              personName: investor,
+                              amount: amount,
+                              dueDate: due,
+                              notes: descCtrl.text.trim(),
+                              scope: 'company',
+                              invoiceDate: invoiceDateCtrl.text.trim(),
+                            );
+                            if (ok && mounted) {
+                              if (ctx.mounted) Navigator.pop(ctx);
+                            } else if (mounted) {
+                              setModalState(() {
+                                isSaving = false;
+                                errorText = finance.errorMessage ?? 'Gagal mencatat penanaman modal';
+                              });
+                            }
+                          },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF1C1C1E),
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size(double.infinity, 46),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: Text(errorText!, style: const TextStyle(color: AppTheme.expenseRed, fontSize: 12, fontWeight: FontWeight.w500)),
+                    child: isSaving
+                        ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                        : const Text('Simpan Penanaman Modal', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
                   ),
                 ],
-
-                // Input Nama Proyek
-                Container(
-                  decoration: BoxDecoration(
-                    color: AppTheme.iosBg,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppTheme.iosDivider, width: 0.8),
-                  ),
-                  child: TextField(
-                    controller: nameCtrl,
-                    textCapitalization: TextCapitalization.words,
-                    style: const TextStyle(fontSize: 13.5),
-                    decoration: const InputDecoration(
-                      hintText: 'Nama Proyek (contoh: Website E-Commerce)',
-                      hintStyle: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
-                      prefixIcon: Icon(Icons.folder_outlined, size: 18, color: Color(0xFF1C1C1E)),
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 10),
-
-                // Input Target Anggaran
-                Container(
-                  decoration: BoxDecoration(
-                    color: AppTheme.iosBg,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppTheme.iosDivider, width: 0.8),
-                  ),
-                  child: TextField(
-                    controller: budgetCtrl,
-                    keyboardType: TextInputType.number,
-                    style: const TextStyle(fontSize: 13.5),
-                    decoration: const InputDecoration(
-                      hintText: 'Target Anggaran / Budget (Rp, contoh: 25000000)',
-                      hintStyle: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
-                      prefixIcon: Icon(Icons.attach_money_rounded, size: 18, color: Color(0xFF1C1C1E)),
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 10),
-
-                // Input Deskripsi
-                Container(
-                  decoration: BoxDecoration(
-                    color: AppTheme.iosBg,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppTheme.iosDivider, width: 0.8),
-                  ),
-                  child: TextField(
-                    controller: descCtrl,
-                    maxLines: 2,
-                    style: const TextStyle(fontSize: 13.5),
-                    decoration: const InputDecoration(
-                      hintText: 'Deskripsi proyek atau nama klien (opsional)',
-                      hintStyle: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
-                      prefixIcon: Icon(Icons.notes_rounded, size: 18, color: Color(0xFF1C1C1E)),
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                ElevatedButton(
-                  onPressed: isSaving
-                      ? null
-                      : () async {
-                          final name = nameCtrl.text.trim();
-                          if (name.isEmpty) {
-                            setModalState(() => errorText = 'Nama proyek tidak boleh kosong');
-                            return;
-                          }
-                          final budget = int.tryParse(budgetCtrl.text.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
-
-                          setModalState(() {
-                            isSaving = true;
-                            errorText = null;
-                          });
-
-                          final messenger = ScaffoldMessenger.of(context);
-                          final finance = context.read<FinanceProvider>();
-                          final success = await finance.createProject(
-                            name: name,
-                            description: descCtrl.text.trim().isNotEmpty ? descCtrl.text.trim() : null,
-                            targetBudget: budget,
-                          );
-
-                          if (success && mounted) {
-                            if (ctx.mounted) {
-                              Navigator.pop(ctx);
-                            }
-                            messenger.showSnackBar(
-                              SnackBar(
-                                content: Text('Proyek "$name" berhasil dibuat!'),
-                                backgroundColor: const Color(0xFF1C1C1E),
-                                behavior: SnackBarBehavior.floating,
-                              ),
-                            );
-                          } else if (mounted) {
-                            setModalState(() {
-                              isSaving = false;
-                              errorText = finance.errorMessage ?? 'Gagal membuat proyek';
-                            });
-                          }
-                        },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1C1C1E),
-                    foregroundColor: Colors.white,
-                    minimumSize: const Size(double.infinity, 46),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  child: isSaving
-                      ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                      : const Text('Simpan Proyek', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-                ),
-              ],
+              ),
             ),
           );
         },

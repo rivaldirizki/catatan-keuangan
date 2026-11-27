@@ -284,5 +284,70 @@ export const TransactionService = {
       total_expense: totalExpense,
       net_cashflow: totalIncome - totalExpense
     };
+  },
+
+  async getCompanyCashflowLedger(companyId) {
+    const rows = await db.query(
+      `SELECT t.*, p.name as project_name, p.invoice_number as project_invoice_number
+       FROM transactions t
+       LEFT JOIN projects p ON t.project_id = p.id
+       WHERE t.company_id = ? AND t.scope = ?
+       ORDER BY t.transaction_date ASC, t.id ASC`,
+      [companyId, 'company']
+    );
+
+    let runningBalance = 0;
+    let totalCashIn = 0;
+    let totalCashOut = 0;
+
+    const entries = (rows || []).map((tx, idx) => {
+      const amount = Number(tx.amount) || 0;
+      let cashIn = 0;
+      let cashOut = 0;
+
+      if (tx.type === 'income') {
+        cashIn = amount;
+        totalCashIn += amount;
+        runningBalance += amount;
+      } else if (tx.type === 'expense' || tx.type === 'debt_payment' || tx.type === 'saving_deposit') {
+        cashOut = amount;
+        totalCashOut += amount;
+        runningBalance -= amount;
+      } else if (tx.type === 'saving_withdrawal') {
+        cashIn = amount;
+        totalCashIn += amount;
+        runningBalance += amount;
+      }
+
+      const inv = tx.invoice_number || tx.project_invoice_number || null;
+      const proj = tx.project_name || null;
+      const invoiceOrProject = inv && proj
+        ? `${inv} / ${proj}`
+        : (inv || proj || 'Operasional Umum');
+
+      return {
+        row_number: idx + 1,
+        id: tx.id,
+        transaction_date: tx.transaction_date,
+        invoice_number: inv,
+        project_id: tx.project_id || null,
+        project_name: proj,
+        invoice_or_project: invoiceOrProject,
+        description: tx.notes || '-',
+        type: tx.type,
+        cash_in: cashIn,
+        cash_out: cashOut,
+        balance: runningBalance
+      };
+    });
+
+    return {
+      summary: {
+        total_cash_in: totalCashIn,
+        total_cash_out: totalCashOut,
+        final_balance: runningBalance
+      },
+      entries
+    };
   }
 };

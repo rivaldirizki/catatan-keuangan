@@ -8,6 +8,7 @@ class DebtModel {
   final int totalAmount;
   final int remainingAmount;
   final int installmentsCount;
+  final String? invoiceDate;
   final String dueDate;
   final String status; // 'unpaid', 'partially_paid', 'paid', 'overdue'
   final String computedStatus;
@@ -24,6 +25,7 @@ class DebtModel {
     required this.totalAmount,
     required this.remainingAmount,
     this.installmentsCount = 1,
+    this.invoiceDate,
     required this.dueDate,
     required this.status,
     required this.computedStatus,
@@ -50,6 +52,7 @@ class DebtModel {
       totalAmount: total,
       remainingAmount: remaining,
       installmentsCount: installments > 0 ? installments : 1,
+      invoiceDate: json['invoice_date'] != null ? json['invoice_date'].toString().split('T')[0] : null,
       dueDate: json['due_date'].toString().split('T')[0],
       status: (json['status'] as String?) ?? 'unpaid',
       computedStatus: (json['computed_status'] as String?) ?? (json['status'] as String?) ?? 'unpaid',
@@ -69,6 +72,7 @@ class DebtModel {
       'total_amount': totalAmount,
       'remaining_amount': remainingAmount,
       'installments_count': installmentsCount,
+      'invoice_date': invoiceDate,
       'due_date': dueDate,
       'status': status,
       'computed_status': computedStatus,

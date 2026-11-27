@@ -1,32 +1,148 @@
 import { db } from '../config/database.js';
 
+function calculateProjectFinancials(data = {}) {
+  const billingAmount = Math.max(0, Number(data.billing_amount) || 0);
+  const feePercent = Math.max(0, Number(data.fee_management_percent) || 0);
+  const feeManagement = feePercent > 0
+    ? Math.round((billingAmount * feePercent) / 100)
+    : Math.max(0, Number(data.fee_management) || 0);
+
+  const ppnPercent = Math.max(0, Number(data.ppn_percent) || 0);
+  const ppnAmount = ppnPercent > 0
+    ? Math.round((billingAmount * ppnPercent) / 100)
+    : Math.max(0, Number(data.ppn_amount) || 0);
+
+  const pphPercent = Math.max(0, Number(data.pph_percent) || 0);
+  const pphAmount = pphPercent > 0
+    ? Math.round((billingAmount * pphPercent) / 100)
+    : Math.max(0, Number(data.pph_amount) || 0);
+
+  const nettoAmount = Math.max(0, billingAmount - feeManagement - ppnAmount - pphAmount);
+
+  return {
+    billing_amount: billingAmount,
+    fee_management_percent: feePercent,
+    fee_management: feeManagement,
+    ppn_percent: ppnPercent,
+    ppn_amount: ppnAmount,
+    pph_percent: pphPercent,
+    pph_amount: pphAmount,
+    netto_amount: nettoAmount
+  };
+}
+
+function normalizeProjectRow(p) {
+  const budget = Number(p.target_budget) || 0;
+  const income = Number(p.current_income) || 0;
+  const expense = Number(p.current_expense) || 0;
+  const netProfit = income - expense;
+  const budgetProgress = budget > 0 ? Math.min(100, Math.round((expense / budget) * 100)) : 0;
+
+  const billingAmount = Number(p.billing_amount) || 0;
+  const feePercent = Number(p.fee_management_percent) || 0;
+  const feeManagement = Number(p.fee_management) || 0;
+  const ppnPercent = Number(p.ppn_percent) || 0;
+  const ppnAmount = Number(p.ppn_amount) || 0;
+  const pphPercent = Number(p.pph_percent) || 0;
+  const pphAmount = Number(p.pph_amount) || 0;
+  const nettoAmount = p.netto_amount !== undefined && p.netto_amount !== null
+    ? Number(p.netto_amount)
+    : Math.max(0, billingAmount - feeManagement - ppnAmount - pphAmount);
+
+  return {
+    ...p,
+    invoice_number: p.invoice_number || null,
+    target_budget: budget,
+    billing_amount: billingAmount,
+    fee_management_percent: feePercent,
+    fee_management: feeManagement,
+    ppn_percent: ppnPercent,
+    ppn_amount: ppnAmount,
+    pph_percent: pphPercent,
+    pph_amount: pphAmount,
+    netto_amount: nettoAmount,
+    payment_status: p.payment_status === 'paid' ? 'paid' : 'unpaid',
+    current_income: income,
+    current_expense: expense,
+    net_profit: netProfit,
+    budget_progress: budgetProgress
+  };
+}
+
 export const ProjectService = {
-  async createProject(companyId, userId, { name, description = null, target_budget = 0, start_date = null, end_date = null }) {
+  async createProject(companyId, userId, {
+    name,
+    description = null,
+    target_budget = 0,
+    start_date = null,
+    end_date = null,
+    invoice_number = null,
+    billing_amount = 0,
+    fee_management_percent = 0,
+    fee_management = 0,
+    ppn_percent = 0,
+    ppn_amount = 0,
+    pph_percent = 0,
+    pph_amount = 0,
+    payment_status = 'unpaid'
+  }) {
     if (!name || !name.trim()) {
       throw new Error('Nama proyek wajib diisi');
     }
 
     const budget = Math.max(0, Number(target_budget) || 0);
+    const fin = calculateProjectFinancials({
+      billing_amount,
+      fee_management_percent,
+      fee_management,
+      ppn_percent,
+      ppn_amount,
+      pph_percent,
+      pph_amount
+    });
+    const payStatus = payment_status === 'paid' ? 'paid' : 'unpaid';
+    const invNumber = invoice_number ? String(invoice_number).trim() : null;
 
     const insertRes = await db.query(
-      `INSERT INTO projects (company_id, created_by, name, description, target_budget, current_income, current_expense, status, start_date, end_date)
-       VALUES (?, ?, ?, ?, ?, 0, 0, 'active', ?, ?)`,
-      [companyId, userId, name.trim(), description, budget, start_date, end_date]
+      `INSERT INTO projects (company_id, created_by, invoice_number, name, description, target_budget, billing_amount, fee_management_percent, fee_management, ppn_percent, ppn_amount, pph_percent, pph_amount, netto_amount, payment_status, current_income, current_expense, status, start_date, end_date)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 'active', ?, ?)`,
+      [
+        companyId,
+        userId,
+        invNumber,
+        name.trim(),
+        description,
+        budget,
+        fin.billing_amount,
+        fin.fee_management_percent,
+        fin.fee_management,
+        fin.ppn_percent,
+        fin.ppn_amount,
+        fin.pph_percent,
+        fin.pph_amount,
+        fin.netto_amount,
+        payStatus,
+        start_date,
+        end_date
+      ]
     );
 
-    return {
+    return normalizeProjectRow({
       id: insertRes.insertId,
       company_id: companyId,
       created_by: userId,
+      invoice_number: invNumber,
       name: name.trim(),
       description,
       target_budget: budget,
+      ...fin,
+      payment_status: payStatus,
       current_income: 0,
       current_expense: 0,
       status: 'active',
       start_date,
       end_date
-    };
+    });
   },
 
   async getProjects(companyId, status = null) {
@@ -42,22 +158,7 @@ export const ProjectService = {
     const projects = await db.query(sql, params);
     if (!projects || projects.length === 0) return [];
 
-    return projects.map(p => {
-      const budget = Number(p.target_budget) || 0;
-      const income = Number(p.current_income) || 0;
-      const expense = Number(p.current_expense) || 0;
-      const netProfit = income - expense;
-      const budgetProgress = budget > 0 ? Math.min(100, Math.round((expense / budget) * 100)) : 0;
-
-      return {
-        ...p,
-        target_budget: budget,
-        current_income: income,
-        current_expense: expense,
-        net_profit: netProfit,
-        budget_progress: budgetProgress
-      };
-    });
+    return projects.map(normalizeProjectRow);
   },
 
   async getProjectById(companyId, projectId) {
@@ -69,12 +170,7 @@ export const ProjectService = {
       throw new Error('Proyek tidak ditemukan');
     }
 
-    const p = projects[0];
-    const budget = Number(p.target_budget) || 0;
-    const income = Number(p.current_income) || 0;
-    const expense = Number(p.current_expense) || 0;
-    const netProfit = income - expense;
-    const budgetProgress = budget > 0 ? Math.min(100, Math.round((expense / budget) * 100)) : 0;
+    const normalized = normalizeProjectRow(projects[0]);
 
     // Fetch related transactions
     const transactions = await db.query(
@@ -88,13 +184,144 @@ export const ProjectService = {
     );
 
     return {
-      ...p,
-      target_budget: budget,
-      current_income: income,
-      current_expense: expense,
-      net_profit: netProfit,
-      budget_progress: budgetProgress,
+      ...normalized,
       transactions: transactions || []
+    };
+  },
+
+  async updateProject(companyId, projectId, data = {}) {
+    const existing = await db.query(
+      'SELECT * FROM projects WHERE id = ? AND company_id = ?',
+      [projectId, companyId]
+    );
+    if (!existing || existing.length === 0) {
+      throw new Error('Proyek tidak ditemukan');
+    }
+    const p = existing[0];
+
+    const name = data.name !== undefined ? String(data.name).trim() : p.name;
+    if (!name) throw new Error('Nama proyek wajib diisi');
+    const description = data.description !== undefined ? data.description : p.description;
+    const invNumber = data.invoice_number !== undefined
+      ? (data.invoice_number ? String(data.invoice_number).trim() : null)
+      : p.invoice_number;
+    const budget = data.target_budget !== undefined
+      ? Math.max(0, Number(data.target_budget) || 0)
+      : Number(p.target_budget || 0);
+
+    const fin = calculateProjectFinancials({
+      billing_amount: data.billing_amount !== undefined ? data.billing_amount : p.billing_amount,
+      fee_management_percent: data.fee_management_percent !== undefined ? data.fee_management_percent : p.fee_management_percent,
+      fee_management: data.fee_management !== undefined ? data.fee_management : p.fee_management,
+      ppn_percent: data.ppn_percent !== undefined ? data.ppn_percent : p.ppn_percent,
+      ppn_amount: data.ppn_amount !== undefined ? data.ppn_amount : p.ppn_amount,
+      pph_percent: data.pph_percent !== undefined ? data.pph_percent : p.pph_percent,
+      pph_amount: data.pph_amount !== undefined ? data.pph_amount : p.pph_amount
+    });
+    const payStatus = data.payment_status !== undefined
+      ? (data.payment_status === 'paid' ? 'paid' : 'unpaid')
+      : (p.payment_status === 'paid' ? 'paid' : 'unpaid');
+
+    await db.query(
+      `UPDATE projects SET invoice_number = ?, name = ?, description = ?, target_budget = ?, billing_amount = ?, fee_management_percent = ?, fee_management = ?, ppn_percent = ?, ppn_amount = ?, pph_percent = ?, pph_amount = ?, netto_amount = ?, payment_status = ?
+       WHERE id = ? AND company_id = ?`,
+      [
+        invNumber,
+        name,
+        description,
+        budget,
+        fin.billing_amount,
+        fin.fee_management_percent,
+        fin.fee_management,
+        fin.ppn_percent,
+        fin.ppn_amount,
+        fin.pph_percent,
+        fin.pph_amount,
+        fin.netto_amount,
+        payStatus,
+        projectId,
+        companyId
+      ]
+    );
+
+    return normalizeProjectRow({
+      ...p,
+      invoice_number: invNumber,
+      name,
+      description,
+      target_budget: budget,
+      ...fin,
+      payment_status: payStatus
+    });
+  },
+
+  async updatePaymentStatus(companyId, projectId, paymentStatus) {
+    if (paymentStatus !== 'paid' && paymentStatus !== 'unpaid') {
+      throw new Error('Status pembayaran harus "paid" atau "unpaid"');
+    }
+    const existing = await db.query(
+      'SELECT id FROM projects WHERE id = ? AND company_id = ?',
+      [projectId, companyId]
+    );
+    if (!existing || existing.length === 0) {
+      throw new Error('Proyek tidak ditemukan');
+    }
+
+    await db.query(
+      'UPDATE projects SET payment_status = ? WHERE id = ? AND company_id = ?',
+      [paymentStatus, projectId, companyId]
+    );
+    return { id: projectId, payment_status: paymentStatus };
+  },
+
+  async getOutstandingProjects(companyId) {
+    const projects = await this.getProjects(companyId);
+    let totalBilling = 0;
+    let totalFee = 0;
+    let totalPpn = 0;
+    let totalPph = 0;
+    let totalNetto = 0;
+    let totalPaidNetto = 0;
+    let totalUnpaidNetto = 0;
+    let paidCount = 0;
+    let unpaidCount = 0;
+
+    const items = projects.map((p, idx) => {
+      totalBilling += p.billing_amount;
+      totalFee += p.fee_management;
+      totalPpn += p.ppn_amount;
+      totalPph += p.pph_amount;
+      totalNetto += p.netto_amount;
+      if (p.payment_status === 'paid') {
+        totalPaidNetto += p.netto_amount;
+        paidCount++;
+      } else {
+        totalUnpaidNetto += p.netto_amount;
+        unpaidCount++;
+      }
+
+      const invoiceAndName = p.invoice_number ? `${p.invoice_number} - ${p.name}` : p.name;
+      return {
+        row_number: idx + 1,
+        ...p,
+        invoice_and_name: invoiceAndName,
+        payment_label: p.payment_status === 'paid' ? 'Lunas' : 'Belum Lunas'
+      };
+    });
+
+    return {
+      summary: {
+        total_billing: totalBilling,
+        total_fee_management: totalFee,
+        total_ppn: totalPpn,
+        total_pph: totalPph,
+        total_netto: totalNetto,
+        total_paid_netto: totalPaidNetto,
+        total_unpaid_netto: totalUnpaidNetto,
+        paid_count: paidCount,
+        unpaid_count: unpaidCount
+      },
+      items
     };
   },
 
@@ -176,10 +403,11 @@ export const ProjectService = {
       }
 
       // Record transaction
+      const txInvoice = project.invoice_number || null;
       const insertRes = await trx.query(
-        `INSERT INTO transactions (user_id, company_id, project_id, wallet_id, category_id, type, amount, transaction_date, notes, scope)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'company')`,
-        [userId, companyId, projectId, wallet_id, validCategoryId, type, parsedAmount, txDate, finalNotes]
+        `INSERT INTO transactions (user_id, company_id, project_id, invoice_number, wallet_id, category_id, type, amount, transaction_date, notes, scope)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [userId, companyId, projectId, txInvoice, wallet_id, validCategoryId, type, parsedAmount, txDate, finalNotes, 'company']
       );
 
       return {

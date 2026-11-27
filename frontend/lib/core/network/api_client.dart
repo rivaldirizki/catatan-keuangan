@@ -51,6 +51,19 @@ class ApiClient {
     return _handleResponse(response);
   }
 
+  Future<dynamic> put(String endpoint, {Map<String, dynamic>? body}) async {
+    final uri = Uri.parse('$baseUrl$endpoint');
+    final response = await http.put(
+      uri,
+      headers: _headers(),
+      body: body != null ? jsonEncode(body) : null,
+    ).timeout(
+      timeoutDuration,
+      onTimeout: () => throw Exception('Koneksi internet lambat atau batas waktu habis (15 detik).'),
+    );
+    return _handleResponse(response);
+  }
+
   Future<dynamic> patch(String endpoint, {Map<String, dynamic>? body}) async {
     final uri = Uri.parse('$baseUrl$endpoint');
     final response = await http.patch(

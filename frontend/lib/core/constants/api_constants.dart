@@ -20,12 +20,17 @@ class ApiConstants {
   static const String companyJoin = '/company/join';
   static const String companyMembers = '/company/members';
   static const String companyCurrent = '/company/current';
+  static const String companyCashflowLedger = '/company/cashflow-ledger';
+  static const String companyOutstandingProjects = '/company/outstanding-projects';
+  static const String companyCapitalInvestments = '/company/capital-investments';
 
   // Projects
   static const String projects = '/projects';
   static String projectDetail(int id) => '/projects/$id';
+  static String projectUpdate(int id) => '/projects/$id';
   static String projectTransaction(int id) => '/projects/$id/transaction';
   static String projectStatus(int id) => '/projects/$id/status';
+  static String projectPaymentStatus(int id) => '/projects/$id/payment-status';
 
   // Wallets & Transactions
   static const String wallets = '/wallets';

@@ -40,8 +40,10 @@ export async function getPool() {
         await initConn.query(`ALTER TABLE wallets ADD COLUMN IF NOT EXISTS company_id INT NULL AFTER family_id;`);
         await initConn.query(`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS company_id INT NULL AFTER family_id;`);
         await initConn.query(`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS project_id INT NULL AFTER company_id;`);
+        await initConn.query(`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS invoice_number VARCHAR(50) NULL AFTER project_id;`);
         await initConn.query(`ALTER TABLE debts ADD COLUMN IF NOT EXISTS company_id INT NULL AFTER family_id;`);
         await initConn.query(`ALTER TABLE debts ADD COLUMN IF NOT EXISTS installments_count INT NOT NULL DEFAULT 1 AFTER remaining_amount;`);
+        await initConn.query(`ALTER TABLE debts ADD COLUMN IF NOT EXISTS invoice_date DATE NULL AFTER installments_count;`);
         await initConn.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS chat_invite_code VARCHAR(20) NULL;`);
         try {
           const [nullUsers] = await initConn.query('SELECT id FROM users WHERE chat_invite_code IS NULL OR chat_invite_code = ""');
@@ -72,9 +74,19 @@ export async function getPool() {
             id INT AUTO_INCREMENT PRIMARY KEY,
             company_id INT NOT NULL,
             created_by INT NOT NULL,
+            invoice_number VARCHAR(50) NULL,
             name VARCHAR(150) NOT NULL,
             description TEXT NULL,
             target_budget BIGINT NOT NULL DEFAULT 0,
+            billing_amount BIGINT NOT NULL DEFAULT 0,
+            fee_management_percent DECIMAL(5,2) NOT NULL DEFAULT 0,
+            fee_management BIGINT NOT NULL DEFAULT 0,
+            ppn_percent DECIMAL(5,2) NOT NULL DEFAULT 0,
+            ppn_amount BIGINT NOT NULL DEFAULT 0,
+            pph_percent DECIMAL(5,2) NOT NULL DEFAULT 0,
+            pph_amount BIGINT NOT NULL DEFAULT 0,
+            netto_amount BIGINT NOT NULL DEFAULT 0,
+            payment_status ENUM('unpaid', 'paid') NOT NULL DEFAULT 'unpaid',
             current_income BIGINT NOT NULL DEFAULT 0,
             current_expense BIGINT NOT NULL DEFAULT 0,
             status ENUM('active', 'completed', 'on_hold') DEFAULT 'active',
@@ -85,6 +97,18 @@ export async function getPool() {
             FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
           ) ENGINE=InnoDB;
         `);
+        try {
+          await initConn.query(`ALTER TABLE projects ADD COLUMN IF NOT EXISTS invoice_number VARCHAR(50) NULL AFTER created_by;`);
+          await initConn.query(`ALTER TABLE projects ADD COLUMN IF NOT EXISTS billing_amount BIGINT NOT NULL DEFAULT 0 AFTER target_budget;`);
+          await initConn.query(`ALTER TABLE projects ADD COLUMN IF NOT EXISTS fee_management_percent DECIMAL(5,2) NOT NULL DEFAULT 0 AFTER billing_amount;`);
+          await initConn.query(`ALTER TABLE projects ADD COLUMN IF NOT EXISTS fee_management BIGINT NOT NULL DEFAULT 0 AFTER fee_management_percent;`);
+          await initConn.query(`ALTER TABLE projects ADD COLUMN IF NOT EXISTS ppn_percent DECIMAL(5,2) NOT NULL DEFAULT 0 AFTER fee_management;`);
+          await initConn.query(`ALTER TABLE projects ADD COLUMN IF NOT EXISTS ppn_amount BIGINT NOT NULL DEFAULT 0 AFTER ppn_percent;`);
+          await initConn.query(`ALTER TABLE projects ADD COLUMN IF NOT EXISTS pph_percent DECIMAL(5,2) NOT NULL DEFAULT 0 AFTER ppn_amount;`);
+          await initConn.query(`ALTER TABLE projects ADD COLUMN IF NOT EXISTS pph_amount BIGINT NOT NULL DEFAULT 0 AFTER pph_percent;`);
+          await initConn.query(`ALTER TABLE projects ADD COLUMN IF NOT EXISTS netto_amount BIGINT NOT NULL DEFAULT 0 AFTER pph_amount;`);
+          await initConn.query(`ALTER TABLE projects ADD COLUMN IF NOT EXISTS payment_status ENUM('unpaid', 'paid') NOT NULL DEFAULT 'unpaid' AFTER netto_amount;`);
+        } catch (_) {}
         await initConn.query(`
           CREATE TABLE IF NOT EXISTS categories (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -302,6 +326,15 @@ class MockDatabase {
           rows.forEach(r => {
             const w = this.tables.wallets.find(wal => wal.id === r.wallet_id);
             if (w) r.wallet_name = w.name;
+          });
+        }
+        if (/LEFT\s+JOIN\s+projects/i.test(joinClause) && this.tables.projects) {
+          rows.forEach(r => {
+            const p = this.tables.projects.find(proj => proj.id === r.project_id);
+            if (p) {
+              r.project_name = p.name;
+              r.project_invoice_number = p.invoice_number || null;
+            }
           });
         }
       }

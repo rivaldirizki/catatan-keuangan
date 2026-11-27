@@ -5,6 +5,8 @@ import { AuthService } from '../src/services/auth.service.js';
 import { CompanyService } from '../src/services/company.service.js';
 import { ProjectService } from '../src/services/project.service.js';
 import { WalletService } from '../src/services/wallet.service.js';
+import { TransactionService } from '../src/services/transaction.service.js';
+import { DebtService } from '../src/services/debt.service.js';
 
 describe('Task 3: ProjectService (TDD)', () => {
   beforeEach(() => {
@@ -166,5 +168,102 @@ describe('Task 3: ProjectService (TDD)', () => {
 
     const projDetails = await ProjectService.getProjectById(comp.id, proj.id);
     assert.strictEqual(Number(projDetails.current_income), 7500000);
+  });
+
+  it('should compute Outstanding Project (Netto after Fee Management, PPN, PPh) and update payment status', async () => {
+    const ceo = await AuthService.register('CEO', 'ceo7@biz.com', 'secret123');
+    const comp = await CompanyService.createCompany(ceo.user.id, 'PT Linc Indo');
+
+    // Nilai Tagihan: 100.000.000, Fee Mgmt 5% (5jt), PPN 11% (11jt), PPh 2% (2jt) => Netto = 82.000.000
+    const proj = await ProjectService.createProject(comp.id, ceo.user.id, {
+      invoice_number: 'INV/2026/001',
+      name: 'Semkit Bitung',
+      description: 'Pengadaan & Instalasi Semkit',
+      billing_amount: 100000000,
+      fee_management_percent: 5,
+      ppn_percent: 11,
+      pph_percent: 2,
+      payment_status: 'unpaid'
+    });
+
+    assert.strictEqual(proj.invoice_number, 'INV/2026/001');
+    assert.strictEqual(proj.fee_management, 5000000);
+    assert.strictEqual(proj.ppn_amount, 11000000);
+    assert.strictEqual(proj.pph_amount, 2000000);
+    assert.strictEqual(proj.netto_amount, 82000000);
+    assert.strictEqual(proj.payment_status, 'unpaid');
+
+    let outstanding = await ProjectService.getOutstandingProjects(comp.id);
+    assert.strictEqual(outstanding.summary.total_billing, 100000000);
+    assert.strictEqual(outstanding.summary.total_netto, 82000000);
+    assert.strictEqual(outstanding.summary.total_unpaid_netto, 82000000);
+    assert.strictEqual(outstanding.summary.unpaid_count, 1);
+
+    await ProjectService.updatePaymentStatus(comp.id, proj.id, 'paid');
+    outstanding = await ProjectService.getOutstandingProjects(comp.id);
+    assert.strictEqual(outstanding.summary.total_paid_netto, 82000000);
+    assert.strictEqual(outstanding.summary.total_unpaid_netto, 0);
+    assert.strictEqual(outstanding.summary.paid_count, 1);
+    assert.strictEqual(outstanding.items[0].payment_label, 'Lunas');
+  });
+
+  it('should compute Company Cashflow Ledger with accurate running balance and Capital Investments', async () => {
+    const ceo = await AuthService.register('CEO', 'ceo8@biz.com', 'secret123');
+    const comp = await CompanyService.createCompany(ceo.user.id, 'PT Linc Ledger');
+    const compWallet = await WalletService.createWallet(ceo.user.id, 'Kas Perusahaan', 0, 'company', null, comp.id);
+
+    const proj = await ProjectService.createProject(comp.id, ceo.user.id, {
+      invoice_number: 'INV-99',
+      name: 'Proyek A',
+      billing_amount: 50000000
+    });
+
+    await ProjectService.recordTransaction(ceo.user.id, comp.id, proj.id, {
+      wallet_id: compWallet.id,
+      type: 'income',
+      amount: 25000000,
+      date: '2026-11-20',
+      notes: 'Termin 1'
+    });
+    await ProjectService.recordTransaction(ceo.user.id, comp.id, proj.id, {
+      wallet_id: compWallet.id,
+      type: 'expense',
+      amount: 10000000,
+      date: '2026-11-21',
+      notes: 'Belanja Material'
+    });
+
+    const ledger = await TransactionService.getCompanyCashflowLedger(comp.id);
+    assert.strictEqual(ledger.entries.length, 2);
+    assert.strictEqual(ledger.entries[0].row_number, 1);
+    assert.strictEqual(ledger.entries[0].invoice_or_project, 'INV-99 / Proyek A');
+    assert.strictEqual(ledger.entries[0].cash_in, 25000000);
+    assert.strictEqual(ledger.entries[0].balance, 25000000);
+    assert.strictEqual(ledger.entries[1].row_number, 2);
+    assert.strictEqual(ledger.entries[1].cash_out, 10000000);
+    assert.strictEqual(ledger.entries[1].balance, 15000000);
+    assert.strictEqual(ledger.summary.final_balance, 15000000);
+
+    // Capital investment (Rincian Penanaman Modal / Hutang)
+    await DebtService.createDebt(
+      ceo.user.id,
+      'payable',
+      'Investor Pak Budi',
+      30000000,
+      '2027-01-15',
+      'Modal Kerja Awal',
+      'company',
+      null,
+      comp.id,
+      1,
+      null,
+      '2026-11-01'
+    );
+    const cap = await DebtService.getCompanyCapitalInvestments(comp.id);
+    assert.strictEqual(cap.items.length, 1);
+    assert.strictEqual(cap.items[0].invoice_date, '2026-11-01');
+    assert.strictEqual(cap.items[0].total_amount, 30000000);
+    assert.strictEqual(cap.items[0].due_date, '2027-01-15');
+    assert.strictEqual(cap.summary.total_capital_transferred, 30000000);
   });
 });
